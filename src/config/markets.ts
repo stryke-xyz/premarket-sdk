@@ -147,7 +147,7 @@ export const CHAIN_MARKET_CONFIGS: Record<
         createBand("1", 5000000000n, 10000000000n),
       ],
       icon: "/images/usdai-icon.png",
-      stableTokenDecimals: 18,
+      stableTokenDecimals: 6,
       collateralToken: {
         address: USDC[megaETHTestnet.id].address,
         decimals: USDC[megaETHTestnet.id].decimals,
