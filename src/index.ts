@@ -31,6 +31,6 @@ export * from "./api/filler.js";
 export * from "./sync/index.js";
 // Export Ponder client
 export * from "./ponder/index.js";
-// Export config
 export * from "./config/index.js";
 export * from "./config/markets.js";
+export * from "./config/chains.js";

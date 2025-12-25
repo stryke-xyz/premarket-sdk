@@ -7,16 +7,21 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
+      "types": "./dist/types/src/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "node": "./dist/cjs/index.js",
+      "default": "./dist/cjs/index.js"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "npm run build:esm && npm run build:cjs && npm run build:types",
+    "build:esm": "swc --config-file esm.swcrc ./src -d dist/esm --strip-leading-paths --copy-files && node -e 'const pkg = require(\"./package.json\"); require(\"fs\").writeFileSync(\"dist/esm/package.json\", JSON.stringify({name: pkg.name, version: pkg.version, type: \"module\"}))'",
+    "build:cjs": "swc --config-file cjs.swcrc ./src -d dist/cjs --strip-leading-paths --copy-files",
+    "build:types": "tsc --project tsconfig.types.json",
     "test": "bun test",
     "test:e2e": "bun test test/e2e/index.test.ts",
     "ponder:codegen": "genql --schema ./src/ponder/schema.graphql --output ./src/ponder/generated",

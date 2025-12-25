@@ -14,5 +14,5 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src"]
+  "include": ["./src/**/*.ts", "./src/**/*.json"]
 }
