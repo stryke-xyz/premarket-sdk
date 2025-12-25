@@ -1,0 +1,63 @@
+[
+  {
+    "name": "fillOrderArgs",
+    "type": "function",
+    "stateMutability": "payable",
+    "inputs": [
+      {
+        "name": "order",
+        "type": "tuple",
+        "components": [
+          { "name": "salt", "type": "uint256" },
+          { "name": "maker", "type": "uint256" },
+          { "name": "receiver", "type": "uint256" },
+          { "name": "makerAsset", "type": "uint256" },
+          { "name": "takerAsset", "type": "uint256" },
+          { "name": "makingAmount", "type": "uint256" },
+          { "name": "takingAmount", "type": "uint256" },
+          { "name": "makerTraits", "type": "uint256" }
+        ]
+      },
+      { "name": "r", "type": "bytes32" },
+      { "name": "vs", "type": "bytes32" },
+      { "name": "amount", "type": "uint256" },
+      { "name": "takerTraits", "type": "uint256" },
+      { "name": "args", "type": "bytes" }
+    ],
+    "outputs": [
+      { "name": "makingAmount", "type": "uint256" },
+      { "name": "takingAmount", "type": "uint256" },
+      { "name": "orderHash", "type": "bytes32" }
+    ]
+  },
+  {
+    "name": "fillContractOrderArgs",
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      {
+        "name": "order",
+        "type": "tuple",
+        "components": [
+          { "name": "salt", "type": "uint256" },
+          { "name": "maker", "type": "uint256" },
+          { "name": "receiver", "type": "uint256" },
+          { "name": "makerAsset", "type": "uint256" },
+          { "name": "takerAsset", "type": "uint256" },
+          { "name": "makingAmount", "type": "uint256" },
+          { "name": "takingAmount", "type": "uint256" },
+          { "name": "makerTraits", "type": "uint256" }
+        ]
+      },
+      { "name": "signature", "type": "bytes" },
+      { "name": "amount", "type": "uint256" },
+      { "name": "takerTraits", "type": "uint256" },
+      { "name": "args", "type": "bytes" }
+    ],
+    "outputs": [
+      { "name": "makingAmount", "type": "uint256" },
+      { "name": "takingAmount", "type": "uint256" },
+      { "name": "orderHash", "type": "bytes32" }
+    ]
+  }
+]

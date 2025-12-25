@@ -1,0 +1,5 @@
+{
+  "schema": "./src/ponder/schema.graphql",
+  "output": "./src/ponder/generated",
+  "overwrite": true
+}
