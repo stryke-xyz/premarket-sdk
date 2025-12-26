@@ -3,15 +3,18 @@ import type {
   OptionMarket,
   OptionParams,
   HourlyVolume,
-  CollateralPosition,
-  OptionPosition,
+  Position,
   DepositHistory,
   TransferDepositHistory,
+  TransferCollateralSharesHistory,
+  TransferOptionsSharesHistory,
   PurchaseHistory,
   TransferPositionHistory,
   ExerciseHistory,
   UnwindHistory,
+  WithdrawHistory,
   SettlementHistory,
+  OrderFillHistory,
   UserHistories,
 } from "./index.js";
 
@@ -43,7 +46,10 @@ export function serializeOptionParams(data: any): OptionParams {
     strikeLowerLimit: BigInt(data.strikeLowerLimit ?? 0),
     strikeUpperLimit: BigInt(data.strikeUpperLimit ?? 0),
     isPut: Boolean(data.isPut),
-    collateralPerShare: data.collateralPerShare != null ? BigInt(data.collateralPerShare) : undefined,
+    collateralPerShare:
+      data.collateralPerShare != null
+        ? BigInt(data.collateralPerShare)
+        : undefined,
   };
 }
 
@@ -85,47 +91,33 @@ export function serializeHourlyVolume(data: any): HourlyVolume {
 }
 
 /**
- * Serialize raw GraphQL query result into CollateralPosition type
+ * Serialize raw GraphQL query result into Position type
  */
-export function serializeCollateralPosition(data: any): CollateralPosition {
+export function serializePosition(data: any): Position {
+  // Extract userId from user relation (user.id) or fallback to direct userId/user field
+  const userId =
+    data.userId ??
+    (typeof data.user === "object" && data.user?.id
+      ? data.user.id
+      : data.user) ??
+    "";
+
   return {
     id: String(data.id),
     optionId: String(data.optionId ?? ""),
     optionMarketId: String(data.optionMarketId ?? ""),
-    totalCollateral: BigInt(data.totalCollateral ?? 0),
-    optionsMinted: BigInt(data.optionsMinted ?? 0),
-    optionsExercised: BigInt(data.optionsExercised ?? 0),
+    userId: String(userId),
+    collateralShares: BigInt(data.collateralShares ?? 0),
+    optionsShares: BigInt(data.optionsShares ?? 0),
     premiumEarned: BigInt(data.premiumEarned ?? 0),
     fee: BigInt(data.fee ?? 0),
     settled: Boolean(data.settled),
     updatedAt: BigInt(data.updatedAt ?? 0),
     updatedAtBlock: BigInt(data.updatedAtBlock ?? 0),
-    optionMarket: data.optionMarket
-      ? serializeOptionMarket(data.optionMarket)
-      : undefined,
-    optionParams: data.optionParams
-      ? serializeOptionParams(data.optionParams)
-      : undefined,
-  };
-}
-
-/**
- * Serialize raw GraphQL query result into OptionPosition type
- */
-export function serializeOptionPosition(data: any): OptionPosition {
-  return {
-    id: String(data.id),
-    tokenId: BigInt(data.tokenId ?? 0),
-    address: data.address as `0x${string}`,
-    optionId: String(data.optionId ?? ""),
-    optionMarketId: String(data.optionMarketId ?? ""),
-    premium: BigInt(data.premium ?? 0),
-    fee: BigInt(data.fee ?? 0),
     profit: BigInt(data.profit ?? 0),
-    amount: BigInt(data.amount ?? 0),
     averagePrice: BigInt(data.averagePrice ?? 0),
-    updatedAt: BigInt(data.updatedAt ?? 0),
-    updatedAtBlock: BigInt(data.updatedAtBlock ?? 0),
+    optionsSharesExercised: BigInt(data.optionsSharesExercised ?? 0),
+    premiumPaid: BigInt(data.premiumPaid ?? 0),
     optionMarket: data.optionMarket
       ? serializeOptionMarket(data.optionMarket)
       : undefined,
@@ -216,10 +208,14 @@ export function serializeTransferPositionHistory(
  * Serialize raw GraphQL query result into ExerciseHistory type
  */
 export function serializeExerciseHistory(data: any): ExerciseHistory {
+  // Extract exerciser from user field (user is the exerciser in the query)
+  const exerciser =
+    typeof data.user === "object" && data.user?.id ? data.user.id : data.user;
+
   return {
     id: String(data.id),
     optionId: String(data.optionId ?? ""),
-    exerciser: data.exerciser as `0x${string}`,
+    exerciser: exerciser as `0x${string}`,
     amount: BigInt(data.amount ?? 0),
     profitAmount: BigInt(data.profitAmount ?? 0),
     fee: BigInt(data.fee ?? 0),
@@ -256,14 +252,112 @@ export function serializeUnwindHistory(data: any): UnwindHistory {
  * Serialize raw GraphQL query result into SettlementHistory type
  */
 export function serializeSettlementHistory(data: any): SettlementHistory {
+  // Extract marketId - it might be in optionMarketId or marketId field
+  const optionMarketId = data.optionMarketId ?? data.marketId ?? "";
+
   return {
     id: String(data.id),
     optionId: String(data.optionId ?? ""),
-    optionMarketId: String(data.optionMarketId ?? ""),
+    optionMarketId: String(optionMarketId),
     totalCollateralSettled: BigInt(data.totalCollateralSettled ?? 0),
     transactionHash: data.transactionHash as `0x${string}`,
     blockNumber: BigInt(data.blockNumber ?? 0),
     timestamp: BigInt(data.timestamp ?? 0),
+  };
+}
+
+/**
+ * Serialize raw GraphQL query result into WithdrawHistory type
+ */
+export function serializeWithdrawHistory(data: any): WithdrawHistory {
+  const user =
+    typeof data.user === "object" && data.user?.id ? data.user.id : data.user;
+  const receiver =
+    typeof data.receiver === "object" && data.receiver?.id
+      ? data.receiver.id
+      : data.receiver;
+
+  return {
+    id: String(data.id),
+    optionId: String(data.optionId ?? ""),
+    marketId: BigInt(data.marketId ?? 0),
+    user: user as `0x${string}`,
+    receiver: receiver as `0x${string}`,
+    sharesBurnt: BigInt(data.sharesBurnt ?? 0),
+    transactionHash: data.transactionHash as `0x${string}`,
+    blockNumber: BigInt(data.blockNumber ?? 0),
+    timestamp: BigInt(data.timestamp ?? 0),
+  };
+}
+
+/**
+ * Serialize raw GraphQL query result into TransferCollateralSharesHistory type
+ */
+export function serializeTransferCollateralSharesHistory(
+  data: any
+): TransferCollateralSharesHistory {
+  return {
+    id: String(data.id),
+    optionId: String(data.optionId ?? ""),
+    marketId: BigInt(data.marketId ?? 0),
+    user: data.user as `0x${string}`,
+    receiver: data.receiver as `0x${string}`,
+    amount: BigInt(data.amount ?? 0),
+    transactionHash: data.transactionHash as `0x${string}`,
+    blockNumber: BigInt(data.blockNumber ?? 0),
+    timestamp: BigInt(data.timestamp ?? 0),
+    userSide: data.userSide || "sender", // "sender" | "receiver" | "both"
+  };
+}
+
+/**
+ * Serialize raw GraphQL query result into TransferOptionsSharesHistory type
+ */
+export function serializeTransferOptionsSharesHistory(
+  data: any
+): TransferOptionsSharesHistory {
+  return {
+    id: String(data.id),
+    optionId: String(data.optionId ?? ""),
+    marketId: BigInt(data.marketId ?? 0),
+    user: data.user as `0x${string}`,
+    receiver: data.receiver as `0x${string}`,
+    amount: BigInt(data.amount ?? 0),
+    transactionHash: data.transactionHash as `0x${string}`,
+    blockNumber: BigInt(data.blockNumber ?? 0),
+    timestamp: BigInt(data.timestamp ?? 0),
+    userSide: data.userSide || "sender", // "sender" | "receiver" | "both"
+  };
+}
+
+/**
+ * Serialize raw GraphQL query result into OrderFillHistory type
+ */
+export function serializeOrderFillHistory(data: any): OrderFillHistory {
+  // Extract maker and taker from user objects if they're relations
+  const maker =
+    typeof data.maker === "object" && data.maker?.id
+      ? data.maker.id
+      : data.maker;
+  const taker =
+    typeof data.taker === "object" && data.taker?.id
+      ? data.taker.id
+      : data.taker;
+
+  return {
+    id: String(data.id),
+    orderHash: data.orderHash as `0x${string}`,
+    maker: maker as `0x${string}`,
+    taker: taker as `0x${string}`,
+    optionTokenId:
+      data.optionTokenId != null ? BigInt(data.optionTokenId) : null,
+    makingAmount: BigInt(data.makingAmount ?? 0),
+    takingAmount: BigInt(data.takingAmount ?? 0),
+    price: BigInt(data.price ?? 0),
+    transactionHash: data.transactionHash as `0x${string}`,
+    blockNumber: BigInt(data.blockNumber ?? 0),
+    timestamp: BigInt(data.timestamp ?? 0),
+    userSide: data.userSide || "maker", // "maker" | "taker"
   };
 }
 
@@ -276,17 +370,24 @@ export function serializeUserHistories(data: any): UserHistories {
     transferDepositHistory: (data.transferDepositHistory || []).map(
       serializeTransferDepositHistory
     ),
+    transferCollateralSharesHistory: (
+      data.transferCollateralSharesHistory || []
+    ).map(serializeTransferCollateralSharesHistory),
+    transferOptionsSharesHistory: (data.transferOptionsSharesHistory || []).map(
+      serializeTransferOptionsSharesHistory
+    ),
     purchaseHistory: (data.purchaseHistory || []).map(serializePurchaseHistory),
     transferPositionHistory: (data.transferPositionHistory || []).map(
       serializeTransferPositionHistory
     ),
     exerciseHistory: (data.exerciseHistory || []).map(serializeExerciseHistory),
     unwindHistory: (data.unwindHistory || []).map(serializeUnwindHistory),
+    withdrawHistory: (data.withdrawHistory || []).map(serializeWithdrawHistory),
     settlementHistory: (data.settlementHistory || []).map(
       serializeSettlementHistory
     ),
+    orderFillHistory: (data.orderFillHistory || []).map(
+      serializeOrderFillHistory
+    ),
   };
 }
-
-
-

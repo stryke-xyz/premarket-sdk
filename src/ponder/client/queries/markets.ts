@@ -1,22 +1,16 @@
 import { convertBigIntFields } from "../utils.js";
 import type { Client } from "../../generated/index.js";
-import type {
-  OptionMarket,
-  CollateralPosition,
-  OptionPosition,
-  HourlyVolume,
-} from "../types/index.js";
+import type { OptionMarket, Position, HourlyVolume } from "../types/index.js";
 import {
   serializeOptionMarket,
-  serializeCollateralPosition,
-  serializeOptionPosition,
+  serializePosition,
   serializeHourlyVolume,
+  serializeOptionParams,
 } from "../types/serializers.js";
 
 export interface MarketData {
   market: OptionMarket;
-  collateralPositions: CollateralPosition[];
-  optionPositions: OptionPosition[];
+  positions: Position[];
 }
 
 export async function getMarketData(
@@ -44,30 +38,37 @@ export async function getMarketData(
         collateralToken: true,
       },
       collateralToken: true,
-      totalCollateral: true,
+      totalCollateralShares: true,
       totalCollateralAmount: true,
       protocolFees: true,
-      collateralPositions: {
+      positions: {
         __args: { where: { optionMarketId: marketId }, limit: 1000 },
         items: {
           id: true,
-          totalCollateral: true,
-          optionsMinted: true,
-          optionsExercised: true,
+          optionId: true,
+          optionMarketId: true,
+          user: {
+            id: true,
+          },
+          collateralShares: true,
+          optionsShares: true,
+          optionsSharesExercised: true,
+          premiumEarned: true,
+          fee: true,
           settled: true,
-          fee: true,
-        },
-      },
-      optionPositions: {
-        __args: { where: { optionMarketId: marketId }, limit: 1000 },
-        items: {
-          id: true,
-          address: true,
-          premium: true,
-          fee: true,
+          updatedAt: true,
+          updatedAtBlock: true,
           profit: true,
-          amount: true,
           averagePrice: true,
+          premiumPaid: true,
+          optionParams: {
+            id: true,
+            marketId: true,
+            strikeLowerLimit: true,
+            strikeUpperLimit: true,
+            isPut: true,
+            collateralPerShare: true,
+          },
         },
       },
     },
@@ -77,21 +78,32 @@ export async function getMarketData(
 
   const converted = convertBigIntFields({
     market: result.optionMarket,
-    collateralPositions: result.optionMarket.collateralPositions?.items || [],
-    optionPositions: result.optionMarket.optionPositions?.items || [],
+    positions: result.optionMarket.positions?.items || [],
   });
 
   const marketData = converted as {
     market: any;
-    collateralPositions: any[];
-    optionPositions: any[];
+    positions: any[];
   };
+
+  // Serialize all positions
+  const positions: Position[] = marketData.positions.map((item: any) => {
+    const pos = serializePosition(item);
+    return {
+      ...pos,
+      optionMarket: {
+        ...marketData.market,
+        totalCollateral: BigInt(marketData.market.totalCollateralShares ?? 0),
+      },
+    };
+  });
+
   return {
-    market: serializeOptionMarket(marketData.market),
-    collateralPositions: marketData.collateralPositions.map(
-      serializeCollateralPosition
-    ),
-    optionPositions: marketData.optionPositions.map(serializeOptionPosition),
+    market: serializeOptionMarket({
+      ...marketData.market,
+      totalCollateral: marketData.market.totalCollateralShares,
+    }),
+    positions,
   };
 }
 
@@ -118,7 +130,7 @@ export async function getMarkets(client: Client): Promise<OptionMarket[]> {
           collateralToken: true,
         },
         collateralToken: true,
-        totalCollateral: true,
+        totalCollateralShares: true,
         totalCollateralAmount: true,
         protocolFees: true,
       },
@@ -129,7 +141,12 @@ export async function getMarkets(client: Client): Promise<OptionMarket[]> {
   if (!Array.isArray(converted)) {
     throw new Error("Expected array of markets");
   }
-  return converted.map((item) => serializeOptionMarket(item));
+  return converted.map((item: any) =>
+    serializeOptionMarket({
+      ...item,
+      totalCollateral: item.totalCollateralShares,
+    })
+  );
 }
 
 export async function getMarket(
@@ -157,7 +174,7 @@ export async function getMarket(
         collateralToken: true,
       },
       collateralToken: true,
-      totalCollateral: true,
+      totalCollateralShares: true,
       totalCollateralAmount: true,
       protocolFees: true,
     },
@@ -165,12 +182,14 @@ export async function getMarket(
 
   if (!result.optionMarket) return null;
   const converted = convertBigIntFields(result.optionMarket);
-  return serializeOptionMarket(converted);
+  return serializeOptionMarket({
+    ...converted,
+    totalCollateral: (converted as any).totalCollateralShares,
+  });
 }
 
 export interface MarketPositions {
-  collateralPositions: CollateralPosition[];
-  optionPositions: OptionPosition[];
+  positions: Position[];
 }
 
 export async function getMarketPositions(
@@ -179,12 +198,11 @@ export async function getMarketPositions(
 ): Promise<MarketPositions> {
   const marketData = await getMarketData(client, marketId);
   if (!marketData) {
-    return { collateralPositions: [], optionPositions: [] };
+    return { positions: [] };
   }
 
   return {
-    collateralPositions: marketData.collateralPositions,
-    optionPositions: marketData.optionPositions,
+    positions: marketData.positions,
   };
 }
 
@@ -204,7 +222,7 @@ export async function getHourlyVolumes(
     hourlyVolumes: {
       __args: {
         where: {
-          marketId: BigInt(marketId),
+          marketId: marketId,
           hourTimestamp_gte: startTimestamp,
           hourTimestamp_lte: endTimestamp,
         },

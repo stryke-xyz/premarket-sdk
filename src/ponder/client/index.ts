@@ -11,15 +11,14 @@ import {
   type MarketPositions,
 } from "./queries/markets.js";
 import {
-  getUserCollateralPositions,
-  getUserOptionPositions,
+  getUserPositions,
+  getAllUserPositions,
   getUserHistories,
-  getAllUserOptionPositions,
-  getAllUserCollateralPositions,
 } from "./queries/positions.js";
 
 export * from "./types/index.js";
 export type { MarketData, MarketPositions } from "./queries/markets.js";
+export type { Position } from "./types/position.js";
 
 export class PonderClient {
   private client: Client;
@@ -46,24 +45,16 @@ export class PonderClient {
     return getMarketPositions(this.client, marketId);
   }
 
-  async getUserCollateralPositions(userAddress: string, marketId: string) {
-    return getUserCollateralPositions(this.client, userAddress, marketId);
+  async getUserPositions(userAddress: string, marketId: string) {
+    return getUserPositions(this.client, userAddress, marketId);
   }
 
-  async getUserOptionPositions(userAddress: string, marketId: string) {
-    return getUserOptionPositions(this.client, userAddress, marketId);
+  async getAllUserPositions(userAddress: string) {
+    return getAllUserPositions(this.client, userAddress);
   }
 
   async getUserHistories(userAddress: string, marketId: string) {
     return getUserHistories(this.client, userAddress, marketId);
-  }
-
-  async getAllUserOptionPositions(userAddress: string) {
-    return getAllUserOptionPositions(this.client, userAddress);
-  }
-
-  async getAllUserCollateralPositions(userAddress: string) {
-    return getAllUserCollateralPositions(this.client, userAddress);
   }
 
   async getHourlyVolumes(marketId: string, startTimestamp: bigint, endTimestamp: bigint) {

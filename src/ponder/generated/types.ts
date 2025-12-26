@@ -166,7 +166,7 @@ export default {
                 }
             ],
             "optionParams": [
-                17,
+                40,
                 {
                     "id": [
                         4,
@@ -197,7 +197,7 @@ export default {
                     ]
                 }
             ],
-            "collateralPosition": [
+            "position": [
                 13,
                 {
                     "id": [
@@ -206,8 +206,40 @@ export default {
                     ]
                 }
             ],
-            "collateralPositions": [
+            "positions": [
                 12,
+                {
+                    "where": [
+                        15
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "depositHistory": [
+                17,
+                {
+                    "id": [
+                        4,
+                        "String!"
+                    ]
+                }
+            ],
+            "depositHistorys": [
+                16,
                 {
                     "where": [
                         18
@@ -229,52 +261,20 @@ export default {
                     ]
                 }
             ],
-            "optionPosition": [
-                16,
-                {
-                    "id": [
-                        4,
-                        "String!"
-                    ]
-                }
-            ],
-            "optionPositions": [
-                15,
-                {
-                    "where": [
-                        19
-                    ],
-                    "orderBy": [
-                        4
-                    ],
-                    "orderDirection": [
-                        4
-                    ],
-                    "before": [
-                        4
-                    ],
-                    "after": [
-                        4
-                    ],
-                    "limit": [
-                        7
-                    ]
-                }
-            ],
-            "depositHistory": [
-                21,
-                {
-                    "id": [
-                        4,
-                        "String!"
-                    ]
-                }
-            ],
-            "depositHistorys": [
+            "transferCollateralSharesHistory": [
                 20,
                 {
+                    "id": [
+                        4,
+                        "String!"
+                    ]
+                }
+            ],
+            "transferCollateralSharesHistorys": [
+                19,
+                {
                     "where": [
-                        22
+                        21
                     ],
                     "orderBy": [
                         4
@@ -293,84 +293,20 @@ export default {
                     ]
                 }
             ],
-            "transferDepositHistory": [
-                24,
-                {
-                    "id": [
-                        4,
-                        "String!"
-                    ]
-                }
-            ],
-            "transferDepositHistorys": [
+            "transferOptionsSharesHistory": [
                 23,
                 {
-                    "where": [
-                        25
-                    ],
-                    "orderBy": [
-                        4
-                    ],
-                    "orderDirection": [
-                        4
-                    ],
-                    "before": [
-                        4
-                    ],
-                    "after": [
-                        4
-                    ],
-                    "limit": [
-                        7
-                    ]
-                }
-            ],
-            "purchaseHistory": [
-                27,
-                {
                     "id": [
                         4,
                         "String!"
                     ]
                 }
             ],
-            "purchaseHistorys": [
-                26,
+            "transferOptionsSharesHistorys": [
+                22,
                 {
                     "where": [
-                        28
-                    ],
-                    "orderBy": [
-                        4
-                    ],
-                    "orderDirection": [
-                        4
-                    ],
-                    "before": [
-                        4
-                    ],
-                    "after": [
-                        4
-                    ],
-                    "limit": [
-                        7
-                    ]
-                }
-            ],
-            "transferPositionHistory": [
-                36,
-                {
-                    "id": [
-                        4,
-                        "String!"
-                    ]
-                }
-            ],
-            "transferPositionHistorys": [
-                35,
-                {
-                    "where": [
-                        37
+                        24
                     ],
                     "orderBy": [
                         4
@@ -390,7 +326,7 @@ export default {
                 }
             ],
             "exerciseHistory": [
-                30,
+                26,
                 {
                     "id": [
                         4,
@@ -399,10 +335,42 @@ export default {
                 }
             ],
             "exerciseHistorys": [
-                29,
+                25,
                 {
                     "where": [
-                        31
+                        27
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "withdrawHistory": [
+                29,
+                {
+                    "id": [
+                        4,
+                        "String!"
+                    ]
+                }
+            ],
+            "withdrawHistorys": [
+                28,
+                {
+                    "where": [
+                        30
                     ],
                     "orderBy": [
                         4
@@ -422,7 +390,7 @@ export default {
                 }
             ],
             "unwindHistory": [
-                33,
+                32,
                 {
                     "id": [
                         4,
@@ -431,10 +399,10 @@ export default {
                 }
             ],
             "unwindHistorys": [
-                32,
+                31,
                 {
                     "where": [
-                        34
+                        33
                     ],
                     "orderBy": [
                         4
@@ -454,7 +422,7 @@ export default {
                 }
             ],
             "orderFillHistory": [
-                50,
+                35,
                 {
                     "id": [
                         4,
@@ -463,6 +431,38 @@ export default {
                 }
             ],
             "orderFillHistorys": [
+                34,
+                {
+                    "where": [
+                        36
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "orderCancelHistory": [
+                50,
+                {
+                    "id": [
+                        4,
+                        "String!"
+                    ]
+                }
+            ],
+            "orderCancelHistorys": [
                 51,
                 {
                     "where": [
@@ -485,40 +485,8 @@ export default {
                     ]
                 }
             ],
-            "orderCancelHistory": [
-                53,
-                {
-                    "id": [
-                        4,
-                        "String!"
-                    ]
-                }
-            ],
-            "orderCancelHistorys": [
-                54,
-                {
-                    "where": [
-                        55
-                    ],
-                    "orderBy": [
-                        4
-                    ],
-                    "orderDirection": [
-                        4
-                    ],
-                    "before": [
-                        4
-                    ],
-                    "after": [
-                        4
-                    ],
-                    "limit": [
-                        7
-                    ]
-                }
-            ],
             "settlementHistory": [
-                39,
+                38,
                 {
                     "id": [
                         4,
@@ -527,10 +495,10 @@ export default {
                 }
             ],
             "settlementHistorys": [
-                38,
+                37,
                 {
                     "where": [
-                        40
+                        39
                     ],
                     "orderBy": [
                         4
@@ -550,7 +518,7 @@ export default {
                 }
             ],
             "hourlyVolume": [
-                56,
+                53,
                 {
                     "id": [
                         4,
@@ -559,10 +527,10 @@ export default {
                 }
             ],
             "hourlyVolumes": [
-                57,
+                54,
                 {
                     "where": [
-                        58
+                        55
                     ],
                     "orderBy": [
                         4
@@ -680,7 +648,7 @@ export default {
             "collateralToken": [
                 4
             ],
-            "totalCollateral": [
+            "totalCollateralShares": [
                 1
             ],
             "totalCollateralAmount": [
@@ -704,34 +672,11 @@ export default {
             "global": [
                 8
             ],
-            "collateralPositions": [
+            "positions": [
                 12,
                 {
                     "where": [
-                        18
-                    ],
-                    "orderBy": [
-                        4
-                    ],
-                    "orderDirection": [
-                        4
-                    ],
-                    "before": [
-                        4
-                    ],
-                    "after": [
-                        4
-                    ],
-                    "limit": [
-                        7
-                    ]
-                }
-            ],
-            "optionPositions": [
-                15,
-                {
-                    "where": [
-                        19
+                        15
                     ],
                     "orderBy": [
                         4
@@ -801,7 +746,7 @@ export default {
                 4
             ]
         },
-        "CollateralPositionPage": {
+        "PositionPage": {
             "items": [
                 13
             ],
@@ -815,7 +760,7 @@ export default {
                 4
             ]
         },
-        "CollateralPosition": {
+        "Position": {
             "id": [
                 4
             ],
@@ -828,13 +773,10 @@ export default {
             "user": [
                 14
             ],
-            "totalCollateral": [
+            "collateralShares": [
                 1
             ],
-            "optionsMinted": [
-                1
-            ],
-            "optionsExercised": [
+            "optionsShares": [
                 1
             ],
             "premiumEarned": [
@@ -852,8 +794,20 @@ export default {
             "updatedAtBlock": [
                 1
             ],
+            "profit": [
+                1
+            ],
+            "averagePrice": [
+                1
+            ],
+            "optionsSharesExercised": [
+                1
+            ],
+            "premiumPaid": [
+                1
+            ],
             "optionParams": [
-                17
+                40
             ],
             "optionMarket": [
                 10
@@ -872,34 +826,11 @@ export default {
             "updatedAtBlock": [
                 1
             ],
-            "optionsPositions": [
-                15,
-                {
-                    "where": [
-                        19
-                    ],
-                    "orderBy": [
-                        4
-                    ],
-                    "orderDirection": [
-                        4
-                    ],
-                    "before": [
-                        4
-                    ],
-                    "after": [
-                        4
-                    ],
-                    "limit": [
-                        7
-                    ]
-                }
-            ],
-            "collateralPositions": [
+            "positions": [
                 12,
                 {
                     "where": [
-                        18
+                        15
                     ],
                     "orderBy": [
                         4
@@ -919,261 +850,7 @@ export default {
                 }
             ],
             "depositHistory": [
-                20,
-                {
-                    "where": [
-                        22
-                    ],
-                    "orderBy": [
-                        4
-                    ],
-                    "orderDirection": [
-                        4
-                    ],
-                    "before": [
-                        4
-                    ],
-                    "after": [
-                        4
-                    ],
-                    "limit": [
-                        7
-                    ]
-                }
-            ],
-            "transferDepositHistory": [
-                23,
-                {
-                    "where": [
-                        25
-                    ],
-                    "orderBy": [
-                        4
-                    ],
-                    "orderDirection": [
-                        4
-                    ],
-                    "before": [
-                        4
-                    ],
-                    "after": [
-                        4
-                    ],
-                    "limit": [
-                        7
-                    ]
-                }
-            ],
-            "purchaseHistory": [
-                26,
-                {
-                    "where": [
-                        28
-                    ],
-                    "orderBy": [
-                        4
-                    ],
-                    "orderDirection": [
-                        4
-                    ],
-                    "before": [
-                        4
-                    ],
-                    "after": [
-                        4
-                    ],
-                    "limit": [
-                        7
-                    ]
-                }
-            ],
-            "exerciseHistory": [
-                29,
-                {
-                    "where": [
-                        31
-                    ],
-                    "orderBy": [
-                        4
-                    ],
-                    "orderDirection": [
-                        4
-                    ],
-                    "before": [
-                        4
-                    ],
-                    "after": [
-                        4
-                    ],
-                    "limit": [
-                        7
-                    ]
-                }
-            ],
-            "unwindHistory": [
-                32,
-                {
-                    "where": [
-                        34
-                    ],
-                    "orderBy": [
-                        4
-                    ],
-                    "orderDirection": [
-                        4
-                    ],
-                    "before": [
-                        4
-                    ],
-                    "after": [
-                        4
-                    ],
-                    "limit": [
-                        7
-                    ]
-                }
-            ],
-            "transferPositionHistory": [
-                35,
-                {
-                    "where": [
-                        37
-                    ],
-                    "orderBy": [
-                        4
-                    ],
-                    "orderDirection": [
-                        4
-                    ],
-                    "before": [
-                        4
-                    ],
-                    "after": [
-                        4
-                    ],
-                    "limit": [
-                        7
-                    ]
-                }
-            ],
-            "settlementHistory": [
-                38,
-                {
-                    "where": [
-                        40
-                    ],
-                    "orderBy": [
-                        4
-                    ],
-                    "orderDirection": [
-                        4
-                    ],
-                    "before": [
-                        4
-                    ],
-                    "after": [
-                        4
-                    ],
-                    "limit": [
-                        7
-                    ]
-                }
-            ],
-            "__typename": [
-                4
-            ]
-        },
-        "OptionPositionPage": {
-            "items": [
-                16
-            ],
-            "pageInfo": [
-                2
-            ],
-            "totalCount": [
-                7
-            ],
-            "__typename": [
-                4
-            ]
-        },
-        "OptionPosition": {
-            "id": [
-                4
-            ],
-            "tokenId": [
-                1
-            ],
-            "address": [
-                4
-            ],
-            "optionId": [
-                4
-            ],
-            "optionMarketId": [
-                4
-            ],
-            "user": [
-                14
-            ],
-            "premium": [
-                1
-            ],
-            "fee": [
-                1
-            ],
-            "profit": [
-                1
-            ],
-            "amount": [
-                1
-            ],
-            "averagePrice": [
-                1
-            ],
-            "updatedAt": [
-                1
-            ],
-            "updatedAtBlock": [
-                1
-            ],
-            "optionParams": [
-                17
-            ],
-            "optionMarket": [
-                10
-            ],
-            "__typename": [
-                4
-            ]
-        },
-        "OptionParams": {
-            "id": [
-                4
-            ],
-            "marketId": [
-                1
-            ],
-            "strikeLowerLimit": [
-                1
-            ],
-            "strikeUpperLimit": [
-                1
-            ],
-            "isPut": [
-                3
-            ],
-            "collateralPerShare": [
-                1
-            ],
-            "createdAt": [
-                1
-            ],
-            "createdAtBlock": [
-                1
-            ],
-            "collateralPositions": [
-                12,
+                16,
                 {
                     "where": [
                         18
@@ -1195,11 +872,310 @@ export default {
                     ]
                 }
             ],
-            "optionPositions": [
-                15,
+            "transferCollateralSharesHistory": [
+                19,
                 {
                     "where": [
-                        19
+                        21
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "transferCollateralSharesHistoryAsReceiver": [
+                19,
+                {
+                    "where": [
+                        21
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "transferOptionsSharesHistory": [
+                22,
+                {
+                    "where": [
+                        24
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "transferOptionsSharesHistoryAsReceiver": [
+                22,
+                {
+                    "where": [
+                        24
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "exerciseHistoryAsMaker": [
+                25,
+                {
+                    "where": [
+                        27
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "exerciseHistory": [
+                25,
+                {
+                    "where": [
+                        27
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "exerciseHistoryAsExerciser": [
+                25,
+                {
+                    "where": [
+                        27
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "withdrawHistory": [
+                28,
+                {
+                    "where": [
+                        30
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "withdrawHistoryAsReceiver": [
+                28,
+                {
+                    "where": [
+                        30
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "unwindHistory": [
+                31,
+                {
+                    "where": [
+                        33
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "unwindHistoryAsReceiver": [
+                31,
+                {
+                    "where": [
+                        33
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "orderFillHistoryAsMaker": [
+                34,
+                {
+                    "where": [
+                        36
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "orderFillHistoryAsTaker": [
+                34,
+                {
+                    "where": [
+                        36
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
+            ],
+            "settlementHistory": [
+                37,
+                {
+                    "where": [
+                        39
                     ],
                     "orderBy": [
                         4
@@ -1222,12 +1198,12 @@ export default {
                 4
             ]
         },
-        "CollateralPositionFilter": {
+        "PositionFilter": {
             "AND": [
-                18
+                15
             ],
             "OR": [
-                18
+                15
             ],
             "id": [
                 4
@@ -1349,76 +1325,52 @@ export default {
             "user_not_ends_with": [
                 4
             ],
-            "totalCollateral": [
+            "collateralShares": [
                 1
             ],
-            "totalCollateral_not": [
+            "collateralShares_not": [
                 1
             ],
-            "totalCollateral_in": [
+            "collateralShares_in": [
                 1
             ],
-            "totalCollateral_not_in": [
+            "collateralShares_not_in": [
                 1
             ],
-            "totalCollateral_gt": [
+            "collateralShares_gt": [
                 1
             ],
-            "totalCollateral_lt": [
+            "collateralShares_lt": [
                 1
             ],
-            "totalCollateral_gte": [
+            "collateralShares_gte": [
                 1
             ],
-            "totalCollateral_lte": [
+            "collateralShares_lte": [
                 1
             ],
-            "optionsMinted": [
+            "optionsShares": [
                 1
             ],
-            "optionsMinted_not": [
+            "optionsShares_not": [
                 1
             ],
-            "optionsMinted_in": [
+            "optionsShares_in": [
                 1
             ],
-            "optionsMinted_not_in": [
+            "optionsShares_not_in": [
                 1
             ],
-            "optionsMinted_gt": [
+            "optionsShares_gt": [
                 1
             ],
-            "optionsMinted_lt": [
+            "optionsShares_lt": [
                 1
             ],
-            "optionsMinted_gte": [
+            "optionsShares_gte": [
                 1
             ],
-            "optionsMinted_lte": [
-                1
-            ],
-            "optionsExercised": [
-                1
-            ],
-            "optionsExercised_not": [
-                1
-            ],
-            "optionsExercised_in": [
-                1
-            ],
-            "optionsExercised_not_in": [
-                1
-            ],
-            "optionsExercised_gt": [
-                1
-            ],
-            "optionsExercised_lt": [
-                1
-            ],
-            "optionsExercised_gte": [
-                1
-            ],
-            "optionsExercised_lte": [
+            "optionsShares_lte": [
                 1
             ],
             "premiumEarned": [
@@ -1529,239 +1481,6 @@ export default {
             "updatedAtBlock_lte": [
                 1
             ],
-            "__typename": [
-                4
-            ]
-        },
-        "OptionPositionFilter": {
-            "AND": [
-                19
-            ],
-            "OR": [
-                19
-            ],
-            "id": [
-                4
-            ],
-            "id_not": [
-                4
-            ],
-            "id_in": [
-                4
-            ],
-            "id_not_in": [
-                4
-            ],
-            "id_contains": [
-                4
-            ],
-            "id_not_contains": [
-                4
-            ],
-            "id_starts_with": [
-                4
-            ],
-            "id_ends_with": [
-                4
-            ],
-            "id_not_starts_with": [
-                4
-            ],
-            "id_not_ends_with": [
-                4
-            ],
-            "tokenId": [
-                1
-            ],
-            "tokenId_not": [
-                1
-            ],
-            "tokenId_in": [
-                1
-            ],
-            "tokenId_not_in": [
-                1
-            ],
-            "tokenId_gt": [
-                1
-            ],
-            "tokenId_lt": [
-                1
-            ],
-            "tokenId_gte": [
-                1
-            ],
-            "tokenId_lte": [
-                1
-            ],
-            "address": [
-                4
-            ],
-            "address_not": [
-                4
-            ],
-            "address_in": [
-                4
-            ],
-            "address_not_in": [
-                4
-            ],
-            "address_contains": [
-                4
-            ],
-            "address_not_contains": [
-                4
-            ],
-            "address_starts_with": [
-                4
-            ],
-            "address_ends_with": [
-                4
-            ],
-            "address_not_starts_with": [
-                4
-            ],
-            "address_not_ends_with": [
-                4
-            ],
-            "optionId": [
-                4
-            ],
-            "optionId_not": [
-                4
-            ],
-            "optionId_in": [
-                4
-            ],
-            "optionId_not_in": [
-                4
-            ],
-            "optionId_contains": [
-                4
-            ],
-            "optionId_not_contains": [
-                4
-            ],
-            "optionId_starts_with": [
-                4
-            ],
-            "optionId_ends_with": [
-                4
-            ],
-            "optionId_not_starts_with": [
-                4
-            ],
-            "optionId_not_ends_with": [
-                4
-            ],
-            "optionMarketId": [
-                4
-            ],
-            "optionMarketId_not": [
-                4
-            ],
-            "optionMarketId_in": [
-                4
-            ],
-            "optionMarketId_not_in": [
-                4
-            ],
-            "optionMarketId_contains": [
-                4
-            ],
-            "optionMarketId_not_contains": [
-                4
-            ],
-            "optionMarketId_starts_with": [
-                4
-            ],
-            "optionMarketId_ends_with": [
-                4
-            ],
-            "optionMarketId_not_starts_with": [
-                4
-            ],
-            "optionMarketId_not_ends_with": [
-                4
-            ],
-            "user": [
-                4
-            ],
-            "user_not": [
-                4
-            ],
-            "user_in": [
-                4
-            ],
-            "user_not_in": [
-                4
-            ],
-            "user_contains": [
-                4
-            ],
-            "user_not_contains": [
-                4
-            ],
-            "user_starts_with": [
-                4
-            ],
-            "user_ends_with": [
-                4
-            ],
-            "user_not_starts_with": [
-                4
-            ],
-            "user_not_ends_with": [
-                4
-            ],
-            "premium": [
-                1
-            ],
-            "premium_not": [
-                1
-            ],
-            "premium_in": [
-                1
-            ],
-            "premium_not_in": [
-                1
-            ],
-            "premium_gt": [
-                1
-            ],
-            "premium_lt": [
-                1
-            ],
-            "premium_gte": [
-                1
-            ],
-            "premium_lte": [
-                1
-            ],
-            "fee": [
-                1
-            ],
-            "fee_not": [
-                1
-            ],
-            "fee_in": [
-                1
-            ],
-            "fee_not_in": [
-                1
-            ],
-            "fee_gt": [
-                1
-            ],
-            "fee_lt": [
-                1
-            ],
-            "fee_gte": [
-                1
-            ],
-            "fee_lte": [
-                1
-            ],
             "profit": [
                 1
             ],
@@ -1784,30 +1503,6 @@ export default {
                 1
             ],
             "profit_lte": [
-                1
-            ],
-            "amount": [
-                1
-            ],
-            "amount_not": [
-                1
-            ],
-            "amount_in": [
-                1
-            ],
-            "amount_not_in": [
-                1
-            ],
-            "amount_gt": [
-                1
-            ],
-            "amount_lt": [
-                1
-            ],
-            "amount_gte": [
-                1
-            ],
-            "amount_lte": [
                 1
             ],
             "averagePrice": [
@@ -1834,52 +1529,52 @@ export default {
             "averagePrice_lte": [
                 1
             ],
-            "updatedAt": [
+            "optionsSharesExercised": [
                 1
             ],
-            "updatedAt_not": [
+            "optionsSharesExercised_not": [
                 1
             ],
-            "updatedAt_in": [
+            "optionsSharesExercised_in": [
                 1
             ],
-            "updatedAt_not_in": [
+            "optionsSharesExercised_not_in": [
                 1
             ],
-            "updatedAt_gt": [
+            "optionsSharesExercised_gt": [
                 1
             ],
-            "updatedAt_lt": [
+            "optionsSharesExercised_lt": [
                 1
             ],
-            "updatedAt_gte": [
+            "optionsSharesExercised_gte": [
                 1
             ],
-            "updatedAt_lte": [
+            "optionsSharesExercised_lte": [
                 1
             ],
-            "updatedAtBlock": [
+            "premiumPaid": [
                 1
             ],
-            "updatedAtBlock_not": [
+            "premiumPaid_not": [
                 1
             ],
-            "updatedAtBlock_in": [
+            "premiumPaid_in": [
                 1
             ],
-            "updatedAtBlock_not_in": [
+            "premiumPaid_not_in": [
                 1
             ],
-            "updatedAtBlock_gt": [
+            "premiumPaid_gt": [
                 1
             ],
-            "updatedAtBlock_lt": [
+            "premiumPaid_lt": [
                 1
             ],
-            "updatedAtBlock_gte": [
+            "premiumPaid_gte": [
                 1
             ],
-            "updatedAtBlock_lte": [
+            "premiumPaid_lte": [
                 1
             ],
             "__typename": [
@@ -1888,7 +1583,7 @@ export default {
         },
         "DepositHistoryPage": {
             "items": [
-                21
+                17
             ],
             "pageInfo": [
                 2
@@ -1912,9 +1607,6 @@ export default {
             ],
             "user": [
                 14
-            ],
-            "receiver": [
-                4
             ],
             "amount": [
                 1
@@ -1940,10 +1632,331 @@ export default {
         },
         "DepositHistoryFilter": {
             "AND": [
-                22
+                18
             ],
             "OR": [
-                22
+                18
+            ],
+            "id": [
+                4
+            ],
+            "id_not": [
+                4
+            ],
+            "id_in": [
+                4
+            ],
+            "id_not_in": [
+                4
+            ],
+            "id_contains": [
+                4
+            ],
+            "id_not_contains": [
+                4
+            ],
+            "id_starts_with": [
+                4
+            ],
+            "id_ends_with": [
+                4
+            ],
+            "id_not_starts_with": [
+                4
+            ],
+            "id_not_ends_with": [
+                4
+            ],
+            "optionId": [
+                4
+            ],
+            "optionId_not": [
+                4
+            ],
+            "optionId_in": [
+                4
+            ],
+            "optionId_not_in": [
+                4
+            ],
+            "optionId_contains": [
+                4
+            ],
+            "optionId_not_contains": [
+                4
+            ],
+            "optionId_starts_with": [
+                4
+            ],
+            "optionId_ends_with": [
+                4
+            ],
+            "optionId_not_starts_with": [
+                4
+            ],
+            "optionId_not_ends_with": [
+                4
+            ],
+            "marketId": [
+                1
+            ],
+            "marketId_not": [
+                1
+            ],
+            "marketId_in": [
+                1
+            ],
+            "marketId_not_in": [
+                1
+            ],
+            "marketId_gt": [
+                1
+            ],
+            "marketId_lt": [
+                1
+            ],
+            "marketId_gte": [
+                1
+            ],
+            "marketId_lte": [
+                1
+            ],
+            "user": [
+                4
+            ],
+            "user_not": [
+                4
+            ],
+            "user_in": [
+                4
+            ],
+            "user_not_in": [
+                4
+            ],
+            "user_contains": [
+                4
+            ],
+            "user_not_contains": [
+                4
+            ],
+            "user_starts_with": [
+                4
+            ],
+            "user_ends_with": [
+                4
+            ],
+            "user_not_starts_with": [
+                4
+            ],
+            "user_not_ends_with": [
+                4
+            ],
+            "amount": [
+                1
+            ],
+            "amount_not": [
+                1
+            ],
+            "amount_in": [
+                1
+            ],
+            "amount_not_in": [
+                1
+            ],
+            "amount_gt": [
+                1
+            ],
+            "amount_lt": [
+                1
+            ],
+            "amount_gte": [
+                1
+            ],
+            "amount_lte": [
+                1
+            ],
+            "collateralAmount": [
+                1
+            ],
+            "collateralAmount_not": [
+                1
+            ],
+            "collateralAmount_in": [
+                1
+            ],
+            "collateralAmount_not_in": [
+                1
+            ],
+            "collateralAmount_gt": [
+                1
+            ],
+            "collateralAmount_lt": [
+                1
+            ],
+            "collateralAmount_gte": [
+                1
+            ],
+            "collateralAmount_lte": [
+                1
+            ],
+            "fee": [
+                1
+            ],
+            "fee_not": [
+                1
+            ],
+            "fee_in": [
+                1
+            ],
+            "fee_not_in": [
+                1
+            ],
+            "fee_gt": [
+                1
+            ],
+            "fee_lt": [
+                1
+            ],
+            "fee_gte": [
+                1
+            ],
+            "fee_lte": [
+                1
+            ],
+            "transactionHash": [
+                4
+            ],
+            "transactionHash_not": [
+                4
+            ],
+            "transactionHash_in": [
+                4
+            ],
+            "transactionHash_not_in": [
+                4
+            ],
+            "transactionHash_contains": [
+                4
+            ],
+            "transactionHash_not_contains": [
+                4
+            ],
+            "transactionHash_starts_with": [
+                4
+            ],
+            "transactionHash_ends_with": [
+                4
+            ],
+            "transactionHash_not_starts_with": [
+                4
+            ],
+            "transactionHash_not_ends_with": [
+                4
+            ],
+            "blockNumber": [
+                1
+            ],
+            "blockNumber_not": [
+                1
+            ],
+            "blockNumber_in": [
+                1
+            ],
+            "blockNumber_not_in": [
+                1
+            ],
+            "blockNumber_gt": [
+                1
+            ],
+            "blockNumber_lt": [
+                1
+            ],
+            "blockNumber_gte": [
+                1
+            ],
+            "blockNumber_lte": [
+                1
+            ],
+            "timestamp": [
+                1
+            ],
+            "timestamp_not": [
+                1
+            ],
+            "timestamp_in": [
+                1
+            ],
+            "timestamp_not_in": [
+                1
+            ],
+            "timestamp_gt": [
+                1
+            ],
+            "timestamp_lt": [
+                1
+            ],
+            "timestamp_gte": [
+                1
+            ],
+            "timestamp_lte": [
+                1
+            ],
+            "__typename": [
+                4
+            ]
+        },
+        "TransferCollateralSharesHistoryPage": {
+            "items": [
+                20
+            ],
+            "pageInfo": [
+                2
+            ],
+            "totalCount": [
+                7
+            ],
+            "__typename": [
+                4
+            ]
+        },
+        "TransferCollateralSharesHistory": {
+            "id": [
+                4
+            ],
+            "optionId": [
+                4
+            ],
+            "marketId": [
+                1
+            ],
+            "user": [
+                14
+            ],
+            "receiver": [
+                14
+            ],
+            "amount": [
+                1
+            ],
+            "transactionHash": [
+                4
+            ],
+            "blockNumber": [
+                1
+            ],
+            "timestamp": [
+                1
+            ],
+            "__typename": [
+                4
+            ]
+        },
+        "TransferCollateralSharesHistoryFilter": {
+            "AND": [
+                21
+            ],
+            "OR": [
+                21
             ],
             "id": [
                 4
@@ -2113,54 +2126,6 @@ export default {
             "amount_lte": [
                 1
             ],
-            "collateralAmount": [
-                1
-            ],
-            "collateralAmount_not": [
-                1
-            ],
-            "collateralAmount_in": [
-                1
-            ],
-            "collateralAmount_not_in": [
-                1
-            ],
-            "collateralAmount_gt": [
-                1
-            ],
-            "collateralAmount_lt": [
-                1
-            ],
-            "collateralAmount_gte": [
-                1
-            ],
-            "collateralAmount_lte": [
-                1
-            ],
-            "fee": [
-                1
-            ],
-            "fee_not": [
-                1
-            ],
-            "fee_in": [
-                1
-            ],
-            "fee_not_in": [
-                1
-            ],
-            "fee_gt": [
-                1
-            ],
-            "fee_lt": [
-                1
-            ],
-            "fee_gte": [
-                1
-            ],
-            "fee_lte": [
-                1
-            ],
             "transactionHash": [
                 4
             ],
@@ -2243,64 +2208,58 @@ export default {
                 4
             ]
         },
-        "TransferDepositHistoryPage": {
+        "TransferOptionsSharesHistoryPage": {
             "items": [
+                23
+            ],
+            "pageInfo": [
+                2
+            ],
+            "totalCount": [
+                7
+            ],
+            "__typename": [
+                4
+            ]
+        },
+        "TransferOptionsSharesHistory": {
+            "id": [
+                4
+            ],
+            "optionId": [
+                4
+            ],
+            "marketId": [
+                1
+            ],
+            "user": [
+                14
+            ],
+            "receiver": [
+                14
+            ],
+            "amount": [
+                1
+            ],
+            "transactionHash": [
+                4
+            ],
+            "blockNumber": [
+                1
+            ],
+            "timestamp": [
+                1
+            ],
+            "__typename": [
+                4
+            ]
+        },
+        "TransferOptionsSharesHistoryFilter": {
+            "AND": [
                 24
             ],
-            "pageInfo": [
-                2
-            ],
-            "totalCount": [
-                7
-            ],
-            "__typename": [
-                4
-            ]
-        },
-        "TransferDepositHistory": {
-            "id": [
-                4
-            ],
-            "optionId": [
-                4
-            ],
-            "marketId": [
-                1
-            ],
-            "user": [
-                14
-            ],
-            "receiver": [
-                14
-            ],
-            "amount": [
-                1
-            ],
-            "collateralAmount": [
-                1
-            ],
-            "fee": [
-                1
-            ],
-            "transactionHash": [
-                4
-            ],
-            "blockNumber": [
-                1
-            ],
-            "timestamp": [
-                1
-            ],
-            "__typename": [
-                4
-            ]
-        },
-        "TransferDepositHistoryFilter": {
-            "AND": [
-                25
-            ],
             "OR": [
-                25
+                24
             ],
             "id": [
                 4
@@ -2468,498 +2427,6 @@ export default {
                 1
             ],
             "amount_lte": [
-                1
-            ],
-            "collateralAmount": [
-                1
-            ],
-            "collateralAmount_not": [
-                1
-            ],
-            "collateralAmount_in": [
-                1
-            ],
-            "collateralAmount_not_in": [
-                1
-            ],
-            "collateralAmount_gt": [
-                1
-            ],
-            "collateralAmount_lt": [
-                1
-            ],
-            "collateralAmount_gte": [
-                1
-            ],
-            "collateralAmount_lte": [
-                1
-            ],
-            "fee": [
-                1
-            ],
-            "fee_not": [
-                1
-            ],
-            "fee_in": [
-                1
-            ],
-            "fee_not_in": [
-                1
-            ],
-            "fee_gt": [
-                1
-            ],
-            "fee_lt": [
-                1
-            ],
-            "fee_gte": [
-                1
-            ],
-            "fee_lte": [
-                1
-            ],
-            "transactionHash": [
-                4
-            ],
-            "transactionHash_not": [
-                4
-            ],
-            "transactionHash_in": [
-                4
-            ],
-            "transactionHash_not_in": [
-                4
-            ],
-            "transactionHash_contains": [
-                4
-            ],
-            "transactionHash_not_contains": [
-                4
-            ],
-            "transactionHash_starts_with": [
-                4
-            ],
-            "transactionHash_ends_with": [
-                4
-            ],
-            "transactionHash_not_starts_with": [
-                4
-            ],
-            "transactionHash_not_ends_with": [
-                4
-            ],
-            "blockNumber": [
-                1
-            ],
-            "blockNumber_not": [
-                1
-            ],
-            "blockNumber_in": [
-                1
-            ],
-            "blockNumber_not_in": [
-                1
-            ],
-            "blockNumber_gt": [
-                1
-            ],
-            "blockNumber_lt": [
-                1
-            ],
-            "blockNumber_gte": [
-                1
-            ],
-            "blockNumber_lte": [
-                1
-            ],
-            "timestamp": [
-                1
-            ],
-            "timestamp_not": [
-                1
-            ],
-            "timestamp_in": [
-                1
-            ],
-            "timestamp_not_in": [
-                1
-            ],
-            "timestamp_gt": [
-                1
-            ],
-            "timestamp_lt": [
-                1
-            ],
-            "timestamp_gte": [
-                1
-            ],
-            "timestamp_lte": [
-                1
-            ],
-            "__typename": [
-                4
-            ]
-        },
-        "PurchaseHistoryPage": {
-            "items": [
-                27
-            ],
-            "pageInfo": [
-                2
-            ],
-            "totalCount": [
-                7
-            ],
-            "__typename": [
-                4
-            ]
-        },
-        "PurchaseHistory": {
-            "id": [
-                4
-            ],
-            "optionId": [
-                4
-            ],
-            "marketId": [
-                1
-            ],
-            "maker": [
-                14
-            ],
-            "receiver": [
-                14
-            ],
-            "purchaser": [
-                4
-            ],
-            "amount": [
-                1
-            ],
-            "premiumAmount": [
-                1
-            ],
-            "fee": [
-                1
-            ],
-            "optionShares": [
-                1
-            ],
-            "sharesUtilized": [
-                1
-            ],
-            "transactionHash": [
-                4
-            ],
-            "blockNumber": [
-                1
-            ],
-            "timestamp": [
-                1
-            ],
-            "__typename": [
-                4
-            ]
-        },
-        "PurchaseHistoryFilter": {
-            "AND": [
-                28
-            ],
-            "OR": [
-                28
-            ],
-            "id": [
-                4
-            ],
-            "id_not": [
-                4
-            ],
-            "id_in": [
-                4
-            ],
-            "id_not_in": [
-                4
-            ],
-            "id_contains": [
-                4
-            ],
-            "id_not_contains": [
-                4
-            ],
-            "id_starts_with": [
-                4
-            ],
-            "id_ends_with": [
-                4
-            ],
-            "id_not_starts_with": [
-                4
-            ],
-            "id_not_ends_with": [
-                4
-            ],
-            "optionId": [
-                4
-            ],
-            "optionId_not": [
-                4
-            ],
-            "optionId_in": [
-                4
-            ],
-            "optionId_not_in": [
-                4
-            ],
-            "optionId_contains": [
-                4
-            ],
-            "optionId_not_contains": [
-                4
-            ],
-            "optionId_starts_with": [
-                4
-            ],
-            "optionId_ends_with": [
-                4
-            ],
-            "optionId_not_starts_with": [
-                4
-            ],
-            "optionId_not_ends_with": [
-                4
-            ],
-            "marketId": [
-                1
-            ],
-            "marketId_not": [
-                1
-            ],
-            "marketId_in": [
-                1
-            ],
-            "marketId_not_in": [
-                1
-            ],
-            "marketId_gt": [
-                1
-            ],
-            "marketId_lt": [
-                1
-            ],
-            "marketId_gte": [
-                1
-            ],
-            "marketId_lte": [
-                1
-            ],
-            "maker": [
-                4
-            ],
-            "maker_not": [
-                4
-            ],
-            "maker_in": [
-                4
-            ],
-            "maker_not_in": [
-                4
-            ],
-            "maker_contains": [
-                4
-            ],
-            "maker_not_contains": [
-                4
-            ],
-            "maker_starts_with": [
-                4
-            ],
-            "maker_ends_with": [
-                4
-            ],
-            "maker_not_starts_with": [
-                4
-            ],
-            "maker_not_ends_with": [
-                4
-            ],
-            "receiver": [
-                4
-            ],
-            "receiver_not": [
-                4
-            ],
-            "receiver_in": [
-                4
-            ],
-            "receiver_not_in": [
-                4
-            ],
-            "receiver_contains": [
-                4
-            ],
-            "receiver_not_contains": [
-                4
-            ],
-            "receiver_starts_with": [
-                4
-            ],
-            "receiver_ends_with": [
-                4
-            ],
-            "receiver_not_starts_with": [
-                4
-            ],
-            "receiver_not_ends_with": [
-                4
-            ],
-            "purchaser": [
-                4
-            ],
-            "purchaser_not": [
-                4
-            ],
-            "purchaser_in": [
-                4
-            ],
-            "purchaser_not_in": [
-                4
-            ],
-            "purchaser_contains": [
-                4
-            ],
-            "purchaser_not_contains": [
-                4
-            ],
-            "purchaser_starts_with": [
-                4
-            ],
-            "purchaser_ends_with": [
-                4
-            ],
-            "purchaser_not_starts_with": [
-                4
-            ],
-            "purchaser_not_ends_with": [
-                4
-            ],
-            "amount": [
-                1
-            ],
-            "amount_not": [
-                1
-            ],
-            "amount_in": [
-                1
-            ],
-            "amount_not_in": [
-                1
-            ],
-            "amount_gt": [
-                1
-            ],
-            "amount_lt": [
-                1
-            ],
-            "amount_gte": [
-                1
-            ],
-            "amount_lte": [
-                1
-            ],
-            "premiumAmount": [
-                1
-            ],
-            "premiumAmount_not": [
-                1
-            ],
-            "premiumAmount_in": [
-                1
-            ],
-            "premiumAmount_not_in": [
-                1
-            ],
-            "premiumAmount_gt": [
-                1
-            ],
-            "premiumAmount_lt": [
-                1
-            ],
-            "premiumAmount_gte": [
-                1
-            ],
-            "premiumAmount_lte": [
-                1
-            ],
-            "fee": [
-                1
-            ],
-            "fee_not": [
-                1
-            ],
-            "fee_in": [
-                1
-            ],
-            "fee_not_in": [
-                1
-            ],
-            "fee_gt": [
-                1
-            ],
-            "fee_lt": [
-                1
-            ],
-            "fee_gte": [
-                1
-            ],
-            "fee_lte": [
-                1
-            ],
-            "optionShares": [
-                1
-            ],
-            "optionShares_not": [
-                1
-            ],
-            "optionShares_in": [
-                1
-            ],
-            "optionShares_not_in": [
-                1
-            ],
-            "optionShares_gt": [
-                1
-            ],
-            "optionShares_lt": [
-                1
-            ],
-            "optionShares_gte": [
-                1
-            ],
-            "optionShares_lte": [
-                1
-            ],
-            "sharesUtilized": [
-                1
-            ],
-            "sharesUtilized_not": [
-                1
-            ],
-            "sharesUtilized_in": [
-                1
-            ],
-            "sharesUtilized_not_in": [
-                1
-            ],
-            "sharesUtilized_gt": [
-                1
-            ],
-            "sharesUtilized_lt": [
-                1
-            ],
-            "sharesUtilized_gte": [
-                1
-            ],
-            "sharesUtilized_lte": [
                 1
             ],
             "transactionHash": [
@@ -3046,7 +2513,7 @@ export default {
         },
         "ExerciseHistoryPage": {
             "items": [
-                30
+                26
             ],
             "pageInfo": [
                 2
@@ -3071,11 +2538,11 @@ export default {
             "maker": [
                 14
             ],
-            "receiver": [
+            "user": [
                 14
             ],
             "exerciser": [
-                4
+                14
             ],
             "amount": [
                 1
@@ -3090,12 +2557,6 @@ export default {
                 1
             ],
             "sharesUnutilized": [
-                1
-            ],
-            "makerLoss": [
-                1
-            ],
-            "purchaserProfit": [
                 1
             ],
             "transactionHash": [
@@ -3113,10 +2574,10 @@ export default {
         },
         "ExerciseHistoryFilter": {
             "AND": [
-                31
+                27
             ],
             "OR": [
-                31
+                27
             ],
             "id": [
                 4
@@ -3232,34 +2693,34 @@ export default {
             "maker_not_ends_with": [
                 4
             ],
-            "receiver": [
+            "user": [
                 4
             ],
-            "receiver_not": [
+            "user_not": [
                 4
             ],
-            "receiver_in": [
+            "user_in": [
                 4
             ],
-            "receiver_not_in": [
+            "user_not_in": [
                 4
             ],
-            "receiver_contains": [
+            "user_contains": [
                 4
             ],
-            "receiver_not_contains": [
+            "user_not_contains": [
                 4
             ],
-            "receiver_starts_with": [
+            "user_starts_with": [
                 4
             ],
-            "receiver_ends_with": [
+            "user_ends_with": [
                 4
             ],
-            "receiver_not_starts_with": [
+            "user_not_starts_with": [
                 4
             ],
-            "receiver_not_ends_with": [
+            "user_not_ends_with": [
                 4
             ],
             "exerciser": [
@@ -3412,52 +2873,307 @@ export default {
             "sharesUnutilized_lte": [
                 1
             ],
-            "makerLoss": [
+            "transactionHash": [
+                4
+            ],
+            "transactionHash_not": [
+                4
+            ],
+            "transactionHash_in": [
+                4
+            ],
+            "transactionHash_not_in": [
+                4
+            ],
+            "transactionHash_contains": [
+                4
+            ],
+            "transactionHash_not_contains": [
+                4
+            ],
+            "transactionHash_starts_with": [
+                4
+            ],
+            "transactionHash_ends_with": [
+                4
+            ],
+            "transactionHash_not_starts_with": [
+                4
+            ],
+            "transactionHash_not_ends_with": [
+                4
+            ],
+            "blockNumber": [
                 1
             ],
-            "makerLoss_not": [
+            "blockNumber_not": [
                 1
             ],
-            "makerLoss_in": [
+            "blockNumber_in": [
                 1
             ],
-            "makerLoss_not_in": [
+            "blockNumber_not_in": [
                 1
             ],
-            "makerLoss_gt": [
+            "blockNumber_gt": [
                 1
             ],
-            "makerLoss_lt": [
+            "blockNumber_lt": [
                 1
             ],
-            "makerLoss_gte": [
+            "blockNumber_gte": [
                 1
             ],
-            "makerLoss_lte": [
+            "blockNumber_lte": [
                 1
             ],
-            "purchaserProfit": [
+            "timestamp": [
                 1
             ],
-            "purchaserProfit_not": [
+            "timestamp_not": [
                 1
             ],
-            "purchaserProfit_in": [
+            "timestamp_in": [
                 1
             ],
-            "purchaserProfit_not_in": [
+            "timestamp_not_in": [
                 1
             ],
-            "purchaserProfit_gt": [
+            "timestamp_gt": [
                 1
             ],
-            "purchaserProfit_lt": [
+            "timestamp_lt": [
                 1
             ],
-            "purchaserProfit_gte": [
+            "timestamp_gte": [
                 1
             ],
-            "purchaserProfit_lte": [
+            "timestamp_lte": [
+                1
+            ],
+            "__typename": [
+                4
+            ]
+        },
+        "WithdrawHistoryPage": {
+            "items": [
+                29
+            ],
+            "pageInfo": [
+                2
+            ],
+            "totalCount": [
+                7
+            ],
+            "__typename": [
+                4
+            ]
+        },
+        "WithdrawHistory": {
+            "id": [
+                4
+            ],
+            "optionId": [
+                4
+            ],
+            "marketId": [
+                1
+            ],
+            "user": [
+                14
+            ],
+            "receiver": [
+                14
+            ],
+            "sharesBurnt": [
+                1
+            ],
+            "transactionHash": [
+                4
+            ],
+            "blockNumber": [
+                1
+            ],
+            "timestamp": [
+                1
+            ],
+            "__typename": [
+                4
+            ]
+        },
+        "WithdrawHistoryFilter": {
+            "AND": [
+                30
+            ],
+            "OR": [
+                30
+            ],
+            "id": [
+                4
+            ],
+            "id_not": [
+                4
+            ],
+            "id_in": [
+                4
+            ],
+            "id_not_in": [
+                4
+            ],
+            "id_contains": [
+                4
+            ],
+            "id_not_contains": [
+                4
+            ],
+            "id_starts_with": [
+                4
+            ],
+            "id_ends_with": [
+                4
+            ],
+            "id_not_starts_with": [
+                4
+            ],
+            "id_not_ends_with": [
+                4
+            ],
+            "optionId": [
+                4
+            ],
+            "optionId_not": [
+                4
+            ],
+            "optionId_in": [
+                4
+            ],
+            "optionId_not_in": [
+                4
+            ],
+            "optionId_contains": [
+                4
+            ],
+            "optionId_not_contains": [
+                4
+            ],
+            "optionId_starts_with": [
+                4
+            ],
+            "optionId_ends_with": [
+                4
+            ],
+            "optionId_not_starts_with": [
+                4
+            ],
+            "optionId_not_ends_with": [
+                4
+            ],
+            "marketId": [
+                1
+            ],
+            "marketId_not": [
+                1
+            ],
+            "marketId_in": [
+                1
+            ],
+            "marketId_not_in": [
+                1
+            ],
+            "marketId_gt": [
+                1
+            ],
+            "marketId_lt": [
+                1
+            ],
+            "marketId_gte": [
+                1
+            ],
+            "marketId_lte": [
+                1
+            ],
+            "user": [
+                4
+            ],
+            "user_not": [
+                4
+            ],
+            "user_in": [
+                4
+            ],
+            "user_not_in": [
+                4
+            ],
+            "user_contains": [
+                4
+            ],
+            "user_not_contains": [
+                4
+            ],
+            "user_starts_with": [
+                4
+            ],
+            "user_ends_with": [
+                4
+            ],
+            "user_not_starts_with": [
+                4
+            ],
+            "user_not_ends_with": [
+                4
+            ],
+            "receiver": [
+                4
+            ],
+            "receiver_not": [
+                4
+            ],
+            "receiver_in": [
+                4
+            ],
+            "receiver_not_in": [
+                4
+            ],
+            "receiver_contains": [
+                4
+            ],
+            "receiver_not_contains": [
+                4
+            ],
+            "receiver_starts_with": [
+                4
+            ],
+            "receiver_ends_with": [
+                4
+            ],
+            "receiver_not_starts_with": [
+                4
+            ],
+            "receiver_not_ends_with": [
+                4
+            ],
+            "sharesBurnt": [
+                1
+            ],
+            "sharesBurnt_not": [
+                1
+            ],
+            "sharesBurnt_in": [
+                1
+            ],
+            "sharesBurnt_not_in": [
+                1
+            ],
+            "sharesBurnt_gt": [
+                1
+            ],
+            "sharesBurnt_lt": [
+                1
+            ],
+            "sharesBurnt_gte": [
+                1
+            ],
+            "sharesBurnt_lte": [
                 1
             ],
             "transactionHash": [
@@ -3544,7 +3260,7 @@ export default {
         },
         "UnwindHistoryPage": {
             "items": [
-                33
+                32
             ],
             "pageInfo": [
                 2
@@ -3599,10 +3315,10 @@ export default {
         },
         "UnwindHistoryFilter": {
             "AND": [
-                34
+                33
             ],
             "OR": [
-                34
+                33
             ],
             "id": [
                 4
@@ -3926,9 +3642,9 @@ export default {
                 4
             ]
         },
-        "TransferPositionHistoryPage": {
+        "OrderFillHistoryPage": {
             "items": [
-                36
+                35
             ],
             "pageInfo": [
                 2
@@ -3940,38 +3656,26 @@ export default {
                 4
             ]
         },
-        "TransferPositionHistory": {
+        "OrderFillHistory": {
             "id": [
                 4
             ],
-            "optionId": [
+            "orderHash": [
                 4
-            ],
-            "marketId": [
-                1
             ],
             "maker": [
                 14
             ],
-            "receiver": [
+            "taker": [
                 14
             ],
-            "purchaser": [
-                4
-            ],
-            "amount": [
+            "optionTokenId": [
                 1
             ],
-            "premiumAmount": [
+            "makingAmount": [
                 1
             ],
-            "fee": [
-                1
-            ],
-            "optionShares": [
-                1
-            ],
-            "sharesUtilized": [
+            "takingAmount": [
                 1
             ],
             "transactionHash": [
@@ -3983,16 +3687,22 @@ export default {
             "timestamp": [
                 1
             ],
+            "price": [
+                1
+            ],
+            "marketId": [
+                1
+            ],
             "__typename": [
                 4
             ]
         },
-        "TransferPositionHistoryFilter": {
+        "OrderFillHistoryFilter": {
             "AND": [
-                37
+                36
             ],
             "OR": [
-                37
+                36
             ],
             "id": [
                 4
@@ -4024,59 +3734,35 @@ export default {
             "id_not_ends_with": [
                 4
             ],
-            "optionId": [
+            "orderHash": [
                 4
             ],
-            "optionId_not": [
+            "orderHash_not": [
                 4
             ],
-            "optionId_in": [
+            "orderHash_in": [
                 4
             ],
-            "optionId_not_in": [
+            "orderHash_not_in": [
                 4
             ],
-            "optionId_contains": [
+            "orderHash_contains": [
                 4
             ],
-            "optionId_not_contains": [
+            "orderHash_not_contains": [
                 4
             ],
-            "optionId_starts_with": [
+            "orderHash_starts_with": [
                 4
             ],
-            "optionId_ends_with": [
+            "orderHash_ends_with": [
                 4
             ],
-            "optionId_not_starts_with": [
+            "orderHash_not_starts_with": [
                 4
             ],
-            "optionId_not_ends_with": [
+            "orderHash_not_ends_with": [
                 4
-            ],
-            "marketId": [
-                1
-            ],
-            "marketId_not": [
-                1
-            ],
-            "marketId_in": [
-                1
-            ],
-            "marketId_not_in": [
-                1
-            ],
-            "marketId_gt": [
-                1
-            ],
-            "marketId_lt": [
-                1
-            ],
-            "marketId_gte": [
-                1
-            ],
-            "marketId_lte": [
-                1
             ],
             "maker": [
                 4
@@ -4108,184 +3794,106 @@ export default {
             "maker_not_ends_with": [
                 4
             ],
-            "receiver": [
+            "taker": [
                 4
             ],
-            "receiver_not": [
+            "taker_not": [
                 4
             ],
-            "receiver_in": [
+            "taker_in": [
                 4
             ],
-            "receiver_not_in": [
+            "taker_not_in": [
                 4
             ],
-            "receiver_contains": [
+            "taker_contains": [
                 4
             ],
-            "receiver_not_contains": [
+            "taker_not_contains": [
                 4
             ],
-            "receiver_starts_with": [
+            "taker_starts_with": [
                 4
             ],
-            "receiver_ends_with": [
+            "taker_ends_with": [
                 4
             ],
-            "receiver_not_starts_with": [
+            "taker_not_starts_with": [
                 4
             ],
-            "receiver_not_ends_with": [
+            "taker_not_ends_with": [
                 4
             ],
-            "purchaser": [
-                4
-            ],
-            "purchaser_not": [
-                4
-            ],
-            "purchaser_in": [
-                4
-            ],
-            "purchaser_not_in": [
-                4
-            ],
-            "purchaser_contains": [
-                4
-            ],
-            "purchaser_not_contains": [
-                4
-            ],
-            "purchaser_starts_with": [
-                4
-            ],
-            "purchaser_ends_with": [
-                4
-            ],
-            "purchaser_not_starts_with": [
-                4
-            ],
-            "purchaser_not_ends_with": [
-                4
-            ],
-            "amount": [
+            "optionTokenId": [
                 1
             ],
-            "amount_not": [
+            "optionTokenId_not": [
                 1
             ],
-            "amount_in": [
+            "optionTokenId_in": [
                 1
             ],
-            "amount_not_in": [
+            "optionTokenId_not_in": [
                 1
             ],
-            "amount_gt": [
+            "optionTokenId_gt": [
                 1
             ],
-            "amount_lt": [
+            "optionTokenId_lt": [
                 1
             ],
-            "amount_gte": [
+            "optionTokenId_gte": [
                 1
             ],
-            "amount_lte": [
+            "optionTokenId_lte": [
                 1
             ],
-            "premiumAmount": [
+            "makingAmount": [
                 1
             ],
-            "premiumAmount_not": [
+            "makingAmount_not": [
                 1
             ],
-            "premiumAmount_in": [
+            "makingAmount_in": [
                 1
             ],
-            "premiumAmount_not_in": [
+            "makingAmount_not_in": [
                 1
             ],
-            "premiumAmount_gt": [
+            "makingAmount_gt": [
                 1
             ],
-            "premiumAmount_lt": [
+            "makingAmount_lt": [
                 1
             ],
-            "premiumAmount_gte": [
+            "makingAmount_gte": [
                 1
             ],
-            "premiumAmount_lte": [
+            "makingAmount_lte": [
                 1
             ],
-            "fee": [
+            "takingAmount": [
                 1
             ],
-            "fee_not": [
+            "takingAmount_not": [
                 1
             ],
-            "fee_in": [
+            "takingAmount_in": [
                 1
             ],
-            "fee_not_in": [
+            "takingAmount_not_in": [
                 1
             ],
-            "fee_gt": [
+            "takingAmount_gt": [
                 1
             ],
-            "fee_lt": [
+            "takingAmount_lt": [
                 1
             ],
-            "fee_gte": [
+            "takingAmount_gte": [
                 1
             ],
-            "fee_lte": [
-                1
-            ],
-            "optionShares": [
-                1
-            ],
-            "optionShares_not": [
-                1
-            ],
-            "optionShares_in": [
-                1
-            ],
-            "optionShares_not_in": [
-                1
-            ],
-            "optionShares_gt": [
-                1
-            ],
-            "optionShares_lt": [
-                1
-            ],
-            "optionShares_gte": [
-                1
-            ],
-            "optionShares_lte": [
-                1
-            ],
-            "sharesUtilized": [
-                1
-            ],
-            "sharesUtilized_not": [
-                1
-            ],
-            "sharesUtilized_in": [
-                1
-            ],
-            "sharesUtilized_not_in": [
-                1
-            ],
-            "sharesUtilized_gt": [
-                1
-            ],
-            "sharesUtilized_lt": [
-                1
-            ],
-            "sharesUtilized_gte": [
-                1
-            ],
-            "sharesUtilized_lte": [
+            "takingAmount_lte": [
                 1
             ],
             "transactionHash": [
@@ -4366,13 +3974,61 @@ export default {
             "timestamp_lte": [
                 1
             ],
+            "price": [
+                1
+            ],
+            "price_not": [
+                1
+            ],
+            "price_in": [
+                1
+            ],
+            "price_not_in": [
+                1
+            ],
+            "price_gt": [
+                1
+            ],
+            "price_lt": [
+                1
+            ],
+            "price_gte": [
+                1
+            ],
+            "price_lte": [
+                1
+            ],
+            "marketId": [
+                1
+            ],
+            "marketId_not": [
+                1
+            ],
+            "marketId_in": [
+                1
+            ],
+            "marketId_not_in": [
+                1
+            ],
+            "marketId_gt": [
+                1
+            ],
+            "marketId_lt": [
+                1
+            ],
+            "marketId_gte": [
+                1
+            ],
+            "marketId_lte": [
+                1
+            ],
             "__typename": [
                 4
             ]
         },
         "SettlementHistoryPage": {
             "items": [
-                39
+                38
             ],
             "pageInfo": [
                 2
@@ -4415,10 +4071,10 @@ export default {
         },
         "SettlementHistoryFilter": {
             "AND": [
-                40
+                39
             ],
             "OR": [
-                40
+                39
             ],
             "id": [
                 4
@@ -4635,6 +4291,58 @@ export default {
             ],
             "timestamp_lte": [
                 1
+            ],
+            "__typename": [
+                4
+            ]
+        },
+        "OptionParams": {
+            "id": [
+                4
+            ],
+            "marketId": [
+                1
+            ],
+            "strikeLowerLimit": [
+                1
+            ],
+            "strikeUpperLimit": [
+                1
+            ],
+            "isPut": [
+                3
+            ],
+            "collateralPerShare": [
+                1
+            ],
+            "createdAt": [
+                1
+            ],
+            "createdAtBlock": [
+                1
+            ],
+            "positions": [
+                12,
+                {
+                    "where": [
+                        15
+                    ],
+                    "orderBy": [
+                        4
+                    ],
+                    "orderDirection": [
+                        4
+                    ],
+                    "before": [
+                        4
+                    ],
+                    "after": [
+                        4
+                    ],
+                    "limit": [
+                        7
+                    ]
+                }
             ],
             "__typename": [
                 4
@@ -4899,28 +4607,28 @@ export default {
             "collateralToken_not_ends_with": [
                 4
             ],
-            "totalCollateral": [
+            "totalCollateralShares": [
                 1
             ],
-            "totalCollateral_not": [
+            "totalCollateralShares_not": [
                 1
             ],
-            "totalCollateral_in": [
+            "totalCollateralShares_in": [
                 1
             ],
-            "totalCollateral_not_in": [
+            "totalCollateralShares_not_in": [
                 1
             ],
-            "totalCollateral_gt": [
+            "totalCollateralShares_gt": [
                 1
             ],
-            "totalCollateral_lt": [
+            "totalCollateralShares_lt": [
                 1
             ],
-            "totalCollateral_gte": [
+            "totalCollateralShares_gte": [
                 1
             ],
-            "totalCollateral_lte": [
+            "totalCollateralShares_lte": [
                 1
             ],
             "totalCollateralAmount": [
@@ -5766,7 +5474,7 @@ export default {
         },
         "OptionParamsPage": {
             "items": [
-                17
+                40
             ],
             "pageInfo": [
                 2
@@ -5975,363 +5683,6 @@ export default {
                 4
             ]
         },
-        "OrderFillHistory": {
-            "id": [
-                4
-            ],
-            "orderHash": [
-                4
-            ],
-            "maker": [
-                4
-            ],
-            "taker": [
-                4
-            ],
-            "optionTokenId": [
-                1
-            ],
-            "makingAmount": [
-                1
-            ],
-            "takingAmount": [
-                1
-            ],
-            "remainingAmount": [
-                1
-            ],
-            "transactionHash": [
-                4
-            ],
-            "blockNumber": [
-                1
-            ],
-            "timestamp": [
-                1
-            ],
-            "__typename": [
-                4
-            ]
-        },
-        "OrderFillHistoryPage": {
-            "items": [
-                50
-            ],
-            "pageInfo": [
-                2
-            ],
-            "totalCount": [
-                7
-            ],
-            "__typename": [
-                4
-            ]
-        },
-        "OrderFillHistoryFilter": {
-            "AND": [
-                52
-            ],
-            "OR": [
-                52
-            ],
-            "id": [
-                4
-            ],
-            "id_not": [
-                4
-            ],
-            "id_in": [
-                4
-            ],
-            "id_not_in": [
-                4
-            ],
-            "id_contains": [
-                4
-            ],
-            "id_not_contains": [
-                4
-            ],
-            "id_starts_with": [
-                4
-            ],
-            "id_ends_with": [
-                4
-            ],
-            "id_not_starts_with": [
-                4
-            ],
-            "id_not_ends_with": [
-                4
-            ],
-            "orderHash": [
-                4
-            ],
-            "orderHash_not": [
-                4
-            ],
-            "orderHash_in": [
-                4
-            ],
-            "orderHash_not_in": [
-                4
-            ],
-            "orderHash_contains": [
-                4
-            ],
-            "orderHash_not_contains": [
-                4
-            ],
-            "orderHash_starts_with": [
-                4
-            ],
-            "orderHash_ends_with": [
-                4
-            ],
-            "orderHash_not_starts_with": [
-                4
-            ],
-            "orderHash_not_ends_with": [
-                4
-            ],
-            "maker": [
-                4
-            ],
-            "maker_not": [
-                4
-            ],
-            "maker_in": [
-                4
-            ],
-            "maker_not_in": [
-                4
-            ],
-            "maker_contains": [
-                4
-            ],
-            "maker_not_contains": [
-                4
-            ],
-            "maker_starts_with": [
-                4
-            ],
-            "maker_ends_with": [
-                4
-            ],
-            "maker_not_starts_with": [
-                4
-            ],
-            "maker_not_ends_with": [
-                4
-            ],
-            "taker": [
-                4
-            ],
-            "taker_not": [
-                4
-            ],
-            "taker_in": [
-                4
-            ],
-            "taker_not_in": [
-                4
-            ],
-            "taker_contains": [
-                4
-            ],
-            "taker_not_contains": [
-                4
-            ],
-            "taker_starts_with": [
-                4
-            ],
-            "taker_ends_with": [
-                4
-            ],
-            "taker_not_starts_with": [
-                4
-            ],
-            "taker_not_ends_with": [
-                4
-            ],
-            "optionTokenId": [
-                1
-            ],
-            "optionTokenId_not": [
-                1
-            ],
-            "optionTokenId_in": [
-                1
-            ],
-            "optionTokenId_not_in": [
-                1
-            ],
-            "optionTokenId_gt": [
-                1
-            ],
-            "optionTokenId_lt": [
-                1
-            ],
-            "optionTokenId_gte": [
-                1
-            ],
-            "optionTokenId_lte": [
-                1
-            ],
-            "makingAmount": [
-                1
-            ],
-            "makingAmount_not": [
-                1
-            ],
-            "makingAmount_in": [
-                1
-            ],
-            "makingAmount_not_in": [
-                1
-            ],
-            "makingAmount_gt": [
-                1
-            ],
-            "makingAmount_lt": [
-                1
-            ],
-            "makingAmount_gte": [
-                1
-            ],
-            "makingAmount_lte": [
-                1
-            ],
-            "takingAmount": [
-                1
-            ],
-            "takingAmount_not": [
-                1
-            ],
-            "takingAmount_in": [
-                1
-            ],
-            "takingAmount_not_in": [
-                1
-            ],
-            "takingAmount_gt": [
-                1
-            ],
-            "takingAmount_lt": [
-                1
-            ],
-            "takingAmount_gte": [
-                1
-            ],
-            "takingAmount_lte": [
-                1
-            ],
-            "remainingAmount": [
-                1
-            ],
-            "remainingAmount_not": [
-                1
-            ],
-            "remainingAmount_in": [
-                1
-            ],
-            "remainingAmount_not_in": [
-                1
-            ],
-            "remainingAmount_gt": [
-                1
-            ],
-            "remainingAmount_lt": [
-                1
-            ],
-            "remainingAmount_gte": [
-                1
-            ],
-            "remainingAmount_lte": [
-                1
-            ],
-            "transactionHash": [
-                4
-            ],
-            "transactionHash_not": [
-                4
-            ],
-            "transactionHash_in": [
-                4
-            ],
-            "transactionHash_not_in": [
-                4
-            ],
-            "transactionHash_contains": [
-                4
-            ],
-            "transactionHash_not_contains": [
-                4
-            ],
-            "transactionHash_starts_with": [
-                4
-            ],
-            "transactionHash_ends_with": [
-                4
-            ],
-            "transactionHash_not_starts_with": [
-                4
-            ],
-            "transactionHash_not_ends_with": [
-                4
-            ],
-            "blockNumber": [
-                1
-            ],
-            "blockNumber_not": [
-                1
-            ],
-            "blockNumber_in": [
-                1
-            ],
-            "blockNumber_not_in": [
-                1
-            ],
-            "blockNumber_gt": [
-                1
-            ],
-            "blockNumber_lt": [
-                1
-            ],
-            "blockNumber_gte": [
-                1
-            ],
-            "blockNumber_lte": [
-                1
-            ],
-            "timestamp": [
-                1
-            ],
-            "timestamp_not": [
-                1
-            ],
-            "timestamp_in": [
-                1
-            ],
-            "timestamp_not_in": [
-                1
-            ],
-            "timestamp_gt": [
-                1
-            ],
-            "timestamp_lt": [
-                1
-            ],
-            "timestamp_gte": [
-                1
-            ],
-            "timestamp_lte": [
-                1
-            ],
-            "__typename": [
-                4
-            ]
-        },
         "OrderCancelHistory": {
             "id": [
                 4
@@ -6354,7 +5705,7 @@ export default {
         },
         "OrderCancelHistoryPage": {
             "items": [
-                53
+                50
             ],
             "pageInfo": [
                 2
@@ -6368,10 +5719,10 @@ export default {
         },
         "OrderCancelHistoryFilter": {
             "AND": [
-                55
+                52
             ],
             "OR": [
-                55
+                52
             ],
             "id": [
                 4
@@ -6556,7 +5907,7 @@ export default {
                 1
             ],
             "optionParams": [
-                17
+                40
             ],
             "__typename": [
                 4
@@ -6564,7 +5915,7 @@ export default {
         },
         "HourlyVolumePage": {
             "items": [
-                56
+                53
             ],
             "pageInfo": [
                 2
@@ -6578,10 +5929,10 @@ export default {
         },
         "HourlyVolumeFilter": {
             "AND": [
-                58
+                55
             ],
             "OR": [
-                58
+                55
             ],
             "id": [
                 4

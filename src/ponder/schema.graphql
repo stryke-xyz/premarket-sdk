@@ -62,24 +62,15 @@ type Query {
     after: String
     limit: Int
   ): OptionParamsPage!
-  collateralPosition(id: String!): CollateralPosition
-  collateralPositions(
-    where: CollateralPositionFilter
+  position(id: String!): Position
+  positions(
+    where: PositionFilter
     orderBy: String
     orderDirection: String
     before: String
     after: String
     limit: Int
-  ): CollateralPositionPage!
-  optionPosition(id: String!): OptionPosition
-  optionPositions(
-    where: OptionPositionFilter
-    orderBy: String
-    orderDirection: String
-    before: String
-    after: String
-    limit: Int
-  ): OptionPositionPage!
+  ): PositionPage!
   depositHistory(id: String!): DepositHistory
   depositHistorys(
     where: DepositHistoryFilter
@@ -89,33 +80,24 @@ type Query {
     after: String
     limit: Int
   ): DepositHistoryPage!
-  transferDepositHistory(id: String!): TransferDepositHistory
-  transferDepositHistorys(
-    where: TransferDepositHistoryFilter
+  transferCollateralSharesHistory(id: String!): TransferCollateralSharesHistory
+  transferCollateralSharesHistorys(
+    where: TransferCollateralSharesHistoryFilter
     orderBy: String
     orderDirection: String
     before: String
     after: String
     limit: Int
-  ): TransferDepositHistoryPage!
-  purchaseHistory(id: String!): PurchaseHistory
-  purchaseHistorys(
-    where: PurchaseHistoryFilter
+  ): TransferCollateralSharesHistoryPage!
+  transferOptionsSharesHistory(id: String!): TransferOptionsSharesHistory
+  transferOptionsSharesHistorys(
+    where: TransferOptionsSharesHistoryFilter
     orderBy: String
     orderDirection: String
     before: String
     after: String
     limit: Int
-  ): PurchaseHistoryPage!
-  transferPositionHistory(id: String!): TransferPositionHistory
-  transferPositionHistorys(
-    where: TransferPositionHistoryFilter
-    orderBy: String
-    orderDirection: String
-    before: String
-    after: String
-    limit: Int
-  ): TransferPositionHistoryPage!
+  ): TransferOptionsSharesHistoryPage!
   exerciseHistory(id: String!): ExerciseHistory
   exerciseHistorys(
     where: ExerciseHistoryFilter
@@ -125,6 +107,15 @@ type Query {
     after: String
     limit: Int
   ): ExerciseHistoryPage!
+  withdrawHistory(id: String!): WithdrawHistory
+  withdrawHistorys(
+    where: WithdrawHistoryFilter
+    orderBy: String
+    orderDirection: String
+    before: String
+    after: String
+    limit: Int
+  ): WithdrawHistoryPage!
   unwindHistory(id: String!): UnwindHistory
   unwindHistorys(
     where: UnwindHistoryFilter
@@ -207,7 +198,7 @@ type OptionMarket {
   maxTTL: BigInt!
   strategy: MarketStrategy
   collateralToken: String!
-  totalCollateral: BigInt!
+  totalCollateralShares: BigInt!
   totalCollateralAmount: BigInt!
   protocolFees: BigInt!
   createdAt: BigInt!
@@ -215,22 +206,14 @@ type OptionMarket {
   updatedAt: BigInt!
   updatedAtBlock: BigInt!
   global: Global
-  collateralPositions(
-    where: CollateralPositionFilter
+  positions(
+    where: PositionFilter
     orderBy: String
     orderDirection: String
     before: String
     after: String
     limit: Int
-  ): CollateralPositionPage
-  optionPositions(
-    where: OptionPositionFilter
-    orderBy: String
-    orderDirection: String
-    before: String
-    after: String
-    limit: Int
-  ): OptionPositionPage
+  ): PositionPage
 }
 
 type MarketStrategy {
@@ -250,25 +233,28 @@ type MarketStrategy {
   updatedAtBlock: BigInt!
 }
 
-type CollateralPositionPage {
-  items: [CollateralPosition!]!
+type PositionPage {
+  items: [Position!]!
   pageInfo: PageInfo!
   totalCount: Int!
 }
 
-type CollateralPosition {
+type Position {
   id: String!
   optionId: String!
   optionMarketId: String!
   user: User
-  totalCollateral: BigInt!
-  optionsMinted: BigInt!
-  optionsExercised: BigInt!
+  collateralShares: BigInt!
+  optionsShares: BigInt!
   premiumEarned: BigInt!
   fee: BigInt!
   settled: Boolean!
   updatedAt: BigInt!
   updatedAtBlock: BigInt!
+  profit: BigInt!
+  averagePrice: BigInt!
+  optionsSharesExercised: BigInt!
+  premiumPaid: BigInt!
   optionParams: OptionParams
   optionMarket: OptionMarket
 }
@@ -277,22 +263,14 @@ type User {
   id: String!
   updatedAt: BigInt!
   updatedAtBlock: BigInt!
-  optionsPositions(
-    where: OptionPositionFilter
+  positions(
+    where: PositionFilter
     orderBy: String
     orderDirection: String
     before: String
     after: String
     limit: Int
-  ): OptionPositionPage
-  collateralPositions(
-    where: CollateralPositionFilter
-    orderBy: String
-    orderDirection: String
-    before: String
-    after: String
-    limit: Int
-  ): CollateralPositionPage
+  ): PositionPage
   depositHistory(
     where: DepositHistoryFilter
     orderBy: String
@@ -301,22 +279,46 @@ type User {
     after: String
     limit: Int
   ): DepositHistoryPage
-  transferDepositHistory(
-    where: TransferDepositHistoryFilter
+  transferCollateralSharesHistory(
+    where: TransferCollateralSharesHistoryFilter
     orderBy: String
     orderDirection: String
     before: String
     after: String
     limit: Int
-  ): TransferDepositHistoryPage
-  purchaseHistory(
-    where: PurchaseHistoryFilter
+  ): TransferCollateralSharesHistoryPage
+  transferCollateralSharesHistoryAsReceiver(
+    where: TransferCollateralSharesHistoryFilter
     orderBy: String
     orderDirection: String
     before: String
     after: String
     limit: Int
-  ): PurchaseHistoryPage
+  ): TransferCollateralSharesHistoryPage
+  transferOptionsSharesHistory(
+    where: TransferOptionsSharesHistoryFilter
+    orderBy: String
+    orderDirection: String
+    before: String
+    after: String
+    limit: Int
+  ): TransferOptionsSharesHistoryPage
+  transferOptionsSharesHistoryAsReceiver(
+    where: TransferOptionsSharesHistoryFilter
+    orderBy: String
+    orderDirection: String
+    before: String
+    after: String
+    limit: Int
+  ): TransferOptionsSharesHistoryPage
+  exerciseHistoryAsMaker(
+    where: ExerciseHistoryFilter
+    orderBy: String
+    orderDirection: String
+    before: String
+    after: String
+    limit: Int
+  ): ExerciseHistoryPage
   exerciseHistory(
     where: ExerciseHistoryFilter
     orderBy: String
@@ -325,6 +327,30 @@ type User {
     after: String
     limit: Int
   ): ExerciseHistoryPage
+  exerciseHistoryAsExerciser(
+    where: ExerciseHistoryFilter
+    orderBy: String
+    orderDirection: String
+    before: String
+    after: String
+    limit: Int
+  ): ExerciseHistoryPage
+  withdrawHistory(
+    where: WithdrawHistoryFilter
+    orderBy: String
+    orderDirection: String
+    before: String
+    after: String
+    limit: Int
+  ): WithdrawHistoryPage
+  withdrawHistoryAsReceiver(
+    where: WithdrawHistoryFilter
+    orderBy: String
+    orderDirection: String
+    before: String
+    after: String
+    limit: Int
+  ): WithdrawHistoryPage
   unwindHistory(
     where: UnwindHistoryFilter
     orderBy: String
@@ -333,14 +359,30 @@ type User {
     after: String
     limit: Int
   ): UnwindHistoryPage
-  transferPositionHistory(
-    where: TransferPositionHistoryFilter
+  unwindHistoryAsReceiver(
+    where: UnwindHistoryFilter
     orderBy: String
     orderDirection: String
     before: String
     after: String
     limit: Int
-  ): TransferPositionHistoryPage
+  ): UnwindHistoryPage
+  orderFillHistoryAsMaker(
+    where: OrderFillHistoryFilter
+    orderBy: String
+    orderDirection: String
+    before: String
+    after: String
+    limit: Int
+  ): OrderFillHistoryPage
+  orderFillHistoryAsTaker(
+    where: OrderFillHistoryFilter
+    orderBy: String
+    orderDirection: String
+    before: String
+    after: String
+    limit: Int
+  ): OrderFillHistoryPage
   settlementHistory(
     where: SettlementHistoryFilter
     orderBy: String
@@ -351,60 +393,9 @@ type User {
   ): SettlementHistoryPage
 }
 
-type OptionPositionPage {
-  items: [OptionPosition!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-type OptionPosition {
-  id: String!
-  tokenId: BigInt!
-  address: String!
-  optionId: String!
-  optionMarketId: String!
-  user: User
-  premium: BigInt!
-  fee: BigInt!
-  profit: BigInt!
-  amount: BigInt!
-  averagePrice: BigInt!
-  updatedAt: BigInt!
-  updatedAtBlock: BigInt!
-  optionParams: OptionParams
-  optionMarket: OptionMarket
-}
-
-type OptionParams {
-  id: String!
-  marketId: BigInt!
-  strikeLowerLimit: BigInt!
-  strikeUpperLimit: BigInt!
-  isPut: Boolean!
-  collateralPerShare: BigInt
-  createdAt: BigInt!
-  createdAtBlock: BigInt!
-  collateralPositions(
-    where: CollateralPositionFilter
-    orderBy: String
-    orderDirection: String
-    before: String
-    after: String
-    limit: Int
-  ): CollateralPositionPage
-  optionPositions(
-    where: OptionPositionFilter
-    orderBy: String
-    orderDirection: String
-    before: String
-    after: String
-    limit: Int
-  ): OptionPositionPage
-}
-
-input CollateralPositionFilter {
-  AND: [CollateralPositionFilter]
-  OR: [CollateralPositionFilter]
+input PositionFilter {
+  AND: [PositionFilter]
+  OR: [PositionFilter]
   id: String
   id_not: String
   id_in: [String]
@@ -445,30 +436,22 @@ input CollateralPositionFilter {
   user_ends_with: String
   user_not_starts_with: String
   user_not_ends_with: String
-  totalCollateral: BigInt
-  totalCollateral_not: BigInt
-  totalCollateral_in: [BigInt]
-  totalCollateral_not_in: [BigInt]
-  totalCollateral_gt: BigInt
-  totalCollateral_lt: BigInt
-  totalCollateral_gte: BigInt
-  totalCollateral_lte: BigInt
-  optionsMinted: BigInt
-  optionsMinted_not: BigInt
-  optionsMinted_in: [BigInt]
-  optionsMinted_not_in: [BigInt]
-  optionsMinted_gt: BigInt
-  optionsMinted_lt: BigInt
-  optionsMinted_gte: BigInt
-  optionsMinted_lte: BigInt
-  optionsExercised: BigInt
-  optionsExercised_not: BigInt
-  optionsExercised_in: [BigInt]
-  optionsExercised_not_in: [BigInt]
-  optionsExercised_gt: BigInt
-  optionsExercised_lt: BigInt
-  optionsExercised_gte: BigInt
-  optionsExercised_lte: BigInt
+  collateralShares: BigInt
+  collateralShares_not: BigInt
+  collateralShares_in: [BigInt]
+  collateralShares_not_in: [BigInt]
+  collateralShares_gt: BigInt
+  collateralShares_lt: BigInt
+  collateralShares_gte: BigInt
+  collateralShares_lte: BigInt
+  optionsShares: BigInt
+  optionsShares_not: BigInt
+  optionsShares_in: [BigInt]
+  optionsShares_not_in: [BigInt]
+  optionsShares_gt: BigInt
+  optionsShares_lt: BigInt
+  optionsShares_gte: BigInt
+  optionsShares_lte: BigInt
   premiumEarned: BigInt
   premiumEarned_not: BigInt
   premiumEarned_in: [BigInt]
@@ -505,85 +488,6 @@ input CollateralPositionFilter {
   updatedAtBlock_lt: BigInt
   updatedAtBlock_gte: BigInt
   updatedAtBlock_lte: BigInt
-}
-
-input OptionPositionFilter {
-  AND: [OptionPositionFilter]
-  OR: [OptionPositionFilter]
-  id: String
-  id_not: String
-  id_in: [String]
-  id_not_in: [String]
-  id_contains: String
-  id_not_contains: String
-  id_starts_with: String
-  id_ends_with: String
-  id_not_starts_with: String
-  id_not_ends_with: String
-  tokenId: BigInt
-  tokenId_not: BigInt
-  tokenId_in: [BigInt]
-  tokenId_not_in: [BigInt]
-  tokenId_gt: BigInt
-  tokenId_lt: BigInt
-  tokenId_gte: BigInt
-  tokenId_lte: BigInt
-  address: String
-  address_not: String
-  address_in: [String]
-  address_not_in: [String]
-  address_contains: String
-  address_not_contains: String
-  address_starts_with: String
-  address_ends_with: String
-  address_not_starts_with: String
-  address_not_ends_with: String
-  optionId: String
-  optionId_not: String
-  optionId_in: [String]
-  optionId_not_in: [String]
-  optionId_contains: String
-  optionId_not_contains: String
-  optionId_starts_with: String
-  optionId_ends_with: String
-  optionId_not_starts_with: String
-  optionId_not_ends_with: String
-  optionMarketId: String
-  optionMarketId_not: String
-  optionMarketId_in: [String]
-  optionMarketId_not_in: [String]
-  optionMarketId_contains: String
-  optionMarketId_not_contains: String
-  optionMarketId_starts_with: String
-  optionMarketId_ends_with: String
-  optionMarketId_not_starts_with: String
-  optionMarketId_not_ends_with: String
-  user: String
-  user_not: String
-  user_in: [String]
-  user_not_in: [String]
-  user_contains: String
-  user_not_contains: String
-  user_starts_with: String
-  user_ends_with: String
-  user_not_starts_with: String
-  user_not_ends_with: String
-  premium: BigInt
-  premium_not: BigInt
-  premium_in: [BigInt]
-  premium_not_in: [BigInt]
-  premium_gt: BigInt
-  premium_lt: BigInt
-  premium_gte: BigInt
-  premium_lte: BigInt
-  fee: BigInt
-  fee_not: BigInt
-  fee_in: [BigInt]
-  fee_not_in: [BigInt]
-  fee_gt: BigInt
-  fee_lt: BigInt
-  fee_gte: BigInt
-  fee_lte: BigInt
   profit: BigInt
   profit_not: BigInt
   profit_in: [BigInt]
@@ -592,14 +496,6 @@ input OptionPositionFilter {
   profit_lt: BigInt
   profit_gte: BigInt
   profit_lte: BigInt
-  amount: BigInt
-  amount_not: BigInt
-  amount_in: [BigInt]
-  amount_not_in: [BigInt]
-  amount_gt: BigInt
-  amount_lt: BigInt
-  amount_gte: BigInt
-  amount_lte: BigInt
   averagePrice: BigInt
   averagePrice_not: BigInt
   averagePrice_in: [BigInt]
@@ -608,22 +504,22 @@ input OptionPositionFilter {
   averagePrice_lt: BigInt
   averagePrice_gte: BigInt
   averagePrice_lte: BigInt
-  updatedAt: BigInt
-  updatedAt_not: BigInt
-  updatedAt_in: [BigInt]
-  updatedAt_not_in: [BigInt]
-  updatedAt_gt: BigInt
-  updatedAt_lt: BigInt
-  updatedAt_gte: BigInt
-  updatedAt_lte: BigInt
-  updatedAtBlock: BigInt
-  updatedAtBlock_not: BigInt
-  updatedAtBlock_in: [BigInt]
-  updatedAtBlock_not_in: [BigInt]
-  updatedAtBlock_gt: BigInt
-  updatedAtBlock_lt: BigInt
-  updatedAtBlock_gte: BigInt
-  updatedAtBlock_lte: BigInt
+  optionsSharesExercised: BigInt
+  optionsSharesExercised_not: BigInt
+  optionsSharesExercised_in: [BigInt]
+  optionsSharesExercised_not_in: [BigInt]
+  optionsSharesExercised_gt: BigInt
+  optionsSharesExercised_lt: BigInt
+  optionsSharesExercised_gte: BigInt
+  optionsSharesExercised_lte: BigInt
+  premiumPaid: BigInt
+  premiumPaid_not: BigInt
+  premiumPaid_in: [BigInt]
+  premiumPaid_not_in: [BigInt]
+  premiumPaid_gt: BigInt
+  premiumPaid_lt: BigInt
+  premiumPaid_gte: BigInt
+  premiumPaid_lte: BigInt
 }
 
 type DepositHistoryPage {
@@ -637,7 +533,6 @@ type DepositHistory {
   optionId: String!
   marketId: BigInt!
   user: User
-  receiver: String!
   amount: BigInt!
   collateralAmount: BigInt!
   fee: BigInt!
@@ -687,16 +582,6 @@ input DepositHistoryFilter {
   user_ends_with: String
   user_not_starts_with: String
   user_not_ends_with: String
-  receiver: String
-  receiver_not: String
-  receiver_in: [String]
-  receiver_not_in: [String]
-  receiver_contains: String
-  receiver_not_contains: String
-  receiver_starts_with: String
-  receiver_ends_with: String
-  receiver_not_starts_with: String
-  receiver_not_ends_with: String
   amount: BigInt
   amount_not: BigInt
   amount_in: [BigInt]
@@ -749,29 +634,27 @@ input DepositHistoryFilter {
   timestamp_lte: BigInt
 }
 
-type TransferDepositHistoryPage {
-  items: [TransferDepositHistory!]!
+type TransferCollateralSharesHistoryPage {
+  items: [TransferCollateralSharesHistory!]!
   pageInfo: PageInfo!
   totalCount: Int!
 }
 
-type TransferDepositHistory {
+type TransferCollateralSharesHistory {
   id: String!
   optionId: String!
   marketId: BigInt!
   user: User
   receiver: User
   amount: BigInt!
-  collateralAmount: BigInt!
-  fee: BigInt!
   transactionHash: String!
   blockNumber: BigInt!
   timestamp: BigInt!
 }
 
-input TransferDepositHistoryFilter {
-  AND: [TransferDepositHistoryFilter]
-  OR: [TransferDepositHistoryFilter]
+input TransferCollateralSharesHistoryFilter {
+  AND: [TransferCollateralSharesHistoryFilter]
+  OR: [TransferCollateralSharesHistoryFilter]
   id: String
   id_not: String
   id_in: [String]
@@ -828,22 +711,6 @@ input TransferDepositHistoryFilter {
   amount_lt: BigInt
   amount_gte: BigInt
   amount_lte: BigInt
-  collateralAmount: BigInt
-  collateralAmount_not: BigInt
-  collateralAmount_in: [BigInt]
-  collateralAmount_not_in: [BigInt]
-  collateralAmount_gt: BigInt
-  collateralAmount_lt: BigInt
-  collateralAmount_gte: BigInt
-  collateralAmount_lte: BigInt
-  fee: BigInt
-  fee_not: BigInt
-  fee_in: [BigInt]
-  fee_not_in: [BigInt]
-  fee_gt: BigInt
-  fee_lt: BigInt
-  fee_gte: BigInt
-  fee_lte: BigInt
   transactionHash: String
   transactionHash_not: String
   transactionHash_in: [String]
@@ -872,32 +739,27 @@ input TransferDepositHistoryFilter {
   timestamp_lte: BigInt
 }
 
-type PurchaseHistoryPage {
-  items: [PurchaseHistory!]!
+type TransferOptionsSharesHistoryPage {
+  items: [TransferOptionsSharesHistory!]!
   pageInfo: PageInfo!
   totalCount: Int!
 }
 
-type PurchaseHistory {
+type TransferOptionsSharesHistory {
   id: String!
   optionId: String!
   marketId: BigInt!
-  maker: User
+  user: User
   receiver: User
-  purchaser: String!
   amount: BigInt!
-  premiumAmount: BigInt!
-  fee: BigInt!
-  optionShares: BigInt!
-  sharesUtilized: BigInt!
   transactionHash: String!
   blockNumber: BigInt!
   timestamp: BigInt!
 }
 
-input PurchaseHistoryFilter {
-  AND: [PurchaseHistoryFilter]
-  OR: [PurchaseHistoryFilter]
+input TransferOptionsSharesHistoryFilter {
+  AND: [TransferOptionsSharesHistoryFilter]
+  OR: [TransferOptionsSharesHistoryFilter]
   id: String
   id_not: String
   id_in: [String]
@@ -926,16 +788,16 @@ input PurchaseHistoryFilter {
   marketId_lt: BigInt
   marketId_gte: BigInt
   marketId_lte: BigInt
-  maker: String
-  maker_not: String
-  maker_in: [String]
-  maker_not_in: [String]
-  maker_contains: String
-  maker_not_contains: String
-  maker_starts_with: String
-  maker_ends_with: String
-  maker_not_starts_with: String
-  maker_not_ends_with: String
+  user: String
+  user_not: String
+  user_in: [String]
+  user_not_in: [String]
+  user_contains: String
+  user_not_contains: String
+  user_starts_with: String
+  user_ends_with: String
+  user_not_starts_with: String
+  user_not_ends_with: String
   receiver: String
   receiver_not: String
   receiver_in: [String]
@@ -946,16 +808,6 @@ input PurchaseHistoryFilter {
   receiver_ends_with: String
   receiver_not_starts_with: String
   receiver_not_ends_with: String
-  purchaser: String
-  purchaser_not: String
-  purchaser_in: [String]
-  purchaser_not_in: [String]
-  purchaser_contains: String
-  purchaser_not_contains: String
-  purchaser_starts_with: String
-  purchaser_ends_with: String
-  purchaser_not_starts_with: String
-  purchaser_not_ends_with: String
   amount: BigInt
   amount_not: BigInt
   amount_in: [BigInt]
@@ -964,38 +816,6 @@ input PurchaseHistoryFilter {
   amount_lt: BigInt
   amount_gte: BigInt
   amount_lte: BigInt
-  premiumAmount: BigInt
-  premiumAmount_not: BigInt
-  premiumAmount_in: [BigInt]
-  premiumAmount_not_in: [BigInt]
-  premiumAmount_gt: BigInt
-  premiumAmount_lt: BigInt
-  premiumAmount_gte: BigInt
-  premiumAmount_lte: BigInt
-  fee: BigInt
-  fee_not: BigInt
-  fee_in: [BigInt]
-  fee_not_in: [BigInt]
-  fee_gt: BigInt
-  fee_lt: BigInt
-  fee_gte: BigInt
-  fee_lte: BigInt
-  optionShares: BigInt
-  optionShares_not: BigInt
-  optionShares_in: [BigInt]
-  optionShares_not_in: [BigInt]
-  optionShares_gt: BigInt
-  optionShares_lt: BigInt
-  optionShares_gte: BigInt
-  optionShares_lte: BigInt
-  sharesUtilized: BigInt
-  sharesUtilized_not: BigInt
-  sharesUtilized_in: [BigInt]
-  sharesUtilized_not_in: [BigInt]
-  sharesUtilized_gt: BigInt
-  sharesUtilized_lt: BigInt
-  sharesUtilized_gte: BigInt
-  sharesUtilized_lte: BigInt
   transactionHash: String
   transactionHash_not: String
   transactionHash_in: [String]
@@ -1035,15 +855,13 @@ type ExerciseHistory {
   optionId: String!
   marketId: BigInt!
   maker: User
-  receiver: User
-  exerciser: String!
+  user: User
+  exerciser: User
   amount: BigInt!
   profitAmount: BigInt!
   fee: BigInt!
   optionTokensBurnt: BigInt!
   sharesUnutilized: BigInt!
-  makerLoss: BigInt
-  purchaserProfit: BigInt
   transactionHash: String!
   blockNumber: BigInt!
   timestamp: BigInt!
@@ -1090,16 +908,16 @@ input ExerciseHistoryFilter {
   maker_ends_with: String
   maker_not_starts_with: String
   maker_not_ends_with: String
-  receiver: String
-  receiver_not: String
-  receiver_in: [String]
-  receiver_not_in: [String]
-  receiver_contains: String
-  receiver_not_contains: String
-  receiver_starts_with: String
-  receiver_ends_with: String
-  receiver_not_starts_with: String
-  receiver_not_ends_with: String
+  user: String
+  user_not: String
+  user_in: [String]
+  user_not_in: [String]
+  user_contains: String
+  user_not_contains: String
+  user_starts_with: String
+  user_ends_with: String
+  user_not_starts_with: String
+  user_not_ends_with: String
   exerciser: String
   exerciser_not: String
   exerciser_in: [String]
@@ -1150,22 +968,111 @@ input ExerciseHistoryFilter {
   sharesUnutilized_lt: BigInt
   sharesUnutilized_gte: BigInt
   sharesUnutilized_lte: BigInt
-  makerLoss: BigInt
-  makerLoss_not: BigInt
-  makerLoss_in: [BigInt]
-  makerLoss_not_in: [BigInt]
-  makerLoss_gt: BigInt
-  makerLoss_lt: BigInt
-  makerLoss_gte: BigInt
-  makerLoss_lte: BigInt
-  purchaserProfit: BigInt
-  purchaserProfit_not: BigInt
-  purchaserProfit_in: [BigInt]
-  purchaserProfit_not_in: [BigInt]
-  purchaserProfit_gt: BigInt
-  purchaserProfit_lt: BigInt
-  purchaserProfit_gte: BigInt
-  purchaserProfit_lte: BigInt
+  transactionHash: String
+  transactionHash_not: String
+  transactionHash_in: [String]
+  transactionHash_not_in: [String]
+  transactionHash_contains: String
+  transactionHash_not_contains: String
+  transactionHash_starts_with: String
+  transactionHash_ends_with: String
+  transactionHash_not_starts_with: String
+  transactionHash_not_ends_with: String
+  blockNumber: BigInt
+  blockNumber_not: BigInt
+  blockNumber_in: [BigInt]
+  blockNumber_not_in: [BigInt]
+  blockNumber_gt: BigInt
+  blockNumber_lt: BigInt
+  blockNumber_gte: BigInt
+  blockNumber_lte: BigInt
+  timestamp: BigInt
+  timestamp_not: BigInt
+  timestamp_in: [BigInt]
+  timestamp_not_in: [BigInt]
+  timestamp_gt: BigInt
+  timestamp_lt: BigInt
+  timestamp_gte: BigInt
+  timestamp_lte: BigInt
+}
+
+type WithdrawHistoryPage {
+  items: [WithdrawHistory!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type WithdrawHistory {
+  id: String!
+  optionId: String!
+  marketId: BigInt!
+  user: User
+  receiver: User
+  sharesBurnt: BigInt!
+  transactionHash: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+}
+
+input WithdrawHistoryFilter {
+  AND: [WithdrawHistoryFilter]
+  OR: [WithdrawHistoryFilter]
+  id: String
+  id_not: String
+  id_in: [String]
+  id_not_in: [String]
+  id_contains: String
+  id_not_contains: String
+  id_starts_with: String
+  id_ends_with: String
+  id_not_starts_with: String
+  id_not_ends_with: String
+  optionId: String
+  optionId_not: String
+  optionId_in: [String]
+  optionId_not_in: [String]
+  optionId_contains: String
+  optionId_not_contains: String
+  optionId_starts_with: String
+  optionId_ends_with: String
+  optionId_not_starts_with: String
+  optionId_not_ends_with: String
+  marketId: BigInt
+  marketId_not: BigInt
+  marketId_in: [BigInt]
+  marketId_not_in: [BigInt]
+  marketId_gt: BigInt
+  marketId_lt: BigInt
+  marketId_gte: BigInt
+  marketId_lte: BigInt
+  user: String
+  user_not: String
+  user_in: [String]
+  user_not_in: [String]
+  user_contains: String
+  user_not_contains: String
+  user_starts_with: String
+  user_ends_with: String
+  user_not_starts_with: String
+  user_not_ends_with: String
+  receiver: String
+  receiver_not: String
+  receiver_in: [String]
+  receiver_not_in: [String]
+  receiver_contains: String
+  receiver_not_contains: String
+  receiver_starts_with: String
+  receiver_ends_with: String
+  receiver_not_starts_with: String
+  receiver_not_ends_with: String
+  sharesBurnt: BigInt
+  sharesBurnt_not: BigInt
+  sharesBurnt_in: [BigInt]
+  sharesBurnt_not_in: [BigInt]
+  sharesBurnt_gt: BigInt
+  sharesBurnt_lt: BigInt
+  sharesBurnt_gte: BigInt
+  sharesBurnt_lte: BigInt
   transactionHash: String
   transactionHash_not: String
   transactionHash_in: [String]
@@ -1326,32 +1233,30 @@ input UnwindHistoryFilter {
   timestamp_lte: BigInt
 }
 
-type TransferPositionHistoryPage {
-  items: [TransferPositionHistory!]!
+type OrderFillHistoryPage {
+  items: [OrderFillHistory!]!
   pageInfo: PageInfo!
   totalCount: Int!
 }
 
-type TransferPositionHistory {
+type OrderFillHistory {
   id: String!
-  optionId: String!
-  marketId: BigInt!
+  orderHash: String!
   maker: User
-  receiver: User
-  purchaser: String!
-  amount: BigInt!
-  premiumAmount: BigInt!
-  fee: BigInt!
-  optionShares: BigInt!
-  sharesUtilized: BigInt!
+  taker: User
+  optionTokenId: BigInt
+  makingAmount: BigInt!
+  takingAmount: BigInt!
   transactionHash: String!
   blockNumber: BigInt!
   timestamp: BigInt!
+  price: BigInt!
+  marketId: BigInt!
 }
 
-input TransferPositionHistoryFilter {
-  AND: [TransferPositionHistoryFilter]
-  OR: [TransferPositionHistoryFilter]
+input OrderFillHistoryFilter {
+  AND: [OrderFillHistoryFilter]
+  OR: [OrderFillHistoryFilter]
   id: String
   id_not: String
   id_in: [String]
@@ -1362,24 +1267,16 @@ input TransferPositionHistoryFilter {
   id_ends_with: String
   id_not_starts_with: String
   id_not_ends_with: String
-  optionId: String
-  optionId_not: String
-  optionId_in: [String]
-  optionId_not_in: [String]
-  optionId_contains: String
-  optionId_not_contains: String
-  optionId_starts_with: String
-  optionId_ends_with: String
-  optionId_not_starts_with: String
-  optionId_not_ends_with: String
-  marketId: BigInt
-  marketId_not: BigInt
-  marketId_in: [BigInt]
-  marketId_not_in: [BigInt]
-  marketId_gt: BigInt
-  marketId_lt: BigInt
-  marketId_gte: BigInt
-  marketId_lte: BigInt
+  orderHash: String
+  orderHash_not: String
+  orderHash_in: [String]
+  orderHash_not_in: [String]
+  orderHash_contains: String
+  orderHash_not_contains: String
+  orderHash_starts_with: String
+  orderHash_ends_with: String
+  orderHash_not_starts_with: String
+  orderHash_not_ends_with: String
   maker: String
   maker_not: String
   maker_in: [String]
@@ -1390,66 +1287,40 @@ input TransferPositionHistoryFilter {
   maker_ends_with: String
   maker_not_starts_with: String
   maker_not_ends_with: String
-  receiver: String
-  receiver_not: String
-  receiver_in: [String]
-  receiver_not_in: [String]
-  receiver_contains: String
-  receiver_not_contains: String
-  receiver_starts_with: String
-  receiver_ends_with: String
-  receiver_not_starts_with: String
-  receiver_not_ends_with: String
-  purchaser: String
-  purchaser_not: String
-  purchaser_in: [String]
-  purchaser_not_in: [String]
-  purchaser_contains: String
-  purchaser_not_contains: String
-  purchaser_starts_with: String
-  purchaser_ends_with: String
-  purchaser_not_starts_with: String
-  purchaser_not_ends_with: String
-  amount: BigInt
-  amount_not: BigInt
-  amount_in: [BigInt]
-  amount_not_in: [BigInt]
-  amount_gt: BigInt
-  amount_lt: BigInt
-  amount_gte: BigInt
-  amount_lte: BigInt
-  premiumAmount: BigInt
-  premiumAmount_not: BigInt
-  premiumAmount_in: [BigInt]
-  premiumAmount_not_in: [BigInt]
-  premiumAmount_gt: BigInt
-  premiumAmount_lt: BigInt
-  premiumAmount_gte: BigInt
-  premiumAmount_lte: BigInt
-  fee: BigInt
-  fee_not: BigInt
-  fee_in: [BigInt]
-  fee_not_in: [BigInt]
-  fee_gt: BigInt
-  fee_lt: BigInt
-  fee_gte: BigInt
-  fee_lte: BigInt
-  optionShares: BigInt
-  optionShares_not: BigInt
-  optionShares_in: [BigInt]
-  optionShares_not_in: [BigInt]
-  optionShares_gt: BigInt
-  optionShares_lt: BigInt
-  optionShares_gte: BigInt
-  optionShares_lte: BigInt
-  sharesUtilized: BigInt
-  sharesUtilized_not: BigInt
-  sharesUtilized_in: [BigInt]
-  sharesUtilized_not_in: [BigInt]
-  sharesUtilized_gt: BigInt
-  sharesUtilized_lt: BigInt
-  sharesUtilized_gte: BigInt
-  sharesUtilized_lte: BigInt
+  taker: String
+  taker_not: String
+  taker_in: [String]
+  taker_not_in: [String]
+  taker_contains: String
+  taker_not_contains: String
+  taker_starts_with: String
+  taker_ends_with: String
+  taker_not_starts_with: String
+  taker_not_ends_with: String
+  optionTokenId: BigInt
+  optionTokenId_not: BigInt
+  optionTokenId_in: [BigInt]
+  optionTokenId_not_in: [BigInt]
+  optionTokenId_gt: BigInt
+  optionTokenId_lt: BigInt
+  optionTokenId_gte: BigInt
+  optionTokenId_lte: BigInt
+  makingAmount: BigInt
+  makingAmount_not: BigInt
+  makingAmount_in: [BigInt]
+  makingAmount_not_in: [BigInt]
+  makingAmount_gt: BigInt
+  makingAmount_lt: BigInt
+  makingAmount_gte: BigInt
+  makingAmount_lte: BigInt
+  takingAmount: BigInt
+  takingAmount_not: BigInt
+  takingAmount_in: [BigInt]
+  takingAmount_not_in: [BigInt]
+  takingAmount_gt: BigInt
+  takingAmount_lt: BigInt
+  takingAmount_gte: BigInt
+  takingAmount_lte: BigInt
   transactionHash: String
   transactionHash_not: String
   transactionHash_in: [String]
@@ -1476,6 +1347,22 @@ input TransferPositionHistoryFilter {
   timestamp_lt: BigInt
   timestamp_gte: BigInt
   timestamp_lte: BigInt
+  price: BigInt
+  price_not: BigInt
+  price_in: [BigInt]
+  price_not_in: [BigInt]
+  price_gt: BigInt
+  price_lt: BigInt
+  price_gte: BigInt
+  price_lte: BigInt
+  marketId: BigInt
+  marketId_not: BigInt
+  marketId_in: [BigInt]
+  marketId_not_in: [BigInt]
+  marketId_gt: BigInt
+  marketId_lt: BigInt
+  marketId_gte: BigInt
+  marketId_lte: BigInt
 }
 
 type SettlementHistoryPage {
@@ -1572,6 +1459,25 @@ input SettlementHistoryFilter {
   timestamp_lte: BigInt
 }
 
+type OptionParams {
+  id: String!
+  marketId: BigInt!
+  strikeLowerLimit: BigInt!
+  strikeUpperLimit: BigInt!
+  isPut: Boolean!
+  collateralPerShare: BigInt
+  createdAt: BigInt!
+  createdAtBlock: BigInt!
+  positions(
+    where: PositionFilter
+    orderBy: String
+    orderDirection: String
+    before: String
+    after: String
+    limit: Int
+  ): PositionPage
+}
+
 input OptionMarketFilter {
   AND: [OptionMarketFilter]
   OR: [OptionMarketFilter]
@@ -1659,14 +1565,14 @@ input OptionMarketFilter {
   collateralToken_ends_with: String
   collateralToken_not_starts_with: String
   collateralToken_not_ends_with: String
-  totalCollateral: BigInt
-  totalCollateral_not: BigInt
-  totalCollateral_in: [BigInt]
-  totalCollateral_not_in: [BigInt]
-  totalCollateral_gt: BigInt
-  totalCollateral_lt: BigInt
-  totalCollateral_gte: BigInt
-  totalCollateral_lte: BigInt
+  totalCollateralShares: BigInt
+  totalCollateralShares_not: BigInt
+  totalCollateralShares_in: [BigInt]
+  totalCollateralShares_not_in: [BigInt]
+  totalCollateralShares_gt: BigInt
+  totalCollateralShares_lt: BigInt
+  totalCollateralShares_gte: BigInt
+  totalCollateralShares_lte: BigInt
   totalCollateralAmount: BigInt
   totalCollateralAmount_not: BigInt
   totalCollateralAmount_in: [BigInt]
@@ -2027,129 +1933,6 @@ input OptionParamsFilter {
   createdAtBlock_lt: BigInt
   createdAtBlock_gte: BigInt
   createdAtBlock_lte: BigInt
-}
-
-type OrderFillHistory {
-  id: String!
-  orderHash: String!
-  maker: String!
-  taker: String!
-  optionTokenId: BigInt
-  makingAmount: BigInt!
-  takingAmount: BigInt!
-  remainingAmount: BigInt!
-  transactionHash: String!
-  blockNumber: BigInt!
-  timestamp: BigInt!
-}
-
-type OrderFillHistoryPage {
-  items: [OrderFillHistory!]!
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
-input OrderFillHistoryFilter {
-  AND: [OrderFillHistoryFilter]
-  OR: [OrderFillHistoryFilter]
-  id: String
-  id_not: String
-  id_in: [String]
-  id_not_in: [String]
-  id_contains: String
-  id_not_contains: String
-  id_starts_with: String
-  id_ends_with: String
-  id_not_starts_with: String
-  id_not_ends_with: String
-  orderHash: String
-  orderHash_not: String
-  orderHash_in: [String]
-  orderHash_not_in: [String]
-  orderHash_contains: String
-  orderHash_not_contains: String
-  orderHash_starts_with: String
-  orderHash_ends_with: String
-  orderHash_not_starts_with: String
-  orderHash_not_ends_with: String
-  maker: String
-  maker_not: String
-  maker_in: [String]
-  maker_not_in: [String]
-  maker_contains: String
-  maker_not_contains: String
-  maker_starts_with: String
-  maker_ends_with: String
-  maker_not_starts_with: String
-  maker_not_ends_with: String
-  taker: String
-  taker_not: String
-  taker_in: [String]
-  taker_not_in: [String]
-  taker_contains: String
-  taker_not_contains: String
-  taker_starts_with: String
-  taker_ends_with: String
-  taker_not_starts_with: String
-  taker_not_ends_with: String
-  optionTokenId: BigInt
-  optionTokenId_not: BigInt
-  optionTokenId_in: [BigInt]
-  optionTokenId_not_in: [BigInt]
-  optionTokenId_gt: BigInt
-  optionTokenId_lt: BigInt
-  optionTokenId_gte: BigInt
-  optionTokenId_lte: BigInt
-  makingAmount: BigInt
-  makingAmount_not: BigInt
-  makingAmount_in: [BigInt]
-  makingAmount_not_in: [BigInt]
-  makingAmount_gt: BigInt
-  makingAmount_lt: BigInt
-  makingAmount_gte: BigInt
-  makingAmount_lte: BigInt
-  takingAmount: BigInt
-  takingAmount_not: BigInt
-  takingAmount_in: [BigInt]
-  takingAmount_not_in: [BigInt]
-  takingAmount_gt: BigInt
-  takingAmount_lt: BigInt
-  takingAmount_gte: BigInt
-  takingAmount_lte: BigInt
-  remainingAmount: BigInt
-  remainingAmount_not: BigInt
-  remainingAmount_in: [BigInt]
-  remainingAmount_not_in: [BigInt]
-  remainingAmount_gt: BigInt
-  remainingAmount_lt: BigInt
-  remainingAmount_gte: BigInt
-  remainingAmount_lte: BigInt
-  transactionHash: String
-  transactionHash_not: String
-  transactionHash_in: [String]
-  transactionHash_not_in: [String]
-  transactionHash_contains: String
-  transactionHash_not_contains: String
-  transactionHash_starts_with: String
-  transactionHash_ends_with: String
-  transactionHash_not_starts_with: String
-  transactionHash_not_ends_with: String
-  blockNumber: BigInt
-  blockNumber_not: BigInt
-  blockNumber_in: [BigInt]
-  blockNumber_not_in: [BigInt]
-  blockNumber_gt: BigInt
-  blockNumber_lt: BigInt
-  blockNumber_gte: BigInt
-  blockNumber_lte: BigInt
-  timestamp: BigInt
-  timestamp_not: BigInt
-  timestamp_in: [BigInt]
-  timestamp_not_in: [BigInt]
-  timestamp_gt: BigInt
-  timestamp_lt: BigInt
-  timestamp_gte: BigInt
-  timestamp_lte: BigInt
 }
 
 type OrderCancelHistory {

@@ -31,20 +31,18 @@ export interface Query {
     marketStrategys: MarketStrategyPage
     optionParams?: OptionParams
     optionParamss: OptionParamsPage
-    collateralPosition?: CollateralPosition
-    collateralPositions: CollateralPositionPage
-    optionPosition?: OptionPosition
-    optionPositions: OptionPositionPage
+    position?: Position
+    positions: PositionPage
     depositHistory?: DepositHistory
     depositHistorys: DepositHistoryPage
-    transferDepositHistory?: TransferDepositHistory
-    transferDepositHistorys: TransferDepositHistoryPage
-    purchaseHistory?: PurchaseHistory
-    purchaseHistorys: PurchaseHistoryPage
-    transferPositionHistory?: TransferPositionHistory
-    transferPositionHistorys: TransferPositionHistoryPage
+    transferCollateralSharesHistory?: TransferCollateralSharesHistory
+    transferCollateralSharesHistorys: TransferCollateralSharesHistoryPage
+    transferOptionsSharesHistory?: TransferOptionsSharesHistory
+    transferOptionsSharesHistorys: TransferOptionsSharesHistoryPage
     exerciseHistory?: ExerciseHistory
     exerciseHistorys: ExerciseHistoryPage
+    withdrawHistory?: WithdrawHistory
+    withdrawHistorys: WithdrawHistoryPage
     unwindHistory?: UnwindHistory
     unwindHistorys: UnwindHistoryPage
     orderFillHistory?: OrderFillHistory
@@ -88,7 +86,7 @@ export interface OptionMarket {
     maxTTL: Scalars['BigInt']
     strategy?: MarketStrategy
     collateralToken: Scalars['String']
-    totalCollateral: Scalars['BigInt']
+    totalCollateralShares: Scalars['BigInt']
     totalCollateralAmount: Scalars['BigInt']
     protocolFees: Scalars['BigInt']
     createdAt: Scalars['BigInt']
@@ -96,8 +94,7 @@ export interface OptionMarket {
     updatedAt: Scalars['BigInt']
     updatedAtBlock: Scalars['BigInt']
     global?: Global
-    collateralPositions?: CollateralPositionPage
-    optionPositions?: OptionPositionPage
+    positions?: PositionPage
     __typename: 'OptionMarket'
 }
 
@@ -119,85 +116,55 @@ export interface MarketStrategy {
     __typename: 'MarketStrategy'
 }
 
-export interface CollateralPositionPage {
-    items: CollateralPosition[]
+export interface PositionPage {
+    items: Position[]
     pageInfo: PageInfo
     totalCount: Scalars['Int']
-    __typename: 'CollateralPositionPage'
+    __typename: 'PositionPage'
 }
 
-export interface CollateralPosition {
+export interface Position {
     id: Scalars['String']
     optionId: Scalars['String']
     optionMarketId: Scalars['String']
     user?: User
-    totalCollateral: Scalars['BigInt']
-    optionsMinted: Scalars['BigInt']
-    optionsExercised: Scalars['BigInt']
+    collateralShares: Scalars['BigInt']
+    optionsShares: Scalars['BigInt']
     premiumEarned: Scalars['BigInt']
     fee: Scalars['BigInt']
     settled: Scalars['Boolean']
     updatedAt: Scalars['BigInt']
     updatedAtBlock: Scalars['BigInt']
+    profit: Scalars['BigInt']
+    averagePrice: Scalars['BigInt']
+    optionsSharesExercised: Scalars['BigInt']
+    premiumPaid: Scalars['BigInt']
     optionParams?: OptionParams
     optionMarket?: OptionMarket
-    __typename: 'CollateralPosition'
+    __typename: 'Position'
 }
 
 export interface User {
     id: Scalars['String']
     updatedAt: Scalars['BigInt']
     updatedAtBlock: Scalars['BigInt']
-    optionsPositions?: OptionPositionPage
-    collateralPositions?: CollateralPositionPage
+    positions?: PositionPage
     depositHistory?: DepositHistoryPage
-    transferDepositHistory?: TransferDepositHistoryPage
-    purchaseHistory?: PurchaseHistoryPage
+    transferCollateralSharesHistory?: TransferCollateralSharesHistoryPage
+    transferCollateralSharesHistoryAsReceiver?: TransferCollateralSharesHistoryPage
+    transferOptionsSharesHistory?: TransferOptionsSharesHistoryPage
+    transferOptionsSharesHistoryAsReceiver?: TransferOptionsSharesHistoryPage
+    exerciseHistoryAsMaker?: ExerciseHistoryPage
     exerciseHistory?: ExerciseHistoryPage
+    exerciseHistoryAsExerciser?: ExerciseHistoryPage
+    withdrawHistory?: WithdrawHistoryPage
+    withdrawHistoryAsReceiver?: WithdrawHistoryPage
     unwindHistory?: UnwindHistoryPage
-    transferPositionHistory?: TransferPositionHistoryPage
+    unwindHistoryAsReceiver?: UnwindHistoryPage
+    orderFillHistoryAsMaker?: OrderFillHistoryPage
+    orderFillHistoryAsTaker?: OrderFillHistoryPage
     settlementHistory?: SettlementHistoryPage
     __typename: 'User'
-}
-
-export interface OptionPositionPage {
-    items: OptionPosition[]
-    pageInfo: PageInfo
-    totalCount: Scalars['Int']
-    __typename: 'OptionPositionPage'
-}
-
-export interface OptionPosition {
-    id: Scalars['String']
-    tokenId: Scalars['BigInt']
-    address: Scalars['String']
-    optionId: Scalars['String']
-    optionMarketId: Scalars['String']
-    user?: User
-    premium: Scalars['BigInt']
-    fee: Scalars['BigInt']
-    profit: Scalars['BigInt']
-    amount: Scalars['BigInt']
-    averagePrice: Scalars['BigInt']
-    updatedAt: Scalars['BigInt']
-    updatedAtBlock: Scalars['BigInt']
-    optionParams?: OptionParams
-    optionMarket?: OptionMarket
-    __typename: 'OptionPosition'
-}
-
-export interface OptionParams {
-    id: Scalars['String']
-    marketId: Scalars['BigInt']
-    strikeLowerLimit: Scalars['BigInt']
-    strikeUpperLimit: Scalars['BigInt']
-    isPut: Scalars['Boolean']
-    collateralPerShare?: Scalars['BigInt']
-    createdAt: Scalars['BigInt']
-    createdAtBlock: Scalars['BigInt']
-    collateralPositions?: CollateralPositionPage
-    optionPositions?: OptionPositionPage
-    __typename: 'OptionParams'
 }
 
 export interface DepositHistoryPage {
@@ -212,7 +179,6 @@ export interface DepositHistory {
     optionId: Scalars['String']
     marketId: Scalars['BigInt']
     user?: User
-    receiver: Scalars['String']
     amount: Scalars['BigInt']
     collateralAmount: Scalars['BigInt']
     fee: Scalars['BigInt']
@@ -222,51 +188,44 @@ export interface DepositHistory {
     __typename: 'DepositHistory'
 }
 
-export interface TransferDepositHistoryPage {
-    items: TransferDepositHistory[]
+export interface TransferCollateralSharesHistoryPage {
+    items: TransferCollateralSharesHistory[]
     pageInfo: PageInfo
     totalCount: Scalars['Int']
-    __typename: 'TransferDepositHistoryPage'
+    __typename: 'TransferCollateralSharesHistoryPage'
 }
 
-export interface TransferDepositHistory {
+export interface TransferCollateralSharesHistory {
     id: Scalars['String']
     optionId: Scalars['String']
     marketId: Scalars['BigInt']
     user?: User
     receiver?: User
     amount: Scalars['BigInt']
-    collateralAmount: Scalars['BigInt']
-    fee: Scalars['BigInt']
     transactionHash: Scalars['String']
     blockNumber: Scalars['BigInt']
     timestamp: Scalars['BigInt']
-    __typename: 'TransferDepositHistory'
+    __typename: 'TransferCollateralSharesHistory'
 }
 
-export interface PurchaseHistoryPage {
-    items: PurchaseHistory[]
+export interface TransferOptionsSharesHistoryPage {
+    items: TransferOptionsSharesHistory[]
     pageInfo: PageInfo
     totalCount: Scalars['Int']
-    __typename: 'PurchaseHistoryPage'
+    __typename: 'TransferOptionsSharesHistoryPage'
 }
 
-export interface PurchaseHistory {
+export interface TransferOptionsSharesHistory {
     id: Scalars['String']
     optionId: Scalars['String']
     marketId: Scalars['BigInt']
-    maker?: User
+    user?: User
     receiver?: User
-    purchaser: Scalars['String']
     amount: Scalars['BigInt']
-    premiumAmount: Scalars['BigInt']
-    fee: Scalars['BigInt']
-    optionShares: Scalars['BigInt']
-    sharesUtilized: Scalars['BigInt']
     transactionHash: Scalars['String']
     blockNumber: Scalars['BigInt']
     timestamp: Scalars['BigInt']
-    __typename: 'PurchaseHistory'
+    __typename: 'TransferOptionsSharesHistory'
 }
 
 export interface ExerciseHistoryPage {
@@ -281,19 +240,37 @@ export interface ExerciseHistory {
     optionId: Scalars['String']
     marketId: Scalars['BigInt']
     maker?: User
-    receiver?: User
-    exerciser: Scalars['String']
+    user?: User
+    exerciser?: User
     amount: Scalars['BigInt']
     profitAmount: Scalars['BigInt']
     fee: Scalars['BigInt']
     optionTokensBurnt: Scalars['BigInt']
     sharesUnutilized: Scalars['BigInt']
-    makerLoss?: Scalars['BigInt']
-    purchaserProfit?: Scalars['BigInt']
     transactionHash: Scalars['String']
     blockNumber: Scalars['BigInt']
     timestamp: Scalars['BigInt']
     __typename: 'ExerciseHistory'
+}
+
+export interface WithdrawHistoryPage {
+    items: WithdrawHistory[]
+    pageInfo: PageInfo
+    totalCount: Scalars['Int']
+    __typename: 'WithdrawHistoryPage'
+}
+
+export interface WithdrawHistory {
+    id: Scalars['String']
+    optionId: Scalars['String']
+    marketId: Scalars['BigInt']
+    user?: User
+    receiver?: User
+    sharesBurnt: Scalars['BigInt']
+    transactionHash: Scalars['String']
+    blockNumber: Scalars['BigInt']
+    timestamp: Scalars['BigInt']
+    __typename: 'WithdrawHistory'
 }
 
 export interface UnwindHistoryPage {
@@ -319,29 +296,27 @@ export interface UnwindHistory {
     __typename: 'UnwindHistory'
 }
 
-export interface TransferPositionHistoryPage {
-    items: TransferPositionHistory[]
+export interface OrderFillHistoryPage {
+    items: OrderFillHistory[]
     pageInfo: PageInfo
     totalCount: Scalars['Int']
-    __typename: 'TransferPositionHistoryPage'
+    __typename: 'OrderFillHistoryPage'
 }
 
-export interface TransferPositionHistory {
+export interface OrderFillHistory {
     id: Scalars['String']
-    optionId: Scalars['String']
-    marketId: Scalars['BigInt']
+    orderHash: Scalars['String']
     maker?: User
-    receiver?: User
-    purchaser: Scalars['String']
-    amount: Scalars['BigInt']
-    premiumAmount: Scalars['BigInt']
-    fee: Scalars['BigInt']
-    optionShares: Scalars['BigInt']
-    sharesUtilized: Scalars['BigInt']
+    taker?: User
+    optionTokenId?: Scalars['BigInt']
+    makingAmount: Scalars['BigInt']
+    takingAmount: Scalars['BigInt']
     transactionHash: Scalars['String']
     blockNumber: Scalars['BigInt']
     timestamp: Scalars['BigInt']
-    __typename: 'TransferPositionHistory'
+    price: Scalars['BigInt']
+    marketId: Scalars['BigInt']
+    __typename: 'OrderFillHistory'
 }
 
 export interface SettlementHistoryPage {
@@ -361,6 +336,19 @@ export interface SettlementHistory {
     blockNumber: Scalars['BigInt']
     timestamp: Scalars['BigInt']
     __typename: 'SettlementHistory'
+}
+
+export interface OptionParams {
+    id: Scalars['String']
+    marketId: Scalars['BigInt']
+    strikeLowerLimit: Scalars['BigInt']
+    strikeUpperLimit: Scalars['BigInt']
+    isPut: Scalars['Boolean']
+    collateralPerShare?: Scalars['BigInt']
+    createdAt: Scalars['BigInt']
+    createdAtBlock: Scalars['BigInt']
+    positions?: PositionPage
+    __typename: 'OptionParams'
 }
 
 export interface GlobalPage {
@@ -389,28 +377,6 @@ export interface OptionParamsPage {
     pageInfo: PageInfo
     totalCount: Scalars['Int']
     __typename: 'OptionParamsPage'
-}
-
-export interface OrderFillHistory {
-    id: Scalars['String']
-    orderHash: Scalars['String']
-    maker: Scalars['String']
-    taker: Scalars['String']
-    optionTokenId?: Scalars['BigInt']
-    makingAmount: Scalars['BigInt']
-    takingAmount: Scalars['BigInt']
-    remainingAmount: Scalars['BigInt']
-    transactionHash: Scalars['String']
-    blockNumber: Scalars['BigInt']
-    timestamp: Scalars['BigInt']
-    __typename: 'OrderFillHistory'
-}
-
-export interface OrderFillHistoryPage {
-    items: OrderFillHistory[]
-    pageInfo: PageInfo
-    totalCount: Scalars['Int']
-    __typename: 'OrderFillHistoryPage'
 }
 
 export interface OrderCancelHistory {
@@ -480,20 +446,18 @@ export interface QueryGenqlSelection{
     marketStrategys?: (MarketStrategyPageGenqlSelection & { __args?: {where?: (MarketStrategyFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
     optionParams?: (OptionParamsGenqlSelection & { __args: {id: Scalars['String']} })
     optionParamss?: (OptionParamsPageGenqlSelection & { __args?: {where?: (OptionParamsFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
-    collateralPosition?: (CollateralPositionGenqlSelection & { __args: {id: Scalars['String']} })
-    collateralPositions?: (CollateralPositionPageGenqlSelection & { __args?: {where?: (CollateralPositionFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
-    optionPosition?: (OptionPositionGenqlSelection & { __args: {id: Scalars['String']} })
-    optionPositions?: (OptionPositionPageGenqlSelection & { __args?: {where?: (OptionPositionFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    position?: (PositionGenqlSelection & { __args: {id: Scalars['String']} })
+    positions?: (PositionPageGenqlSelection & { __args?: {where?: (PositionFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
     depositHistory?: (DepositHistoryGenqlSelection & { __args: {id: Scalars['String']} })
     depositHistorys?: (DepositHistoryPageGenqlSelection & { __args?: {where?: (DepositHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
-    transferDepositHistory?: (TransferDepositHistoryGenqlSelection & { __args: {id: Scalars['String']} })
-    transferDepositHistorys?: (TransferDepositHistoryPageGenqlSelection & { __args?: {where?: (TransferDepositHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
-    purchaseHistory?: (PurchaseHistoryGenqlSelection & { __args: {id: Scalars['String']} })
-    purchaseHistorys?: (PurchaseHistoryPageGenqlSelection & { __args?: {where?: (PurchaseHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
-    transferPositionHistory?: (TransferPositionHistoryGenqlSelection & { __args: {id: Scalars['String']} })
-    transferPositionHistorys?: (TransferPositionHistoryPageGenqlSelection & { __args?: {where?: (TransferPositionHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    transferCollateralSharesHistory?: (TransferCollateralSharesHistoryGenqlSelection & { __args: {id: Scalars['String']} })
+    transferCollateralSharesHistorys?: (TransferCollateralSharesHistoryPageGenqlSelection & { __args?: {where?: (TransferCollateralSharesHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    transferOptionsSharesHistory?: (TransferOptionsSharesHistoryGenqlSelection & { __args: {id: Scalars['String']} })
+    transferOptionsSharesHistorys?: (TransferOptionsSharesHistoryPageGenqlSelection & { __args?: {where?: (TransferOptionsSharesHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
     exerciseHistory?: (ExerciseHistoryGenqlSelection & { __args: {id: Scalars['String']} })
     exerciseHistorys?: (ExerciseHistoryPageGenqlSelection & { __args?: {where?: (ExerciseHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    withdrawHistory?: (WithdrawHistoryGenqlSelection & { __args: {id: Scalars['String']} })
+    withdrawHistorys?: (WithdrawHistoryPageGenqlSelection & { __args?: {where?: (WithdrawHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
     unwindHistory?: (UnwindHistoryGenqlSelection & { __args: {id: Scalars['String']} })
     unwindHistorys?: (UnwindHistoryPageGenqlSelection & { __args?: {where?: (UnwindHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
     orderFillHistory?: (OrderFillHistoryGenqlSelection & { __args: {id: Scalars['String']} })
@@ -540,7 +504,7 @@ export interface OptionMarketGenqlSelection{
     maxTTL?: boolean | number
     strategy?: MarketStrategyGenqlSelection
     collateralToken?: boolean | number
-    totalCollateral?: boolean | number
+    totalCollateralShares?: boolean | number
     totalCollateralAmount?: boolean | number
     protocolFees?: boolean | number
     createdAt?: boolean | number
@@ -548,8 +512,7 @@ export interface OptionMarketGenqlSelection{
     updatedAt?: boolean | number
     updatedAtBlock?: boolean | number
     global?: GlobalGenqlSelection
-    collateralPositions?: (CollateralPositionPageGenqlSelection & { __args?: {where?: (CollateralPositionFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
-    optionPositions?: (OptionPositionPageGenqlSelection & { __args?: {where?: (OptionPositionFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    positions?: (PositionPageGenqlSelection & { __args?: {where?: (PositionFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
     __typename?: boolean | number
     __scalar?: boolean | number
 }
@@ -573,27 +536,30 @@ export interface MarketStrategyGenqlSelection{
     __scalar?: boolean | number
 }
 
-export interface CollateralPositionPageGenqlSelection{
-    items?: CollateralPositionGenqlSelection
+export interface PositionPageGenqlSelection{
+    items?: PositionGenqlSelection
     pageInfo?: PageInfoGenqlSelection
     totalCount?: boolean | number
     __typename?: boolean | number
     __scalar?: boolean | number
 }
 
-export interface CollateralPositionGenqlSelection{
+export interface PositionGenqlSelection{
     id?: boolean | number
     optionId?: boolean | number
     optionMarketId?: boolean | number
     user?: UserGenqlSelection
-    totalCollateral?: boolean | number
-    optionsMinted?: boolean | number
-    optionsExercised?: boolean | number
+    collateralShares?: boolean | number
+    optionsShares?: boolean | number
     premiumEarned?: boolean | number
     fee?: boolean | number
     settled?: boolean | number
     updatedAt?: boolean | number
     updatedAtBlock?: boolean | number
+    profit?: boolean | number
+    averagePrice?: boolean | number
+    optionsSharesExercised?: boolean | number
+    premiumPaid?: boolean | number
     optionParams?: OptionParamsGenqlSelection
     optionMarket?: OptionMarketGenqlSelection
     __typename?: boolean | number
@@ -604,65 +570,27 @@ export interface UserGenqlSelection{
     id?: boolean | number
     updatedAt?: boolean | number
     updatedAtBlock?: boolean | number
-    optionsPositions?: (OptionPositionPageGenqlSelection & { __args?: {where?: (OptionPositionFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
-    collateralPositions?: (CollateralPositionPageGenqlSelection & { __args?: {where?: (CollateralPositionFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    positions?: (PositionPageGenqlSelection & { __args?: {where?: (PositionFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
     depositHistory?: (DepositHistoryPageGenqlSelection & { __args?: {where?: (DepositHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
-    transferDepositHistory?: (TransferDepositHistoryPageGenqlSelection & { __args?: {where?: (TransferDepositHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
-    purchaseHistory?: (PurchaseHistoryPageGenqlSelection & { __args?: {where?: (PurchaseHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    transferCollateralSharesHistory?: (TransferCollateralSharesHistoryPageGenqlSelection & { __args?: {where?: (TransferCollateralSharesHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    transferCollateralSharesHistoryAsReceiver?: (TransferCollateralSharesHistoryPageGenqlSelection & { __args?: {where?: (TransferCollateralSharesHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    transferOptionsSharesHistory?: (TransferOptionsSharesHistoryPageGenqlSelection & { __args?: {where?: (TransferOptionsSharesHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    transferOptionsSharesHistoryAsReceiver?: (TransferOptionsSharesHistoryPageGenqlSelection & { __args?: {where?: (TransferOptionsSharesHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    exerciseHistoryAsMaker?: (ExerciseHistoryPageGenqlSelection & { __args?: {where?: (ExerciseHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
     exerciseHistory?: (ExerciseHistoryPageGenqlSelection & { __args?: {where?: (ExerciseHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    exerciseHistoryAsExerciser?: (ExerciseHistoryPageGenqlSelection & { __args?: {where?: (ExerciseHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    withdrawHistory?: (WithdrawHistoryPageGenqlSelection & { __args?: {where?: (WithdrawHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    withdrawHistoryAsReceiver?: (WithdrawHistoryPageGenqlSelection & { __args?: {where?: (WithdrawHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
     unwindHistory?: (UnwindHistoryPageGenqlSelection & { __args?: {where?: (UnwindHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
-    transferPositionHistory?: (TransferPositionHistoryPageGenqlSelection & { __args?: {where?: (TransferPositionHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    unwindHistoryAsReceiver?: (UnwindHistoryPageGenqlSelection & { __args?: {where?: (UnwindHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    orderFillHistoryAsMaker?: (OrderFillHistoryPageGenqlSelection & { __args?: {where?: (OrderFillHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    orderFillHistoryAsTaker?: (OrderFillHistoryPageGenqlSelection & { __args?: {where?: (OrderFillHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
     settlementHistory?: (SettlementHistoryPageGenqlSelection & { __args?: {where?: (SettlementHistoryFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
     __typename?: boolean | number
     __scalar?: boolean | number
 }
 
-export interface OptionPositionPageGenqlSelection{
-    items?: OptionPositionGenqlSelection
-    pageInfo?: PageInfoGenqlSelection
-    totalCount?: boolean | number
-    __typename?: boolean | number
-    __scalar?: boolean | number
-}
-
-export interface OptionPositionGenqlSelection{
-    id?: boolean | number
-    tokenId?: boolean | number
-    address?: boolean | number
-    optionId?: boolean | number
-    optionMarketId?: boolean | number
-    user?: UserGenqlSelection
-    premium?: boolean | number
-    fee?: boolean | number
-    profit?: boolean | number
-    amount?: boolean | number
-    averagePrice?: boolean | number
-    updatedAt?: boolean | number
-    updatedAtBlock?: boolean | number
-    optionParams?: OptionParamsGenqlSelection
-    optionMarket?: OptionMarketGenqlSelection
-    __typename?: boolean | number
-    __scalar?: boolean | number
-}
-
-export interface OptionParamsGenqlSelection{
-    id?: boolean | number
-    marketId?: boolean | number
-    strikeLowerLimit?: boolean | number
-    strikeUpperLimit?: boolean | number
-    isPut?: boolean | number
-    collateralPerShare?: boolean | number
-    createdAt?: boolean | number
-    createdAtBlock?: boolean | number
-    collateralPositions?: (CollateralPositionPageGenqlSelection & { __args?: {where?: (CollateralPositionFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
-    optionPositions?: (OptionPositionPageGenqlSelection & { __args?: {where?: (OptionPositionFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
-    __typename?: boolean | number
-    __scalar?: boolean | number
-}
-
-export interface CollateralPositionFilter {AND?: ((CollateralPositionFilter | null)[] | null),OR?: ((CollateralPositionFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),optionMarketId?: (Scalars['String'] | null),optionMarketId_not?: (Scalars['String'] | null),optionMarketId_in?: ((Scalars['String'] | null)[] | null),optionMarketId_not_in?: ((Scalars['String'] | null)[] | null),optionMarketId_contains?: (Scalars['String'] | null),optionMarketId_not_contains?: (Scalars['String'] | null),optionMarketId_starts_with?: (Scalars['String'] | null),optionMarketId_ends_with?: (Scalars['String'] | null),optionMarketId_not_starts_with?: (Scalars['String'] | null),optionMarketId_not_ends_with?: (Scalars['String'] | null),user?: (Scalars['String'] | null),user_not?: (Scalars['String'] | null),user_in?: ((Scalars['String'] | null)[] | null),user_not_in?: ((Scalars['String'] | null)[] | null),user_contains?: (Scalars['String'] | null),user_not_contains?: (Scalars['String'] | null),user_starts_with?: (Scalars['String'] | null),user_ends_with?: (Scalars['String'] | null),user_not_starts_with?: (Scalars['String'] | null),user_not_ends_with?: (Scalars['String'] | null),totalCollateral?: (Scalars['BigInt'] | null),totalCollateral_not?: (Scalars['BigInt'] | null),totalCollateral_in?: ((Scalars['BigInt'] | null)[] | null),totalCollateral_not_in?: ((Scalars['BigInt'] | null)[] | null),totalCollateral_gt?: (Scalars['BigInt'] | null),totalCollateral_lt?: (Scalars['BigInt'] | null),totalCollateral_gte?: (Scalars['BigInt'] | null),totalCollateral_lte?: (Scalars['BigInt'] | null),optionsMinted?: (Scalars['BigInt'] | null),optionsMinted_not?: (Scalars['BigInt'] | null),optionsMinted_in?: ((Scalars['BigInt'] | null)[] | null),optionsMinted_not_in?: ((Scalars['BigInt'] | null)[] | null),optionsMinted_gt?: (Scalars['BigInt'] | null),optionsMinted_lt?: (Scalars['BigInt'] | null),optionsMinted_gte?: (Scalars['BigInt'] | null),optionsMinted_lte?: (Scalars['BigInt'] | null),optionsExercised?: (Scalars['BigInt'] | null),optionsExercised_not?: (Scalars['BigInt'] | null),optionsExercised_in?: ((Scalars['BigInt'] | null)[] | null),optionsExercised_not_in?: ((Scalars['BigInt'] | null)[] | null),optionsExercised_gt?: (Scalars['BigInt'] | null),optionsExercised_lt?: (Scalars['BigInt'] | null),optionsExercised_gte?: (Scalars['BigInt'] | null),optionsExercised_lte?: (Scalars['BigInt'] | null),premiumEarned?: (Scalars['BigInt'] | null),premiumEarned_not?: (Scalars['BigInt'] | null),premiumEarned_in?: ((Scalars['BigInt'] | null)[] | null),premiumEarned_not_in?: ((Scalars['BigInt'] | null)[] | null),premiumEarned_gt?: (Scalars['BigInt'] | null),premiumEarned_lt?: (Scalars['BigInt'] | null),premiumEarned_gte?: (Scalars['BigInt'] | null),premiumEarned_lte?: (Scalars['BigInt'] | null),fee?: (Scalars['BigInt'] | null),fee_not?: (Scalars['BigInt'] | null),fee_in?: ((Scalars['BigInt'] | null)[] | null),fee_not_in?: ((Scalars['BigInt'] | null)[] | null),fee_gt?: (Scalars['BigInt'] | null),fee_lt?: (Scalars['BigInt'] | null),fee_gte?: (Scalars['BigInt'] | null),fee_lte?: (Scalars['BigInt'] | null),settled?: (Scalars['Boolean'] | null),settled_not?: (Scalars['Boolean'] | null),settled_in?: ((Scalars['Boolean'] | null)[] | null),settled_not_in?: ((Scalars['Boolean'] | null)[] | null),updatedAt?: (Scalars['BigInt'] | null),updatedAt_not?: (Scalars['BigInt'] | null),updatedAt_in?: ((Scalars['BigInt'] | null)[] | null),updatedAt_not_in?: ((Scalars['BigInt'] | null)[] | null),updatedAt_gt?: (Scalars['BigInt'] | null),updatedAt_lt?: (Scalars['BigInt'] | null),updatedAt_gte?: (Scalars['BigInt'] | null),updatedAt_lte?: (Scalars['BigInt'] | null),updatedAtBlock?: (Scalars['BigInt'] | null),updatedAtBlock_not?: (Scalars['BigInt'] | null),updatedAtBlock_in?: ((Scalars['BigInt'] | null)[] | null),updatedAtBlock_not_in?: ((Scalars['BigInt'] | null)[] | null),updatedAtBlock_gt?: (Scalars['BigInt'] | null),updatedAtBlock_lt?: (Scalars['BigInt'] | null),updatedAtBlock_gte?: (Scalars['BigInt'] | null),updatedAtBlock_lte?: (Scalars['BigInt'] | null)}
-
-export interface OptionPositionFilter {AND?: ((OptionPositionFilter | null)[] | null),OR?: ((OptionPositionFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),tokenId?: (Scalars['BigInt'] | null),tokenId_not?: (Scalars['BigInt'] | null),tokenId_in?: ((Scalars['BigInt'] | null)[] | null),tokenId_not_in?: ((Scalars['BigInt'] | null)[] | null),tokenId_gt?: (Scalars['BigInt'] | null),tokenId_lt?: (Scalars['BigInt'] | null),tokenId_gte?: (Scalars['BigInt'] | null),tokenId_lte?: (Scalars['BigInt'] | null),address?: (Scalars['String'] | null),address_not?: (Scalars['String'] | null),address_in?: ((Scalars['String'] | null)[] | null),address_not_in?: ((Scalars['String'] | null)[] | null),address_contains?: (Scalars['String'] | null),address_not_contains?: (Scalars['String'] | null),address_starts_with?: (Scalars['String'] | null),address_ends_with?: (Scalars['String'] | null),address_not_starts_with?: (Scalars['String'] | null),address_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),optionMarketId?: (Scalars['String'] | null),optionMarketId_not?: (Scalars['String'] | null),optionMarketId_in?: ((Scalars['String'] | null)[] | null),optionMarketId_not_in?: ((Scalars['String'] | null)[] | null),optionMarketId_contains?: (Scalars['String'] | null),optionMarketId_not_contains?: (Scalars['String'] | null),optionMarketId_starts_with?: (Scalars['String'] | null),optionMarketId_ends_with?: (Scalars['String'] | null),optionMarketId_not_starts_with?: (Scalars['String'] | null),optionMarketId_not_ends_with?: (Scalars['String'] | null),user?: (Scalars['String'] | null),user_not?: (Scalars['String'] | null),user_in?: ((Scalars['String'] | null)[] | null),user_not_in?: ((Scalars['String'] | null)[] | null),user_contains?: (Scalars['String'] | null),user_not_contains?: (Scalars['String'] | null),user_starts_with?: (Scalars['String'] | null),user_ends_with?: (Scalars['String'] | null),user_not_starts_with?: (Scalars['String'] | null),user_not_ends_with?: (Scalars['String'] | null),premium?: (Scalars['BigInt'] | null),premium_not?: (Scalars['BigInt'] | null),premium_in?: ((Scalars['BigInt'] | null)[] | null),premium_not_in?: ((Scalars['BigInt'] | null)[] | null),premium_gt?: (Scalars['BigInt'] | null),premium_lt?: (Scalars['BigInt'] | null),premium_gte?: (Scalars['BigInt'] | null),premium_lte?: (Scalars['BigInt'] | null),fee?: (Scalars['BigInt'] | null),fee_not?: (Scalars['BigInt'] | null),fee_in?: ((Scalars['BigInt'] | null)[] | null),fee_not_in?: ((Scalars['BigInt'] | null)[] | null),fee_gt?: (Scalars['BigInt'] | null),fee_lt?: (Scalars['BigInt'] | null),fee_gte?: (Scalars['BigInt'] | null),fee_lte?: (Scalars['BigInt'] | null),profit?: (Scalars['BigInt'] | null),profit_not?: (Scalars['BigInt'] | null),profit_in?: ((Scalars['BigInt'] | null)[] | null),profit_not_in?: ((Scalars['BigInt'] | null)[] | null),profit_gt?: (Scalars['BigInt'] | null),profit_lt?: (Scalars['BigInt'] | null),profit_gte?: (Scalars['BigInt'] | null),profit_lte?: (Scalars['BigInt'] | null),amount?: (Scalars['BigInt'] | null),amount_not?: (Scalars['BigInt'] | null),amount_in?: ((Scalars['BigInt'] | null)[] | null),amount_not_in?: ((Scalars['BigInt'] | null)[] | null),amount_gt?: (Scalars['BigInt'] | null),amount_lt?: (Scalars['BigInt'] | null),amount_gte?: (Scalars['BigInt'] | null),amount_lte?: (Scalars['BigInt'] | null),averagePrice?: (Scalars['BigInt'] | null),averagePrice_not?: (Scalars['BigInt'] | null),averagePrice_in?: ((Scalars['BigInt'] | null)[] | null),averagePrice_not_in?: ((Scalars['BigInt'] | null)[] | null),averagePrice_gt?: (Scalars['BigInt'] | null),averagePrice_lt?: (Scalars['BigInt'] | null),averagePrice_gte?: (Scalars['BigInt'] | null),averagePrice_lte?: (Scalars['BigInt'] | null),updatedAt?: (Scalars['BigInt'] | null),updatedAt_not?: (Scalars['BigInt'] | null),updatedAt_in?: ((Scalars['BigInt'] | null)[] | null),updatedAt_not_in?: ((Scalars['BigInt'] | null)[] | null),updatedAt_gt?: (Scalars['BigInt'] | null),updatedAt_lt?: (Scalars['BigInt'] | null),updatedAt_gte?: (Scalars['BigInt'] | null),updatedAt_lte?: (Scalars['BigInt'] | null),updatedAtBlock?: (Scalars['BigInt'] | null),updatedAtBlock_not?: (Scalars['BigInt'] | null),updatedAtBlock_in?: ((Scalars['BigInt'] | null)[] | null),updatedAtBlock_not_in?: ((Scalars['BigInt'] | null)[] | null),updatedAtBlock_gt?: (Scalars['BigInt'] | null),updatedAtBlock_lt?: (Scalars['BigInt'] | null),updatedAtBlock_gte?: (Scalars['BigInt'] | null),updatedAtBlock_lte?: (Scalars['BigInt'] | null)}
+export interface PositionFilter {AND?: ((PositionFilter | null)[] | null),OR?: ((PositionFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),optionMarketId?: (Scalars['String'] | null),optionMarketId_not?: (Scalars['String'] | null),optionMarketId_in?: ((Scalars['String'] | null)[] | null),optionMarketId_not_in?: ((Scalars['String'] | null)[] | null),optionMarketId_contains?: (Scalars['String'] | null),optionMarketId_not_contains?: (Scalars['String'] | null),optionMarketId_starts_with?: (Scalars['String'] | null),optionMarketId_ends_with?: (Scalars['String'] | null),optionMarketId_not_starts_with?: (Scalars['String'] | null),optionMarketId_not_ends_with?: (Scalars['String'] | null),user?: (Scalars['String'] | null),user_not?: (Scalars['String'] | null),user_in?: ((Scalars['String'] | null)[] | null),user_not_in?: ((Scalars['String'] | null)[] | null),user_contains?: (Scalars['String'] | null),user_not_contains?: (Scalars['String'] | null),user_starts_with?: (Scalars['String'] | null),user_ends_with?: (Scalars['String'] | null),user_not_starts_with?: (Scalars['String'] | null),user_not_ends_with?: (Scalars['String'] | null),collateralShares?: (Scalars['BigInt'] | null),collateralShares_not?: (Scalars['BigInt'] | null),collateralShares_in?: ((Scalars['BigInt'] | null)[] | null),collateralShares_not_in?: ((Scalars['BigInt'] | null)[] | null),collateralShares_gt?: (Scalars['BigInt'] | null),collateralShares_lt?: (Scalars['BigInt'] | null),collateralShares_gte?: (Scalars['BigInt'] | null),collateralShares_lte?: (Scalars['BigInt'] | null),optionsShares?: (Scalars['BigInt'] | null),optionsShares_not?: (Scalars['BigInt'] | null),optionsShares_in?: ((Scalars['BigInt'] | null)[] | null),optionsShares_not_in?: ((Scalars['BigInt'] | null)[] | null),optionsShares_gt?: (Scalars['BigInt'] | null),optionsShares_lt?: (Scalars['BigInt'] | null),optionsShares_gte?: (Scalars['BigInt'] | null),optionsShares_lte?: (Scalars['BigInt'] | null),premiumEarned?: (Scalars['BigInt'] | null),premiumEarned_not?: (Scalars['BigInt'] | null),premiumEarned_in?: ((Scalars['BigInt'] | null)[] | null),premiumEarned_not_in?: ((Scalars['BigInt'] | null)[] | null),premiumEarned_gt?: (Scalars['BigInt'] | null),premiumEarned_lt?: (Scalars['BigInt'] | null),premiumEarned_gte?: (Scalars['BigInt'] | null),premiumEarned_lte?: (Scalars['BigInt'] | null),fee?: (Scalars['BigInt'] | null),fee_not?: (Scalars['BigInt'] | null),fee_in?: ((Scalars['BigInt'] | null)[] | null),fee_not_in?: ((Scalars['BigInt'] | null)[] | null),fee_gt?: (Scalars['BigInt'] | null),fee_lt?: (Scalars['BigInt'] | null),fee_gte?: (Scalars['BigInt'] | null),fee_lte?: (Scalars['BigInt'] | null),settled?: (Scalars['Boolean'] | null),settled_not?: (Scalars['Boolean'] | null),settled_in?: ((Scalars['Boolean'] | null)[] | null),settled_not_in?: ((Scalars['Boolean'] | null)[] | null),updatedAt?: (Scalars['BigInt'] | null),updatedAt_not?: (Scalars['BigInt'] | null),updatedAt_in?: ((Scalars['BigInt'] | null)[] | null),updatedAt_not_in?: ((Scalars['BigInt'] | null)[] | null),updatedAt_gt?: (Scalars['BigInt'] | null),updatedAt_lt?: (Scalars['BigInt'] | null),updatedAt_gte?: (Scalars['BigInt'] | null),updatedAt_lte?: (Scalars['BigInt'] | null),updatedAtBlock?: (Scalars['BigInt'] | null),updatedAtBlock_not?: (Scalars['BigInt'] | null),updatedAtBlock_in?: ((Scalars['BigInt'] | null)[] | null),updatedAtBlock_not_in?: ((Scalars['BigInt'] | null)[] | null),updatedAtBlock_gt?: (Scalars['BigInt'] | null),updatedAtBlock_lt?: (Scalars['BigInt'] | null),updatedAtBlock_gte?: (Scalars['BigInt'] | null),updatedAtBlock_lte?: (Scalars['BigInt'] | null),profit?: (Scalars['BigInt'] | null),profit_not?: (Scalars['BigInt'] | null),profit_in?: ((Scalars['BigInt'] | null)[] | null),profit_not_in?: ((Scalars['BigInt'] | null)[] | null),profit_gt?: (Scalars['BigInt'] | null),profit_lt?: (Scalars['BigInt'] | null),profit_gte?: (Scalars['BigInt'] | null),profit_lte?: (Scalars['BigInt'] | null),averagePrice?: (Scalars['BigInt'] | null),averagePrice_not?: (Scalars['BigInt'] | null),averagePrice_in?: ((Scalars['BigInt'] | null)[] | null),averagePrice_not_in?: ((Scalars['BigInt'] | null)[] | null),averagePrice_gt?: (Scalars['BigInt'] | null),averagePrice_lt?: (Scalars['BigInt'] | null),averagePrice_gte?: (Scalars['BigInt'] | null),averagePrice_lte?: (Scalars['BigInt'] | null),optionsSharesExercised?: (Scalars['BigInt'] | null),optionsSharesExercised_not?: (Scalars['BigInt'] | null),optionsSharesExercised_in?: ((Scalars['BigInt'] | null)[] | null),optionsSharesExercised_not_in?: ((Scalars['BigInt'] | null)[] | null),optionsSharesExercised_gt?: (Scalars['BigInt'] | null),optionsSharesExercised_lt?: (Scalars['BigInt'] | null),optionsSharesExercised_gte?: (Scalars['BigInt'] | null),optionsSharesExercised_lte?: (Scalars['BigInt'] | null),premiumPaid?: (Scalars['BigInt'] | null),premiumPaid_not?: (Scalars['BigInt'] | null),premiumPaid_in?: ((Scalars['BigInt'] | null)[] | null),premiumPaid_not_in?: ((Scalars['BigInt'] | null)[] | null),premiumPaid_gt?: (Scalars['BigInt'] | null),premiumPaid_lt?: (Scalars['BigInt'] | null),premiumPaid_gte?: (Scalars['BigInt'] | null),premiumPaid_lte?: (Scalars['BigInt'] | null)}
 
 export interface DepositHistoryPageGenqlSelection{
     items?: DepositHistoryGenqlSelection
@@ -677,7 +605,6 @@ export interface DepositHistoryGenqlSelection{
     optionId?: boolean | number
     marketId?: boolean | number
     user?: UserGenqlSelection
-    receiver?: boolean | number
     amount?: boolean | number
     collateralAmount?: boolean | number
     fee?: boolean | number
@@ -688,25 +615,23 @@ export interface DepositHistoryGenqlSelection{
     __scalar?: boolean | number
 }
 
-export interface DepositHistoryFilter {AND?: ((DepositHistoryFilter | null)[] | null),OR?: ((DepositHistoryFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),user?: (Scalars['String'] | null),user_not?: (Scalars['String'] | null),user_in?: ((Scalars['String'] | null)[] | null),user_not_in?: ((Scalars['String'] | null)[] | null),user_contains?: (Scalars['String'] | null),user_not_contains?: (Scalars['String'] | null),user_starts_with?: (Scalars['String'] | null),user_ends_with?: (Scalars['String'] | null),user_not_starts_with?: (Scalars['String'] | null),user_not_ends_with?: (Scalars['String'] | null),receiver?: (Scalars['String'] | null),receiver_not?: (Scalars['String'] | null),receiver_in?: ((Scalars['String'] | null)[] | null),receiver_not_in?: ((Scalars['String'] | null)[] | null),receiver_contains?: (Scalars['String'] | null),receiver_not_contains?: (Scalars['String'] | null),receiver_starts_with?: (Scalars['String'] | null),receiver_ends_with?: (Scalars['String'] | null),receiver_not_starts_with?: (Scalars['String'] | null),receiver_not_ends_with?: (Scalars['String'] | null),amount?: (Scalars['BigInt'] | null),amount_not?: (Scalars['BigInt'] | null),amount_in?: ((Scalars['BigInt'] | null)[] | null),amount_not_in?: ((Scalars['BigInt'] | null)[] | null),amount_gt?: (Scalars['BigInt'] | null),amount_lt?: (Scalars['BigInt'] | null),amount_gte?: (Scalars['BigInt'] | null),amount_lte?: (Scalars['BigInt'] | null),collateralAmount?: (Scalars['BigInt'] | null),collateralAmount_not?: (Scalars['BigInt'] | null),collateralAmount_in?: ((Scalars['BigInt'] | null)[] | null),collateralAmount_not_in?: ((Scalars['BigInt'] | null)[] | null),collateralAmount_gt?: (Scalars['BigInt'] | null),collateralAmount_lt?: (Scalars['BigInt'] | null),collateralAmount_gte?: (Scalars['BigInt'] | null),collateralAmount_lte?: (Scalars['BigInt'] | null),fee?: (Scalars['BigInt'] | null),fee_not?: (Scalars['BigInt'] | null),fee_in?: ((Scalars['BigInt'] | null)[] | null),fee_not_in?: ((Scalars['BigInt'] | null)[] | null),fee_gt?: (Scalars['BigInt'] | null),fee_lt?: (Scalars['BigInt'] | null),fee_gte?: (Scalars['BigInt'] | null),fee_lte?: (Scalars['BigInt'] | null),transactionHash?: (Scalars['String'] | null),transactionHash_not?: (Scalars['String'] | null),transactionHash_in?: ((Scalars['String'] | null)[] | null),transactionHash_not_in?: ((Scalars['String'] | null)[] | null),transactionHash_contains?: (Scalars['String'] | null),transactionHash_not_contains?: (Scalars['String'] | null),transactionHash_starts_with?: (Scalars['String'] | null),transactionHash_ends_with?: (Scalars['String'] | null),transactionHash_not_starts_with?: (Scalars['String'] | null),transactionHash_not_ends_with?: (Scalars['String'] | null),blockNumber?: (Scalars['BigInt'] | null),blockNumber_not?: (Scalars['BigInt'] | null),blockNumber_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_not_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_gt?: (Scalars['BigInt'] | null),blockNumber_lt?: (Scalars['BigInt'] | null),blockNumber_gte?: (Scalars['BigInt'] | null),blockNumber_lte?: (Scalars['BigInt'] | null),timestamp?: (Scalars['BigInt'] | null),timestamp_not?: (Scalars['BigInt'] | null),timestamp_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_not_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_gt?: (Scalars['BigInt'] | null),timestamp_lt?: (Scalars['BigInt'] | null),timestamp_gte?: (Scalars['BigInt'] | null),timestamp_lte?: (Scalars['BigInt'] | null)}
+export interface DepositHistoryFilter {AND?: ((DepositHistoryFilter | null)[] | null),OR?: ((DepositHistoryFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),user?: (Scalars['String'] | null),user_not?: (Scalars['String'] | null),user_in?: ((Scalars['String'] | null)[] | null),user_not_in?: ((Scalars['String'] | null)[] | null),user_contains?: (Scalars['String'] | null),user_not_contains?: (Scalars['String'] | null),user_starts_with?: (Scalars['String'] | null),user_ends_with?: (Scalars['String'] | null),user_not_starts_with?: (Scalars['String'] | null),user_not_ends_with?: (Scalars['String'] | null),amount?: (Scalars['BigInt'] | null),amount_not?: (Scalars['BigInt'] | null),amount_in?: ((Scalars['BigInt'] | null)[] | null),amount_not_in?: ((Scalars['BigInt'] | null)[] | null),amount_gt?: (Scalars['BigInt'] | null),amount_lt?: (Scalars['BigInt'] | null),amount_gte?: (Scalars['BigInt'] | null),amount_lte?: (Scalars['BigInt'] | null),collateralAmount?: (Scalars['BigInt'] | null),collateralAmount_not?: (Scalars['BigInt'] | null),collateralAmount_in?: ((Scalars['BigInt'] | null)[] | null),collateralAmount_not_in?: ((Scalars['BigInt'] | null)[] | null),collateralAmount_gt?: (Scalars['BigInt'] | null),collateralAmount_lt?: (Scalars['BigInt'] | null),collateralAmount_gte?: (Scalars['BigInt'] | null),collateralAmount_lte?: (Scalars['BigInt'] | null),fee?: (Scalars['BigInt'] | null),fee_not?: (Scalars['BigInt'] | null),fee_in?: ((Scalars['BigInt'] | null)[] | null),fee_not_in?: ((Scalars['BigInt'] | null)[] | null),fee_gt?: (Scalars['BigInt'] | null),fee_lt?: (Scalars['BigInt'] | null),fee_gte?: (Scalars['BigInt'] | null),fee_lte?: (Scalars['BigInt'] | null),transactionHash?: (Scalars['String'] | null),transactionHash_not?: (Scalars['String'] | null),transactionHash_in?: ((Scalars['String'] | null)[] | null),transactionHash_not_in?: ((Scalars['String'] | null)[] | null),transactionHash_contains?: (Scalars['String'] | null),transactionHash_not_contains?: (Scalars['String'] | null),transactionHash_starts_with?: (Scalars['String'] | null),transactionHash_ends_with?: (Scalars['String'] | null),transactionHash_not_starts_with?: (Scalars['String'] | null),transactionHash_not_ends_with?: (Scalars['String'] | null),blockNumber?: (Scalars['BigInt'] | null),blockNumber_not?: (Scalars['BigInt'] | null),blockNumber_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_not_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_gt?: (Scalars['BigInt'] | null),blockNumber_lt?: (Scalars['BigInt'] | null),blockNumber_gte?: (Scalars['BigInt'] | null),blockNumber_lte?: (Scalars['BigInt'] | null),timestamp?: (Scalars['BigInt'] | null),timestamp_not?: (Scalars['BigInt'] | null),timestamp_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_not_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_gt?: (Scalars['BigInt'] | null),timestamp_lt?: (Scalars['BigInt'] | null),timestamp_gte?: (Scalars['BigInt'] | null),timestamp_lte?: (Scalars['BigInt'] | null)}
 
-export interface TransferDepositHistoryPageGenqlSelection{
-    items?: TransferDepositHistoryGenqlSelection
+export interface TransferCollateralSharesHistoryPageGenqlSelection{
+    items?: TransferCollateralSharesHistoryGenqlSelection
     pageInfo?: PageInfoGenqlSelection
     totalCount?: boolean | number
     __typename?: boolean | number
     __scalar?: boolean | number
 }
 
-export interface TransferDepositHistoryGenqlSelection{
+export interface TransferCollateralSharesHistoryGenqlSelection{
     id?: boolean | number
     optionId?: boolean | number
     marketId?: boolean | number
     user?: UserGenqlSelection
     receiver?: UserGenqlSelection
     amount?: boolean | number
-    collateralAmount?: boolean | number
-    fee?: boolean | number
     transactionHash?: boolean | number
     blockNumber?: boolean | number
     timestamp?: boolean | number
@@ -714,28 +639,23 @@ export interface TransferDepositHistoryGenqlSelection{
     __scalar?: boolean | number
 }
 
-export interface TransferDepositHistoryFilter {AND?: ((TransferDepositHistoryFilter | null)[] | null),OR?: ((TransferDepositHistoryFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),user?: (Scalars['String'] | null),user_not?: (Scalars['String'] | null),user_in?: ((Scalars['String'] | null)[] | null),user_not_in?: ((Scalars['String'] | null)[] | null),user_contains?: (Scalars['String'] | null),user_not_contains?: (Scalars['String'] | null),user_starts_with?: (Scalars['String'] | null),user_ends_with?: (Scalars['String'] | null),user_not_starts_with?: (Scalars['String'] | null),user_not_ends_with?: (Scalars['String'] | null),receiver?: (Scalars['String'] | null),receiver_not?: (Scalars['String'] | null),receiver_in?: ((Scalars['String'] | null)[] | null),receiver_not_in?: ((Scalars['String'] | null)[] | null),receiver_contains?: (Scalars['String'] | null),receiver_not_contains?: (Scalars['String'] | null),receiver_starts_with?: (Scalars['String'] | null),receiver_ends_with?: (Scalars['String'] | null),receiver_not_starts_with?: (Scalars['String'] | null),receiver_not_ends_with?: (Scalars['String'] | null),amount?: (Scalars['BigInt'] | null),amount_not?: (Scalars['BigInt'] | null),amount_in?: ((Scalars['BigInt'] | null)[] | null),amount_not_in?: ((Scalars['BigInt'] | null)[] | null),amount_gt?: (Scalars['BigInt'] | null),amount_lt?: (Scalars['BigInt'] | null),amount_gte?: (Scalars['BigInt'] | null),amount_lte?: (Scalars['BigInt'] | null),collateralAmount?: (Scalars['BigInt'] | null),collateralAmount_not?: (Scalars['BigInt'] | null),collateralAmount_in?: ((Scalars['BigInt'] | null)[] | null),collateralAmount_not_in?: ((Scalars['BigInt'] | null)[] | null),collateralAmount_gt?: (Scalars['BigInt'] | null),collateralAmount_lt?: (Scalars['BigInt'] | null),collateralAmount_gte?: (Scalars['BigInt'] | null),collateralAmount_lte?: (Scalars['BigInt'] | null),fee?: (Scalars['BigInt'] | null),fee_not?: (Scalars['BigInt'] | null),fee_in?: ((Scalars['BigInt'] | null)[] | null),fee_not_in?: ((Scalars['BigInt'] | null)[] | null),fee_gt?: (Scalars['BigInt'] | null),fee_lt?: (Scalars['BigInt'] | null),fee_gte?: (Scalars['BigInt'] | null),fee_lte?: (Scalars['BigInt'] | null),transactionHash?: (Scalars['String'] | null),transactionHash_not?: (Scalars['String'] | null),transactionHash_in?: ((Scalars['String'] | null)[] | null),transactionHash_not_in?: ((Scalars['String'] | null)[] | null),transactionHash_contains?: (Scalars['String'] | null),transactionHash_not_contains?: (Scalars['String'] | null),transactionHash_starts_with?: (Scalars['String'] | null),transactionHash_ends_with?: (Scalars['String'] | null),transactionHash_not_starts_with?: (Scalars['String'] | null),transactionHash_not_ends_with?: (Scalars['String'] | null),blockNumber?: (Scalars['BigInt'] | null),blockNumber_not?: (Scalars['BigInt'] | null),blockNumber_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_not_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_gt?: (Scalars['BigInt'] | null),blockNumber_lt?: (Scalars['BigInt'] | null),blockNumber_gte?: (Scalars['BigInt'] | null),blockNumber_lte?: (Scalars['BigInt'] | null),timestamp?: (Scalars['BigInt'] | null),timestamp_not?: (Scalars['BigInt'] | null),timestamp_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_not_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_gt?: (Scalars['BigInt'] | null),timestamp_lt?: (Scalars['BigInt'] | null),timestamp_gte?: (Scalars['BigInt'] | null),timestamp_lte?: (Scalars['BigInt'] | null)}
+export interface TransferCollateralSharesHistoryFilter {AND?: ((TransferCollateralSharesHistoryFilter | null)[] | null),OR?: ((TransferCollateralSharesHistoryFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),user?: (Scalars['String'] | null),user_not?: (Scalars['String'] | null),user_in?: ((Scalars['String'] | null)[] | null),user_not_in?: ((Scalars['String'] | null)[] | null),user_contains?: (Scalars['String'] | null),user_not_contains?: (Scalars['String'] | null),user_starts_with?: (Scalars['String'] | null),user_ends_with?: (Scalars['String'] | null),user_not_starts_with?: (Scalars['String'] | null),user_not_ends_with?: (Scalars['String'] | null),receiver?: (Scalars['String'] | null),receiver_not?: (Scalars['String'] | null),receiver_in?: ((Scalars['String'] | null)[] | null),receiver_not_in?: ((Scalars['String'] | null)[] | null),receiver_contains?: (Scalars['String'] | null),receiver_not_contains?: (Scalars['String'] | null),receiver_starts_with?: (Scalars['String'] | null),receiver_ends_with?: (Scalars['String'] | null),receiver_not_starts_with?: (Scalars['String'] | null),receiver_not_ends_with?: (Scalars['String'] | null),amount?: (Scalars['BigInt'] | null),amount_not?: (Scalars['BigInt'] | null),amount_in?: ((Scalars['BigInt'] | null)[] | null),amount_not_in?: ((Scalars['BigInt'] | null)[] | null),amount_gt?: (Scalars['BigInt'] | null),amount_lt?: (Scalars['BigInt'] | null),amount_gte?: (Scalars['BigInt'] | null),amount_lte?: (Scalars['BigInt'] | null),transactionHash?: (Scalars['String'] | null),transactionHash_not?: (Scalars['String'] | null),transactionHash_in?: ((Scalars['String'] | null)[] | null),transactionHash_not_in?: ((Scalars['String'] | null)[] | null),transactionHash_contains?: (Scalars['String'] | null),transactionHash_not_contains?: (Scalars['String'] | null),transactionHash_starts_with?: (Scalars['String'] | null),transactionHash_ends_with?: (Scalars['String'] | null),transactionHash_not_starts_with?: (Scalars['String'] | null),transactionHash_not_ends_with?: (Scalars['String'] | null),blockNumber?: (Scalars['BigInt'] | null),blockNumber_not?: (Scalars['BigInt'] | null),blockNumber_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_not_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_gt?: (Scalars['BigInt'] | null),blockNumber_lt?: (Scalars['BigInt'] | null),blockNumber_gte?: (Scalars['BigInt'] | null),blockNumber_lte?: (Scalars['BigInt'] | null),timestamp?: (Scalars['BigInt'] | null),timestamp_not?: (Scalars['BigInt'] | null),timestamp_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_not_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_gt?: (Scalars['BigInt'] | null),timestamp_lt?: (Scalars['BigInt'] | null),timestamp_gte?: (Scalars['BigInt'] | null),timestamp_lte?: (Scalars['BigInt'] | null)}
 
-export interface PurchaseHistoryPageGenqlSelection{
-    items?: PurchaseHistoryGenqlSelection
+export interface TransferOptionsSharesHistoryPageGenqlSelection{
+    items?: TransferOptionsSharesHistoryGenqlSelection
     pageInfo?: PageInfoGenqlSelection
     totalCount?: boolean | number
     __typename?: boolean | number
     __scalar?: boolean | number
 }
 
-export interface PurchaseHistoryGenqlSelection{
+export interface TransferOptionsSharesHistoryGenqlSelection{
     id?: boolean | number
     optionId?: boolean | number
     marketId?: boolean | number
-    maker?: UserGenqlSelection
+    user?: UserGenqlSelection
     receiver?: UserGenqlSelection
-    purchaser?: boolean | number
     amount?: boolean | number
-    premiumAmount?: boolean | number
-    fee?: boolean | number
-    optionShares?: boolean | number
-    sharesUtilized?: boolean | number
     transactionHash?: boolean | number
     blockNumber?: boolean | number
     timestamp?: boolean | number
@@ -743,7 +663,7 @@ export interface PurchaseHistoryGenqlSelection{
     __scalar?: boolean | number
 }
 
-export interface PurchaseHistoryFilter {AND?: ((PurchaseHistoryFilter | null)[] | null),OR?: ((PurchaseHistoryFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),maker?: (Scalars['String'] | null),maker_not?: (Scalars['String'] | null),maker_in?: ((Scalars['String'] | null)[] | null),maker_not_in?: ((Scalars['String'] | null)[] | null),maker_contains?: (Scalars['String'] | null),maker_not_contains?: (Scalars['String'] | null),maker_starts_with?: (Scalars['String'] | null),maker_ends_with?: (Scalars['String'] | null),maker_not_starts_with?: (Scalars['String'] | null),maker_not_ends_with?: (Scalars['String'] | null),receiver?: (Scalars['String'] | null),receiver_not?: (Scalars['String'] | null),receiver_in?: ((Scalars['String'] | null)[] | null),receiver_not_in?: ((Scalars['String'] | null)[] | null),receiver_contains?: (Scalars['String'] | null),receiver_not_contains?: (Scalars['String'] | null),receiver_starts_with?: (Scalars['String'] | null),receiver_ends_with?: (Scalars['String'] | null),receiver_not_starts_with?: (Scalars['String'] | null),receiver_not_ends_with?: (Scalars['String'] | null),purchaser?: (Scalars['String'] | null),purchaser_not?: (Scalars['String'] | null),purchaser_in?: ((Scalars['String'] | null)[] | null),purchaser_not_in?: ((Scalars['String'] | null)[] | null),purchaser_contains?: (Scalars['String'] | null),purchaser_not_contains?: (Scalars['String'] | null),purchaser_starts_with?: (Scalars['String'] | null),purchaser_ends_with?: (Scalars['String'] | null),purchaser_not_starts_with?: (Scalars['String'] | null),purchaser_not_ends_with?: (Scalars['String'] | null),amount?: (Scalars['BigInt'] | null),amount_not?: (Scalars['BigInt'] | null),amount_in?: ((Scalars['BigInt'] | null)[] | null),amount_not_in?: ((Scalars['BigInt'] | null)[] | null),amount_gt?: (Scalars['BigInt'] | null),amount_lt?: (Scalars['BigInt'] | null),amount_gte?: (Scalars['BigInt'] | null),amount_lte?: (Scalars['BigInt'] | null),premiumAmount?: (Scalars['BigInt'] | null),premiumAmount_not?: (Scalars['BigInt'] | null),premiumAmount_in?: ((Scalars['BigInt'] | null)[] | null),premiumAmount_not_in?: ((Scalars['BigInt'] | null)[] | null),premiumAmount_gt?: (Scalars['BigInt'] | null),premiumAmount_lt?: (Scalars['BigInt'] | null),premiumAmount_gte?: (Scalars['BigInt'] | null),premiumAmount_lte?: (Scalars['BigInt'] | null),fee?: (Scalars['BigInt'] | null),fee_not?: (Scalars['BigInt'] | null),fee_in?: ((Scalars['BigInt'] | null)[] | null),fee_not_in?: ((Scalars['BigInt'] | null)[] | null),fee_gt?: (Scalars['BigInt'] | null),fee_lt?: (Scalars['BigInt'] | null),fee_gte?: (Scalars['BigInt'] | null),fee_lte?: (Scalars['BigInt'] | null),optionShares?: (Scalars['BigInt'] | null),optionShares_not?: (Scalars['BigInt'] | null),optionShares_in?: ((Scalars['BigInt'] | null)[] | null),optionShares_not_in?: ((Scalars['BigInt'] | null)[] | null),optionShares_gt?: (Scalars['BigInt'] | null),optionShares_lt?: (Scalars['BigInt'] | null),optionShares_gte?: (Scalars['BigInt'] | null),optionShares_lte?: (Scalars['BigInt'] | null),sharesUtilized?: (Scalars['BigInt'] | null),sharesUtilized_not?: (Scalars['BigInt'] | null),sharesUtilized_in?: ((Scalars['BigInt'] | null)[] | null),sharesUtilized_not_in?: ((Scalars['BigInt'] | null)[] | null),sharesUtilized_gt?: (Scalars['BigInt'] | null),sharesUtilized_lt?: (Scalars['BigInt'] | null),sharesUtilized_gte?: (Scalars['BigInt'] | null),sharesUtilized_lte?: (Scalars['BigInt'] | null),transactionHash?: (Scalars['String'] | null),transactionHash_not?: (Scalars['String'] | null),transactionHash_in?: ((Scalars['String'] | null)[] | null),transactionHash_not_in?: ((Scalars['String'] | null)[] | null),transactionHash_contains?: (Scalars['String'] | null),transactionHash_not_contains?: (Scalars['String'] | null),transactionHash_starts_with?: (Scalars['String'] | null),transactionHash_ends_with?: (Scalars['String'] | null),transactionHash_not_starts_with?: (Scalars['String'] | null),transactionHash_not_ends_with?: (Scalars['String'] | null),blockNumber?: (Scalars['BigInt'] | null),blockNumber_not?: (Scalars['BigInt'] | null),blockNumber_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_not_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_gt?: (Scalars['BigInt'] | null),blockNumber_lt?: (Scalars['BigInt'] | null),blockNumber_gte?: (Scalars['BigInt'] | null),blockNumber_lte?: (Scalars['BigInt'] | null),timestamp?: (Scalars['BigInt'] | null),timestamp_not?: (Scalars['BigInt'] | null),timestamp_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_not_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_gt?: (Scalars['BigInt'] | null),timestamp_lt?: (Scalars['BigInt'] | null),timestamp_gte?: (Scalars['BigInt'] | null),timestamp_lte?: (Scalars['BigInt'] | null)}
+export interface TransferOptionsSharesHistoryFilter {AND?: ((TransferOptionsSharesHistoryFilter | null)[] | null),OR?: ((TransferOptionsSharesHistoryFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),user?: (Scalars['String'] | null),user_not?: (Scalars['String'] | null),user_in?: ((Scalars['String'] | null)[] | null),user_not_in?: ((Scalars['String'] | null)[] | null),user_contains?: (Scalars['String'] | null),user_not_contains?: (Scalars['String'] | null),user_starts_with?: (Scalars['String'] | null),user_ends_with?: (Scalars['String'] | null),user_not_starts_with?: (Scalars['String'] | null),user_not_ends_with?: (Scalars['String'] | null),receiver?: (Scalars['String'] | null),receiver_not?: (Scalars['String'] | null),receiver_in?: ((Scalars['String'] | null)[] | null),receiver_not_in?: ((Scalars['String'] | null)[] | null),receiver_contains?: (Scalars['String'] | null),receiver_not_contains?: (Scalars['String'] | null),receiver_starts_with?: (Scalars['String'] | null),receiver_ends_with?: (Scalars['String'] | null),receiver_not_starts_with?: (Scalars['String'] | null),receiver_not_ends_with?: (Scalars['String'] | null),amount?: (Scalars['BigInt'] | null),amount_not?: (Scalars['BigInt'] | null),amount_in?: ((Scalars['BigInt'] | null)[] | null),amount_not_in?: ((Scalars['BigInt'] | null)[] | null),amount_gt?: (Scalars['BigInt'] | null),amount_lt?: (Scalars['BigInt'] | null),amount_gte?: (Scalars['BigInt'] | null),amount_lte?: (Scalars['BigInt'] | null),transactionHash?: (Scalars['String'] | null),transactionHash_not?: (Scalars['String'] | null),transactionHash_in?: ((Scalars['String'] | null)[] | null),transactionHash_not_in?: ((Scalars['String'] | null)[] | null),transactionHash_contains?: (Scalars['String'] | null),transactionHash_not_contains?: (Scalars['String'] | null),transactionHash_starts_with?: (Scalars['String'] | null),transactionHash_ends_with?: (Scalars['String'] | null),transactionHash_not_starts_with?: (Scalars['String'] | null),transactionHash_not_ends_with?: (Scalars['String'] | null),blockNumber?: (Scalars['BigInt'] | null),blockNumber_not?: (Scalars['BigInt'] | null),blockNumber_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_not_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_gt?: (Scalars['BigInt'] | null),blockNumber_lt?: (Scalars['BigInt'] | null),blockNumber_gte?: (Scalars['BigInt'] | null),blockNumber_lte?: (Scalars['BigInt'] | null),timestamp?: (Scalars['BigInt'] | null),timestamp_not?: (Scalars['BigInt'] | null),timestamp_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_not_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_gt?: (Scalars['BigInt'] | null),timestamp_lt?: (Scalars['BigInt'] | null),timestamp_gte?: (Scalars['BigInt'] | null),timestamp_lte?: (Scalars['BigInt'] | null)}
 
 export interface ExerciseHistoryPageGenqlSelection{
     items?: ExerciseHistoryGenqlSelection
@@ -758,15 +678,13 @@ export interface ExerciseHistoryGenqlSelection{
     optionId?: boolean | number
     marketId?: boolean | number
     maker?: UserGenqlSelection
-    receiver?: UserGenqlSelection
-    exerciser?: boolean | number
+    user?: UserGenqlSelection
+    exerciser?: UserGenqlSelection
     amount?: boolean | number
     profitAmount?: boolean | number
     fee?: boolean | number
     optionTokensBurnt?: boolean | number
     sharesUnutilized?: boolean | number
-    makerLoss?: boolean | number
-    purchaserProfit?: boolean | number
     transactionHash?: boolean | number
     blockNumber?: boolean | number
     timestamp?: boolean | number
@@ -774,7 +692,31 @@ export interface ExerciseHistoryGenqlSelection{
     __scalar?: boolean | number
 }
 
-export interface ExerciseHistoryFilter {AND?: ((ExerciseHistoryFilter | null)[] | null),OR?: ((ExerciseHistoryFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),maker?: (Scalars['String'] | null),maker_not?: (Scalars['String'] | null),maker_in?: ((Scalars['String'] | null)[] | null),maker_not_in?: ((Scalars['String'] | null)[] | null),maker_contains?: (Scalars['String'] | null),maker_not_contains?: (Scalars['String'] | null),maker_starts_with?: (Scalars['String'] | null),maker_ends_with?: (Scalars['String'] | null),maker_not_starts_with?: (Scalars['String'] | null),maker_not_ends_with?: (Scalars['String'] | null),receiver?: (Scalars['String'] | null),receiver_not?: (Scalars['String'] | null),receiver_in?: ((Scalars['String'] | null)[] | null),receiver_not_in?: ((Scalars['String'] | null)[] | null),receiver_contains?: (Scalars['String'] | null),receiver_not_contains?: (Scalars['String'] | null),receiver_starts_with?: (Scalars['String'] | null),receiver_ends_with?: (Scalars['String'] | null),receiver_not_starts_with?: (Scalars['String'] | null),receiver_not_ends_with?: (Scalars['String'] | null),exerciser?: (Scalars['String'] | null),exerciser_not?: (Scalars['String'] | null),exerciser_in?: ((Scalars['String'] | null)[] | null),exerciser_not_in?: ((Scalars['String'] | null)[] | null),exerciser_contains?: (Scalars['String'] | null),exerciser_not_contains?: (Scalars['String'] | null),exerciser_starts_with?: (Scalars['String'] | null),exerciser_ends_with?: (Scalars['String'] | null),exerciser_not_starts_with?: (Scalars['String'] | null),exerciser_not_ends_with?: (Scalars['String'] | null),amount?: (Scalars['BigInt'] | null),amount_not?: (Scalars['BigInt'] | null),amount_in?: ((Scalars['BigInt'] | null)[] | null),amount_not_in?: ((Scalars['BigInt'] | null)[] | null),amount_gt?: (Scalars['BigInt'] | null),amount_lt?: (Scalars['BigInt'] | null),amount_gte?: (Scalars['BigInt'] | null),amount_lte?: (Scalars['BigInt'] | null),profitAmount?: (Scalars['BigInt'] | null),profitAmount_not?: (Scalars['BigInt'] | null),profitAmount_in?: ((Scalars['BigInt'] | null)[] | null),profitAmount_not_in?: ((Scalars['BigInt'] | null)[] | null),profitAmount_gt?: (Scalars['BigInt'] | null),profitAmount_lt?: (Scalars['BigInt'] | null),profitAmount_gte?: (Scalars['BigInt'] | null),profitAmount_lte?: (Scalars['BigInt'] | null),fee?: (Scalars['BigInt'] | null),fee_not?: (Scalars['BigInt'] | null),fee_in?: ((Scalars['BigInt'] | null)[] | null),fee_not_in?: ((Scalars['BigInt'] | null)[] | null),fee_gt?: (Scalars['BigInt'] | null),fee_lt?: (Scalars['BigInt'] | null),fee_gte?: (Scalars['BigInt'] | null),fee_lte?: (Scalars['BigInt'] | null),optionTokensBurnt?: (Scalars['BigInt'] | null),optionTokensBurnt_not?: (Scalars['BigInt'] | null),optionTokensBurnt_in?: ((Scalars['BigInt'] | null)[] | null),optionTokensBurnt_not_in?: ((Scalars['BigInt'] | null)[] | null),optionTokensBurnt_gt?: (Scalars['BigInt'] | null),optionTokensBurnt_lt?: (Scalars['BigInt'] | null),optionTokensBurnt_gte?: (Scalars['BigInt'] | null),optionTokensBurnt_lte?: (Scalars['BigInt'] | null),sharesUnutilized?: (Scalars['BigInt'] | null),sharesUnutilized_not?: (Scalars['BigInt'] | null),sharesUnutilized_in?: ((Scalars['BigInt'] | null)[] | null),sharesUnutilized_not_in?: ((Scalars['BigInt'] | null)[] | null),sharesUnutilized_gt?: (Scalars['BigInt'] | null),sharesUnutilized_lt?: (Scalars['BigInt'] | null),sharesUnutilized_gte?: (Scalars['BigInt'] | null),sharesUnutilized_lte?: (Scalars['BigInt'] | null),makerLoss?: (Scalars['BigInt'] | null),makerLoss_not?: (Scalars['BigInt'] | null),makerLoss_in?: ((Scalars['BigInt'] | null)[] | null),makerLoss_not_in?: ((Scalars['BigInt'] | null)[] | null),makerLoss_gt?: (Scalars['BigInt'] | null),makerLoss_lt?: (Scalars['BigInt'] | null),makerLoss_gte?: (Scalars['BigInt'] | null),makerLoss_lte?: (Scalars['BigInt'] | null),purchaserProfit?: (Scalars['BigInt'] | null),purchaserProfit_not?: (Scalars['BigInt'] | null),purchaserProfit_in?: ((Scalars['BigInt'] | null)[] | null),purchaserProfit_not_in?: ((Scalars['BigInt'] | null)[] | null),purchaserProfit_gt?: (Scalars['BigInt'] | null),purchaserProfit_lt?: (Scalars['BigInt'] | null),purchaserProfit_gte?: (Scalars['BigInt'] | null),purchaserProfit_lte?: (Scalars['BigInt'] | null),transactionHash?: (Scalars['String'] | null),transactionHash_not?: (Scalars['String'] | null),transactionHash_in?: ((Scalars['String'] | null)[] | null),transactionHash_not_in?: ((Scalars['String'] | null)[] | null),transactionHash_contains?: (Scalars['String'] | null),transactionHash_not_contains?: (Scalars['String'] | null),transactionHash_starts_with?: (Scalars['String'] | null),transactionHash_ends_with?: (Scalars['String'] | null),transactionHash_not_starts_with?: (Scalars['String'] | null),transactionHash_not_ends_with?: (Scalars['String'] | null),blockNumber?: (Scalars['BigInt'] | null),blockNumber_not?: (Scalars['BigInt'] | null),blockNumber_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_not_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_gt?: (Scalars['BigInt'] | null),blockNumber_lt?: (Scalars['BigInt'] | null),blockNumber_gte?: (Scalars['BigInt'] | null),blockNumber_lte?: (Scalars['BigInt'] | null),timestamp?: (Scalars['BigInt'] | null),timestamp_not?: (Scalars['BigInt'] | null),timestamp_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_not_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_gt?: (Scalars['BigInt'] | null),timestamp_lt?: (Scalars['BigInt'] | null),timestamp_gte?: (Scalars['BigInt'] | null),timestamp_lte?: (Scalars['BigInt'] | null)}
+export interface ExerciseHistoryFilter {AND?: ((ExerciseHistoryFilter | null)[] | null),OR?: ((ExerciseHistoryFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),maker?: (Scalars['String'] | null),maker_not?: (Scalars['String'] | null),maker_in?: ((Scalars['String'] | null)[] | null),maker_not_in?: ((Scalars['String'] | null)[] | null),maker_contains?: (Scalars['String'] | null),maker_not_contains?: (Scalars['String'] | null),maker_starts_with?: (Scalars['String'] | null),maker_ends_with?: (Scalars['String'] | null),maker_not_starts_with?: (Scalars['String'] | null),maker_not_ends_with?: (Scalars['String'] | null),user?: (Scalars['String'] | null),user_not?: (Scalars['String'] | null),user_in?: ((Scalars['String'] | null)[] | null),user_not_in?: ((Scalars['String'] | null)[] | null),user_contains?: (Scalars['String'] | null),user_not_contains?: (Scalars['String'] | null),user_starts_with?: (Scalars['String'] | null),user_ends_with?: (Scalars['String'] | null),user_not_starts_with?: (Scalars['String'] | null),user_not_ends_with?: (Scalars['String'] | null),exerciser?: (Scalars['String'] | null),exerciser_not?: (Scalars['String'] | null),exerciser_in?: ((Scalars['String'] | null)[] | null),exerciser_not_in?: ((Scalars['String'] | null)[] | null),exerciser_contains?: (Scalars['String'] | null),exerciser_not_contains?: (Scalars['String'] | null),exerciser_starts_with?: (Scalars['String'] | null),exerciser_ends_with?: (Scalars['String'] | null),exerciser_not_starts_with?: (Scalars['String'] | null),exerciser_not_ends_with?: (Scalars['String'] | null),amount?: (Scalars['BigInt'] | null),amount_not?: (Scalars['BigInt'] | null),amount_in?: ((Scalars['BigInt'] | null)[] | null),amount_not_in?: ((Scalars['BigInt'] | null)[] | null),amount_gt?: (Scalars['BigInt'] | null),amount_lt?: (Scalars['BigInt'] | null),amount_gte?: (Scalars['BigInt'] | null),amount_lte?: (Scalars['BigInt'] | null),profitAmount?: (Scalars['BigInt'] | null),profitAmount_not?: (Scalars['BigInt'] | null),profitAmount_in?: ((Scalars['BigInt'] | null)[] | null),profitAmount_not_in?: ((Scalars['BigInt'] | null)[] | null),profitAmount_gt?: (Scalars['BigInt'] | null),profitAmount_lt?: (Scalars['BigInt'] | null),profitAmount_gte?: (Scalars['BigInt'] | null),profitAmount_lte?: (Scalars['BigInt'] | null),fee?: (Scalars['BigInt'] | null),fee_not?: (Scalars['BigInt'] | null),fee_in?: ((Scalars['BigInt'] | null)[] | null),fee_not_in?: ((Scalars['BigInt'] | null)[] | null),fee_gt?: (Scalars['BigInt'] | null),fee_lt?: (Scalars['BigInt'] | null),fee_gte?: (Scalars['BigInt'] | null),fee_lte?: (Scalars['BigInt'] | null),optionTokensBurnt?: (Scalars['BigInt'] | null),optionTokensBurnt_not?: (Scalars['BigInt'] | null),optionTokensBurnt_in?: ((Scalars['BigInt'] | null)[] | null),optionTokensBurnt_not_in?: ((Scalars['BigInt'] | null)[] | null),optionTokensBurnt_gt?: (Scalars['BigInt'] | null),optionTokensBurnt_lt?: (Scalars['BigInt'] | null),optionTokensBurnt_gte?: (Scalars['BigInt'] | null),optionTokensBurnt_lte?: (Scalars['BigInt'] | null),sharesUnutilized?: (Scalars['BigInt'] | null),sharesUnutilized_not?: (Scalars['BigInt'] | null),sharesUnutilized_in?: ((Scalars['BigInt'] | null)[] | null),sharesUnutilized_not_in?: ((Scalars['BigInt'] | null)[] | null),sharesUnutilized_gt?: (Scalars['BigInt'] | null),sharesUnutilized_lt?: (Scalars['BigInt'] | null),sharesUnutilized_gte?: (Scalars['BigInt'] | null),sharesUnutilized_lte?: (Scalars['BigInt'] | null),transactionHash?: (Scalars['String'] | null),transactionHash_not?: (Scalars['String'] | null),transactionHash_in?: ((Scalars['String'] | null)[] | null),transactionHash_not_in?: ((Scalars['String'] | null)[] | null),transactionHash_contains?: (Scalars['String'] | null),transactionHash_not_contains?: (Scalars['String'] | null),transactionHash_starts_with?: (Scalars['String'] | null),transactionHash_ends_with?: (Scalars['String'] | null),transactionHash_not_starts_with?: (Scalars['String'] | null),transactionHash_not_ends_with?: (Scalars['String'] | null),blockNumber?: (Scalars['BigInt'] | null),blockNumber_not?: (Scalars['BigInt'] | null),blockNumber_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_not_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_gt?: (Scalars['BigInt'] | null),blockNumber_lt?: (Scalars['BigInt'] | null),blockNumber_gte?: (Scalars['BigInt'] | null),blockNumber_lte?: (Scalars['BigInt'] | null),timestamp?: (Scalars['BigInt'] | null),timestamp_not?: (Scalars['BigInt'] | null),timestamp_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_not_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_gt?: (Scalars['BigInt'] | null),timestamp_lt?: (Scalars['BigInt'] | null),timestamp_gte?: (Scalars['BigInt'] | null),timestamp_lte?: (Scalars['BigInt'] | null)}
+
+export interface WithdrawHistoryPageGenqlSelection{
+    items?: WithdrawHistoryGenqlSelection
+    pageInfo?: PageInfoGenqlSelection
+    totalCount?: boolean | number
+    __typename?: boolean | number
+    __scalar?: boolean | number
+}
+
+export interface WithdrawHistoryGenqlSelection{
+    id?: boolean | number
+    optionId?: boolean | number
+    marketId?: boolean | number
+    user?: UserGenqlSelection
+    receiver?: UserGenqlSelection
+    sharesBurnt?: boolean | number
+    transactionHash?: boolean | number
+    blockNumber?: boolean | number
+    timestamp?: boolean | number
+    __typename?: boolean | number
+    __scalar?: boolean | number
+}
+
+export interface WithdrawHistoryFilter {AND?: ((WithdrawHistoryFilter | null)[] | null),OR?: ((WithdrawHistoryFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),user?: (Scalars['String'] | null),user_not?: (Scalars['String'] | null),user_in?: ((Scalars['String'] | null)[] | null),user_not_in?: ((Scalars['String'] | null)[] | null),user_contains?: (Scalars['String'] | null),user_not_contains?: (Scalars['String'] | null),user_starts_with?: (Scalars['String'] | null),user_ends_with?: (Scalars['String'] | null),user_not_starts_with?: (Scalars['String'] | null),user_not_ends_with?: (Scalars['String'] | null),receiver?: (Scalars['String'] | null),receiver_not?: (Scalars['String'] | null),receiver_in?: ((Scalars['String'] | null)[] | null),receiver_not_in?: ((Scalars['String'] | null)[] | null),receiver_contains?: (Scalars['String'] | null),receiver_not_contains?: (Scalars['String'] | null),receiver_starts_with?: (Scalars['String'] | null),receiver_ends_with?: (Scalars['String'] | null),receiver_not_starts_with?: (Scalars['String'] | null),receiver_not_ends_with?: (Scalars['String'] | null),sharesBurnt?: (Scalars['BigInt'] | null),sharesBurnt_not?: (Scalars['BigInt'] | null),sharesBurnt_in?: ((Scalars['BigInt'] | null)[] | null),sharesBurnt_not_in?: ((Scalars['BigInt'] | null)[] | null),sharesBurnt_gt?: (Scalars['BigInt'] | null),sharesBurnt_lt?: (Scalars['BigInt'] | null),sharesBurnt_gte?: (Scalars['BigInt'] | null),sharesBurnt_lte?: (Scalars['BigInt'] | null),transactionHash?: (Scalars['String'] | null),transactionHash_not?: (Scalars['String'] | null),transactionHash_in?: ((Scalars['String'] | null)[] | null),transactionHash_not_in?: ((Scalars['String'] | null)[] | null),transactionHash_contains?: (Scalars['String'] | null),transactionHash_not_contains?: (Scalars['String'] | null),transactionHash_starts_with?: (Scalars['String'] | null),transactionHash_ends_with?: (Scalars['String'] | null),transactionHash_not_starts_with?: (Scalars['String'] | null),transactionHash_not_ends_with?: (Scalars['String'] | null),blockNumber?: (Scalars['BigInt'] | null),blockNumber_not?: (Scalars['BigInt'] | null),blockNumber_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_not_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_gt?: (Scalars['BigInt'] | null),blockNumber_lt?: (Scalars['BigInt'] | null),blockNumber_gte?: (Scalars['BigInt'] | null),blockNumber_lte?: (Scalars['BigInt'] | null),timestamp?: (Scalars['BigInt'] | null),timestamp_not?: (Scalars['BigInt'] | null),timestamp_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_not_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_gt?: (Scalars['BigInt'] | null),timestamp_lt?: (Scalars['BigInt'] | null),timestamp_gte?: (Scalars['BigInt'] | null),timestamp_lte?: (Scalars['BigInt'] | null)}
 
 export interface UnwindHistoryPageGenqlSelection{
     items?: UnwindHistoryGenqlSelection
@@ -803,34 +745,32 @@ export interface UnwindHistoryGenqlSelection{
 
 export interface UnwindHistoryFilter {AND?: ((UnwindHistoryFilter | null)[] | null),OR?: ((UnwindHistoryFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),user?: (Scalars['String'] | null),user_not?: (Scalars['String'] | null),user_in?: ((Scalars['String'] | null)[] | null),user_not_in?: ((Scalars['String'] | null)[] | null),user_contains?: (Scalars['String'] | null),user_not_contains?: (Scalars['String'] | null),user_starts_with?: (Scalars['String'] | null),user_ends_with?: (Scalars['String'] | null),user_not_starts_with?: (Scalars['String'] | null),user_not_ends_with?: (Scalars['String'] | null),receiver?: (Scalars['String'] | null),receiver_not?: (Scalars['String'] | null),receiver_in?: ((Scalars['String'] | null)[] | null),receiver_not_in?: ((Scalars['String'] | null)[] | null),receiver_contains?: (Scalars['String'] | null),receiver_not_contains?: (Scalars['String'] | null),receiver_starts_with?: (Scalars['String'] | null),receiver_ends_with?: (Scalars['String'] | null),receiver_not_starts_with?: (Scalars['String'] | null),receiver_not_ends_with?: (Scalars['String'] | null),amount?: (Scalars['BigInt'] | null),amount_not?: (Scalars['BigInt'] | null),amount_in?: ((Scalars['BigInt'] | null)[] | null),amount_not_in?: ((Scalars['BigInt'] | null)[] | null),amount_gt?: (Scalars['BigInt'] | null),amount_lt?: (Scalars['BigInt'] | null),amount_gte?: (Scalars['BigInt'] | null),amount_lte?: (Scalars['BigInt'] | null),collateralTokensToReturn?: (Scalars['BigInt'] | null),collateralTokensToReturn_not?: (Scalars['BigInt'] | null),collateralTokensToReturn_in?: ((Scalars['BigInt'] | null)[] | null),collateralTokensToReturn_not_in?: ((Scalars['BigInt'] | null)[] | null),collateralTokensToReturn_gt?: (Scalars['BigInt'] | null),collateralTokensToReturn_lt?: (Scalars['BigInt'] | null),collateralTokensToReturn_gte?: (Scalars['BigInt'] | null),collateralTokensToReturn_lte?: (Scalars['BigInt'] | null),collateralSharesToBurn?: (Scalars['BigInt'] | null),collateralSharesToBurn_not?: (Scalars['BigInt'] | null),collateralSharesToBurn_in?: ((Scalars['BigInt'] | null)[] | null),collateralSharesToBurn_not_in?: ((Scalars['BigInt'] | null)[] | null),collateralSharesToBurn_gt?: (Scalars['BigInt'] | null),collateralSharesToBurn_lt?: (Scalars['BigInt'] | null),collateralSharesToBurn_gte?: (Scalars['BigInt'] | null),collateralSharesToBurn_lte?: (Scalars['BigInt'] | null),optionSharesToBurn?: (Scalars['BigInt'] | null),optionSharesToBurn_not?: (Scalars['BigInt'] | null),optionSharesToBurn_in?: ((Scalars['BigInt'] | null)[] | null),optionSharesToBurn_not_in?: ((Scalars['BigInt'] | null)[] | null),optionSharesToBurn_gt?: (Scalars['BigInt'] | null),optionSharesToBurn_lt?: (Scalars['BigInt'] | null),optionSharesToBurn_gte?: (Scalars['BigInt'] | null),optionSharesToBurn_lte?: (Scalars['BigInt'] | null),transactionHash?: (Scalars['String'] | null),transactionHash_not?: (Scalars['String'] | null),transactionHash_in?: ((Scalars['String'] | null)[] | null),transactionHash_not_in?: ((Scalars['String'] | null)[] | null),transactionHash_contains?: (Scalars['String'] | null),transactionHash_not_contains?: (Scalars['String'] | null),transactionHash_starts_with?: (Scalars['String'] | null),transactionHash_ends_with?: (Scalars['String'] | null),transactionHash_not_starts_with?: (Scalars['String'] | null),transactionHash_not_ends_with?: (Scalars['String'] | null),blockNumber?: (Scalars['BigInt'] | null),blockNumber_not?: (Scalars['BigInt'] | null),blockNumber_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_not_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_gt?: (Scalars['BigInt'] | null),blockNumber_lt?: (Scalars['BigInt'] | null),blockNumber_gte?: (Scalars['BigInt'] | null),blockNumber_lte?: (Scalars['BigInt'] | null),timestamp?: (Scalars['BigInt'] | null),timestamp_not?: (Scalars['BigInt'] | null),timestamp_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_not_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_gt?: (Scalars['BigInt'] | null),timestamp_lt?: (Scalars['BigInt'] | null),timestamp_gte?: (Scalars['BigInt'] | null),timestamp_lte?: (Scalars['BigInt'] | null)}
 
-export interface TransferPositionHistoryPageGenqlSelection{
-    items?: TransferPositionHistoryGenqlSelection
+export interface OrderFillHistoryPageGenqlSelection{
+    items?: OrderFillHistoryGenqlSelection
     pageInfo?: PageInfoGenqlSelection
     totalCount?: boolean | number
     __typename?: boolean | number
     __scalar?: boolean | number
 }
 
-export interface TransferPositionHistoryGenqlSelection{
+export interface OrderFillHistoryGenqlSelection{
     id?: boolean | number
-    optionId?: boolean | number
-    marketId?: boolean | number
+    orderHash?: boolean | number
     maker?: UserGenqlSelection
-    receiver?: UserGenqlSelection
-    purchaser?: boolean | number
-    amount?: boolean | number
-    premiumAmount?: boolean | number
-    fee?: boolean | number
-    optionShares?: boolean | number
-    sharesUtilized?: boolean | number
+    taker?: UserGenqlSelection
+    optionTokenId?: boolean | number
+    makingAmount?: boolean | number
+    takingAmount?: boolean | number
     transactionHash?: boolean | number
     blockNumber?: boolean | number
     timestamp?: boolean | number
+    price?: boolean | number
+    marketId?: boolean | number
     __typename?: boolean | number
     __scalar?: boolean | number
 }
 
-export interface TransferPositionHistoryFilter {AND?: ((TransferPositionHistoryFilter | null)[] | null),OR?: ((TransferPositionHistoryFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),maker?: (Scalars['String'] | null),maker_not?: (Scalars['String'] | null),maker_in?: ((Scalars['String'] | null)[] | null),maker_not_in?: ((Scalars['String'] | null)[] | null),maker_contains?: (Scalars['String'] | null),maker_not_contains?: (Scalars['String'] | null),maker_starts_with?: (Scalars['String'] | null),maker_ends_with?: (Scalars['String'] | null),maker_not_starts_with?: (Scalars['String'] | null),maker_not_ends_with?: (Scalars['String'] | null),receiver?: (Scalars['String'] | null),receiver_not?: (Scalars['String'] | null),receiver_in?: ((Scalars['String'] | null)[] | null),receiver_not_in?: ((Scalars['String'] | null)[] | null),receiver_contains?: (Scalars['String'] | null),receiver_not_contains?: (Scalars['String'] | null),receiver_starts_with?: (Scalars['String'] | null),receiver_ends_with?: (Scalars['String'] | null),receiver_not_starts_with?: (Scalars['String'] | null),receiver_not_ends_with?: (Scalars['String'] | null),purchaser?: (Scalars['String'] | null),purchaser_not?: (Scalars['String'] | null),purchaser_in?: ((Scalars['String'] | null)[] | null),purchaser_not_in?: ((Scalars['String'] | null)[] | null),purchaser_contains?: (Scalars['String'] | null),purchaser_not_contains?: (Scalars['String'] | null),purchaser_starts_with?: (Scalars['String'] | null),purchaser_ends_with?: (Scalars['String'] | null),purchaser_not_starts_with?: (Scalars['String'] | null),purchaser_not_ends_with?: (Scalars['String'] | null),amount?: (Scalars['BigInt'] | null),amount_not?: (Scalars['BigInt'] | null),amount_in?: ((Scalars['BigInt'] | null)[] | null),amount_not_in?: ((Scalars['BigInt'] | null)[] | null),amount_gt?: (Scalars['BigInt'] | null),amount_lt?: (Scalars['BigInt'] | null),amount_gte?: (Scalars['BigInt'] | null),amount_lte?: (Scalars['BigInt'] | null),premiumAmount?: (Scalars['BigInt'] | null),premiumAmount_not?: (Scalars['BigInt'] | null),premiumAmount_in?: ((Scalars['BigInt'] | null)[] | null),premiumAmount_not_in?: ((Scalars['BigInt'] | null)[] | null),premiumAmount_gt?: (Scalars['BigInt'] | null),premiumAmount_lt?: (Scalars['BigInt'] | null),premiumAmount_gte?: (Scalars['BigInt'] | null),premiumAmount_lte?: (Scalars['BigInt'] | null),fee?: (Scalars['BigInt'] | null),fee_not?: (Scalars['BigInt'] | null),fee_in?: ((Scalars['BigInt'] | null)[] | null),fee_not_in?: ((Scalars['BigInt'] | null)[] | null),fee_gt?: (Scalars['BigInt'] | null),fee_lt?: (Scalars['BigInt'] | null),fee_gte?: (Scalars['BigInt'] | null),fee_lte?: (Scalars['BigInt'] | null),optionShares?: (Scalars['BigInt'] | null),optionShares_not?: (Scalars['BigInt'] | null),optionShares_in?: ((Scalars['BigInt'] | null)[] | null),optionShares_not_in?: ((Scalars['BigInt'] | null)[] | null),optionShares_gt?: (Scalars['BigInt'] | null),optionShares_lt?: (Scalars['BigInt'] | null),optionShares_gte?: (Scalars['BigInt'] | null),optionShares_lte?: (Scalars['BigInt'] | null),sharesUtilized?: (Scalars['BigInt'] | null),sharesUtilized_not?: (Scalars['BigInt'] | null),sharesUtilized_in?: ((Scalars['BigInt'] | null)[] | null),sharesUtilized_not_in?: ((Scalars['BigInt'] | null)[] | null),sharesUtilized_gt?: (Scalars['BigInt'] | null),sharesUtilized_lt?: (Scalars['BigInt'] | null),sharesUtilized_gte?: (Scalars['BigInt'] | null),sharesUtilized_lte?: (Scalars['BigInt'] | null),transactionHash?: (Scalars['String'] | null),transactionHash_not?: (Scalars['String'] | null),transactionHash_in?: ((Scalars['String'] | null)[] | null),transactionHash_not_in?: ((Scalars['String'] | null)[] | null),transactionHash_contains?: (Scalars['String'] | null),transactionHash_not_contains?: (Scalars['String'] | null),transactionHash_starts_with?: (Scalars['String'] | null),transactionHash_ends_with?: (Scalars['String'] | null),transactionHash_not_starts_with?: (Scalars['String'] | null),transactionHash_not_ends_with?: (Scalars['String'] | null),blockNumber?: (Scalars['BigInt'] | null),blockNumber_not?: (Scalars['BigInt'] | null),blockNumber_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_not_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_gt?: (Scalars['BigInt'] | null),blockNumber_lt?: (Scalars['BigInt'] | null),blockNumber_gte?: (Scalars['BigInt'] | null),blockNumber_lte?: (Scalars['BigInt'] | null),timestamp?: (Scalars['BigInt'] | null),timestamp_not?: (Scalars['BigInt'] | null),timestamp_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_not_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_gt?: (Scalars['BigInt'] | null),timestamp_lt?: (Scalars['BigInt'] | null),timestamp_gte?: (Scalars['BigInt'] | null),timestamp_lte?: (Scalars['BigInt'] | null)}
+export interface OrderFillHistoryFilter {AND?: ((OrderFillHistoryFilter | null)[] | null),OR?: ((OrderFillHistoryFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),orderHash?: (Scalars['String'] | null),orderHash_not?: (Scalars['String'] | null),orderHash_in?: ((Scalars['String'] | null)[] | null),orderHash_not_in?: ((Scalars['String'] | null)[] | null),orderHash_contains?: (Scalars['String'] | null),orderHash_not_contains?: (Scalars['String'] | null),orderHash_starts_with?: (Scalars['String'] | null),orderHash_ends_with?: (Scalars['String'] | null),orderHash_not_starts_with?: (Scalars['String'] | null),orderHash_not_ends_with?: (Scalars['String'] | null),maker?: (Scalars['String'] | null),maker_not?: (Scalars['String'] | null),maker_in?: ((Scalars['String'] | null)[] | null),maker_not_in?: ((Scalars['String'] | null)[] | null),maker_contains?: (Scalars['String'] | null),maker_not_contains?: (Scalars['String'] | null),maker_starts_with?: (Scalars['String'] | null),maker_ends_with?: (Scalars['String'] | null),maker_not_starts_with?: (Scalars['String'] | null),maker_not_ends_with?: (Scalars['String'] | null),taker?: (Scalars['String'] | null),taker_not?: (Scalars['String'] | null),taker_in?: ((Scalars['String'] | null)[] | null),taker_not_in?: ((Scalars['String'] | null)[] | null),taker_contains?: (Scalars['String'] | null),taker_not_contains?: (Scalars['String'] | null),taker_starts_with?: (Scalars['String'] | null),taker_ends_with?: (Scalars['String'] | null),taker_not_starts_with?: (Scalars['String'] | null),taker_not_ends_with?: (Scalars['String'] | null),optionTokenId?: (Scalars['BigInt'] | null),optionTokenId_not?: (Scalars['BigInt'] | null),optionTokenId_in?: ((Scalars['BigInt'] | null)[] | null),optionTokenId_not_in?: ((Scalars['BigInt'] | null)[] | null),optionTokenId_gt?: (Scalars['BigInt'] | null),optionTokenId_lt?: (Scalars['BigInt'] | null),optionTokenId_gte?: (Scalars['BigInt'] | null),optionTokenId_lte?: (Scalars['BigInt'] | null),makingAmount?: (Scalars['BigInt'] | null),makingAmount_not?: (Scalars['BigInt'] | null),makingAmount_in?: ((Scalars['BigInt'] | null)[] | null),makingAmount_not_in?: ((Scalars['BigInt'] | null)[] | null),makingAmount_gt?: (Scalars['BigInt'] | null),makingAmount_lt?: (Scalars['BigInt'] | null),makingAmount_gte?: (Scalars['BigInt'] | null),makingAmount_lte?: (Scalars['BigInt'] | null),takingAmount?: (Scalars['BigInt'] | null),takingAmount_not?: (Scalars['BigInt'] | null),takingAmount_in?: ((Scalars['BigInt'] | null)[] | null),takingAmount_not_in?: ((Scalars['BigInt'] | null)[] | null),takingAmount_gt?: (Scalars['BigInt'] | null),takingAmount_lt?: (Scalars['BigInt'] | null),takingAmount_gte?: (Scalars['BigInt'] | null),takingAmount_lte?: (Scalars['BigInt'] | null),transactionHash?: (Scalars['String'] | null),transactionHash_not?: (Scalars['String'] | null),transactionHash_in?: ((Scalars['String'] | null)[] | null),transactionHash_not_in?: ((Scalars['String'] | null)[] | null),transactionHash_contains?: (Scalars['String'] | null),transactionHash_not_contains?: (Scalars['String'] | null),transactionHash_starts_with?: (Scalars['String'] | null),transactionHash_ends_with?: (Scalars['String'] | null),transactionHash_not_starts_with?: (Scalars['String'] | null),transactionHash_not_ends_with?: (Scalars['String'] | null),blockNumber?: (Scalars['BigInt'] | null),blockNumber_not?: (Scalars['BigInt'] | null),blockNumber_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_not_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_gt?: (Scalars['BigInt'] | null),blockNumber_lt?: (Scalars['BigInt'] | null),blockNumber_gte?: (Scalars['BigInt'] | null),blockNumber_lte?: (Scalars['BigInt'] | null),timestamp?: (Scalars['BigInt'] | null),timestamp_not?: (Scalars['BigInt'] | null),timestamp_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_not_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_gt?: (Scalars['BigInt'] | null),timestamp_lt?: (Scalars['BigInt'] | null),timestamp_gte?: (Scalars['BigInt'] | null),timestamp_lte?: (Scalars['BigInt'] | null),price?: (Scalars['BigInt'] | null),price_not?: (Scalars['BigInt'] | null),price_in?: ((Scalars['BigInt'] | null)[] | null),price_not_in?: ((Scalars['BigInt'] | null)[] | null),price_gt?: (Scalars['BigInt'] | null),price_lt?: (Scalars['BigInt'] | null),price_gte?: (Scalars['BigInt'] | null),price_lte?: (Scalars['BigInt'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null)}
 
 export interface SettlementHistoryPageGenqlSelection{
     items?: SettlementHistoryGenqlSelection
@@ -855,7 +795,21 @@ export interface SettlementHistoryGenqlSelection{
 
 export interface SettlementHistoryFilter {AND?: ((SettlementHistoryFilter | null)[] | null),OR?: ((SettlementHistoryFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),optionId?: (Scalars['String'] | null),optionId_not?: (Scalars['String'] | null),optionId_in?: ((Scalars['String'] | null)[] | null),optionId_not_in?: ((Scalars['String'] | null)[] | null),optionId_contains?: (Scalars['String'] | null),optionId_not_contains?: (Scalars['String'] | null),optionId_starts_with?: (Scalars['String'] | null),optionId_ends_with?: (Scalars['String'] | null),optionId_not_starts_with?: (Scalars['String'] | null),optionId_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),user?: (Scalars['String'] | null),user_not?: (Scalars['String'] | null),user_in?: ((Scalars['String'] | null)[] | null),user_not_in?: ((Scalars['String'] | null)[] | null),user_contains?: (Scalars['String'] | null),user_not_contains?: (Scalars['String'] | null),user_starts_with?: (Scalars['String'] | null),user_ends_with?: (Scalars['String'] | null),user_not_starts_with?: (Scalars['String'] | null),user_not_ends_with?: (Scalars['String'] | null),totalCollateralSettled?: (Scalars['BigInt'] | null),totalCollateralSettled_not?: (Scalars['BigInt'] | null),totalCollateralSettled_in?: ((Scalars['BigInt'] | null)[] | null),totalCollateralSettled_not_in?: ((Scalars['BigInt'] | null)[] | null),totalCollateralSettled_gt?: (Scalars['BigInt'] | null),totalCollateralSettled_lt?: (Scalars['BigInt'] | null),totalCollateralSettled_gte?: (Scalars['BigInt'] | null),totalCollateralSettled_lte?: (Scalars['BigInt'] | null),transactionHash?: (Scalars['String'] | null),transactionHash_not?: (Scalars['String'] | null),transactionHash_in?: ((Scalars['String'] | null)[] | null),transactionHash_not_in?: ((Scalars['String'] | null)[] | null),transactionHash_contains?: (Scalars['String'] | null),transactionHash_not_contains?: (Scalars['String'] | null),transactionHash_starts_with?: (Scalars['String'] | null),transactionHash_ends_with?: (Scalars['String'] | null),transactionHash_not_starts_with?: (Scalars['String'] | null),transactionHash_not_ends_with?: (Scalars['String'] | null),blockNumber?: (Scalars['BigInt'] | null),blockNumber_not?: (Scalars['BigInt'] | null),blockNumber_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_not_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_gt?: (Scalars['BigInt'] | null),blockNumber_lt?: (Scalars['BigInt'] | null),blockNumber_gte?: (Scalars['BigInt'] | null),blockNumber_lte?: (Scalars['BigInt'] | null),timestamp?: (Scalars['BigInt'] | null),timestamp_not?: (Scalars['BigInt'] | null),timestamp_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_not_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_gt?: (Scalars['BigInt'] | null),timestamp_lt?: (Scalars['BigInt'] | null),timestamp_gte?: (Scalars['BigInt'] | null),timestamp_lte?: (Scalars['BigInt'] | null)}
 
-export interface OptionMarketFilter {AND?: ((OptionMarketFilter | null)[] | null),OR?: ((OptionMarketFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),globalId?: (Scalars['String'] | null),globalId_not?: (Scalars['String'] | null),globalId_in?: ((Scalars['String'] | null)[] | null),globalId_not_in?: ((Scalars['String'] | null)[] | null),globalId_contains?: (Scalars['String'] | null),globalId_not_contains?: (Scalars['String'] | null),globalId_starts_with?: (Scalars['String'] | null),globalId_ends_with?: (Scalars['String'] | null),globalId_not_starts_with?: (Scalars['String'] | null),globalId_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),callToken?: (Scalars['String'] | null),callToken_not?: (Scalars['String'] | null),callToken_in?: ((Scalars['String'] | null)[] | null),callToken_not_in?: ((Scalars['String'] | null)[] | null),callToken_contains?: (Scalars['String'] | null),callToken_not_contains?: (Scalars['String'] | null),callToken_starts_with?: (Scalars['String'] | null),callToken_ends_with?: (Scalars['String'] | null),callToken_not_starts_with?: (Scalars['String'] | null),callToken_not_ends_with?: (Scalars['String'] | null),putToken?: (Scalars['String'] | null),putToken_not?: (Scalars['String'] | null),putToken_in?: ((Scalars['String'] | null)[] | null),putToken_not_in?: ((Scalars['String'] | null)[] | null),putToken_contains?: (Scalars['String'] | null),putToken_not_contains?: (Scalars['String'] | null),putToken_starts_with?: (Scalars['String'] | null),putToken_ends_with?: (Scalars['String'] | null),putToken_not_starts_with?: (Scalars['String'] | null),putToken_not_ends_with?: (Scalars['String'] | null),expiry?: (Scalars['BigInt'] | null),expiry_not?: (Scalars['BigInt'] | null),expiry_in?: ((Scalars['BigInt'] | null)[] | null),expiry_not_in?: ((Scalars['BigInt'] | null)[] | null),expiry_gt?: (Scalars['BigInt'] | null),expiry_lt?: (Scalars['BigInt'] | null),expiry_gte?: (Scalars['BigInt'] | null),expiry_lte?: (Scalars['BigInt'] | null),maxTTL?: (Scalars['BigInt'] | null),maxTTL_not?: (Scalars['BigInt'] | null),maxTTL_in?: ((Scalars['BigInt'] | null)[] | null),maxTTL_not_in?: ((Scalars['BigInt'] | null)[] | null),maxTTL_gt?: (Scalars['BigInt'] | null),maxTTL_lt?: (Scalars['BigInt'] | null),maxTTL_gte?: (Scalars['BigInt'] | null),maxTTL_lte?: (Scalars['BigInt'] | null),strategy?: (Scalars['String'] | null),strategy_not?: (Scalars['String'] | null),strategy_in?: ((Scalars['String'] | null)[] | null),strategy_not_in?: ((Scalars['String'] | null)[] | null),strategy_contains?: (Scalars['String'] | null),strategy_not_contains?: (Scalars['String'] | null),strategy_starts_with?: (Scalars['String'] | null),strategy_ends_with?: (Scalars['String'] | null),strategy_not_starts_with?: (Scalars['String'] | null),strategy_not_ends_with?: (Scalars['String'] | null),collateralToken?: (Scalars['String'] | null),collateralToken_not?: (Scalars['String'] | null),collateralToken_in?: ((Scalars['String'] | null)[] | null),collateralToken_not_in?: ((Scalars['String'] | null)[] | null),collateralToken_contains?: (Scalars['String'] | null),collateralToken_not_contains?: (Scalars['String'] | null),collateralToken_starts_with?: (Scalars['String'] | null),collateralToken_ends_with?: (Scalars['String'] | null),collateralToken_not_starts_with?: (Scalars['String'] | null),collateralToken_not_ends_with?: (Scalars['String'] | null),totalCollateral?: (Scalars['BigInt'] | null),totalCollateral_not?: (Scalars['BigInt'] | null),totalCollateral_in?: ((Scalars['BigInt'] | null)[] | null),totalCollateral_not_in?: ((Scalars['BigInt'] | null)[] | null),totalCollateral_gt?: (Scalars['BigInt'] | null),totalCollateral_lt?: (Scalars['BigInt'] | null),totalCollateral_gte?: (Scalars['BigInt'] | null),totalCollateral_lte?: (Scalars['BigInt'] | null),totalCollateralAmount?: (Scalars['BigInt'] | null),totalCollateralAmount_not?: (Scalars['BigInt'] | null),totalCollateralAmount_in?: ((Scalars['BigInt'] | null)[] | null),totalCollateralAmount_not_in?: ((Scalars['BigInt'] | null)[] | null),totalCollateralAmount_gt?: (Scalars['BigInt'] | null),totalCollateralAmount_lt?: (Scalars['BigInt'] | null),totalCollateralAmount_gte?: (Scalars['BigInt'] | null),totalCollateralAmount_lte?: (Scalars['BigInt'] | null),protocolFees?: (Scalars['BigInt'] | null),protocolFees_not?: (Scalars['BigInt'] | null),protocolFees_in?: ((Scalars['BigInt'] | null)[] | null),protocolFees_not_in?: ((Scalars['BigInt'] | null)[] | null),protocolFees_gt?: (Scalars['BigInt'] | null),protocolFees_lt?: (Scalars['BigInt'] | null),protocolFees_gte?: (Scalars['BigInt'] | null),protocolFees_lte?: (Scalars['BigInt'] | null),createdAt?: (Scalars['BigInt'] | null),createdAt_not?: (Scalars['BigInt'] | null),createdAt_in?: ((Scalars['BigInt'] | null)[] | null),createdAt_not_in?: ((Scalars['BigInt'] | null)[] | null),createdAt_gt?: (Scalars['BigInt'] | null),createdAt_lt?: (Scalars['BigInt'] | null),createdAt_gte?: (Scalars['BigInt'] | null),createdAt_lte?: (Scalars['BigInt'] | null),createdAtBlock?: (Scalars['BigInt'] | null),createdAtBlock_not?: (Scalars['BigInt'] | null),createdAtBlock_in?: ((Scalars['BigInt'] | null)[] | null),createdAtBlock_not_in?: ((Scalars['BigInt'] | null)[] | null),createdAtBlock_gt?: (Scalars['BigInt'] | null),createdAtBlock_lt?: (Scalars['BigInt'] | null),createdAtBlock_gte?: (Scalars['BigInt'] | null),createdAtBlock_lte?: (Scalars['BigInt'] | null),updatedAt?: (Scalars['BigInt'] | null),updatedAt_not?: (Scalars['BigInt'] | null),updatedAt_in?: ((Scalars['BigInt'] | null)[] | null),updatedAt_not_in?: ((Scalars['BigInt'] | null)[] | null),updatedAt_gt?: (Scalars['BigInt'] | null),updatedAt_lt?: (Scalars['BigInt'] | null),updatedAt_gte?: (Scalars['BigInt'] | null),updatedAt_lte?: (Scalars['BigInt'] | null),updatedAtBlock?: (Scalars['BigInt'] | null),updatedAtBlock_not?: (Scalars['BigInt'] | null),updatedAtBlock_in?: ((Scalars['BigInt'] | null)[] | null),updatedAtBlock_not_in?: ((Scalars['BigInt'] | null)[] | null),updatedAtBlock_gt?: (Scalars['BigInt'] | null),updatedAtBlock_lt?: (Scalars['BigInt'] | null),updatedAtBlock_gte?: (Scalars['BigInt'] | null),updatedAtBlock_lte?: (Scalars['BigInt'] | null)}
+export interface OptionParamsGenqlSelection{
+    id?: boolean | number
+    marketId?: boolean | number
+    strikeLowerLimit?: boolean | number
+    strikeUpperLimit?: boolean | number
+    isPut?: boolean | number
+    collateralPerShare?: boolean | number
+    createdAt?: boolean | number
+    createdAtBlock?: boolean | number
+    positions?: (PositionPageGenqlSelection & { __args?: {where?: (PositionFilter | null), orderBy?: (Scalars['String'] | null), orderDirection?: (Scalars['String'] | null), before?: (Scalars['String'] | null), after?: (Scalars['String'] | null), limit?: (Scalars['Int'] | null)} })
+    __typename?: boolean | number
+    __scalar?: boolean | number
+}
+
+export interface OptionMarketFilter {AND?: ((OptionMarketFilter | null)[] | null),OR?: ((OptionMarketFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),globalId?: (Scalars['String'] | null),globalId_not?: (Scalars['String'] | null),globalId_in?: ((Scalars['String'] | null)[] | null),globalId_not_in?: ((Scalars['String'] | null)[] | null),globalId_contains?: (Scalars['String'] | null),globalId_not_contains?: (Scalars['String'] | null),globalId_starts_with?: (Scalars['String'] | null),globalId_ends_with?: (Scalars['String'] | null),globalId_not_starts_with?: (Scalars['String'] | null),globalId_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),callToken?: (Scalars['String'] | null),callToken_not?: (Scalars['String'] | null),callToken_in?: ((Scalars['String'] | null)[] | null),callToken_not_in?: ((Scalars['String'] | null)[] | null),callToken_contains?: (Scalars['String'] | null),callToken_not_contains?: (Scalars['String'] | null),callToken_starts_with?: (Scalars['String'] | null),callToken_ends_with?: (Scalars['String'] | null),callToken_not_starts_with?: (Scalars['String'] | null),callToken_not_ends_with?: (Scalars['String'] | null),putToken?: (Scalars['String'] | null),putToken_not?: (Scalars['String'] | null),putToken_in?: ((Scalars['String'] | null)[] | null),putToken_not_in?: ((Scalars['String'] | null)[] | null),putToken_contains?: (Scalars['String'] | null),putToken_not_contains?: (Scalars['String'] | null),putToken_starts_with?: (Scalars['String'] | null),putToken_ends_with?: (Scalars['String'] | null),putToken_not_starts_with?: (Scalars['String'] | null),putToken_not_ends_with?: (Scalars['String'] | null),expiry?: (Scalars['BigInt'] | null),expiry_not?: (Scalars['BigInt'] | null),expiry_in?: ((Scalars['BigInt'] | null)[] | null),expiry_not_in?: ((Scalars['BigInt'] | null)[] | null),expiry_gt?: (Scalars['BigInt'] | null),expiry_lt?: (Scalars['BigInt'] | null),expiry_gte?: (Scalars['BigInt'] | null),expiry_lte?: (Scalars['BigInt'] | null),maxTTL?: (Scalars['BigInt'] | null),maxTTL_not?: (Scalars['BigInt'] | null),maxTTL_in?: ((Scalars['BigInt'] | null)[] | null),maxTTL_not_in?: ((Scalars['BigInt'] | null)[] | null),maxTTL_gt?: (Scalars['BigInt'] | null),maxTTL_lt?: (Scalars['BigInt'] | null),maxTTL_gte?: (Scalars['BigInt'] | null),maxTTL_lte?: (Scalars['BigInt'] | null),strategy?: (Scalars['String'] | null),strategy_not?: (Scalars['String'] | null),strategy_in?: ((Scalars['String'] | null)[] | null),strategy_not_in?: ((Scalars['String'] | null)[] | null),strategy_contains?: (Scalars['String'] | null),strategy_not_contains?: (Scalars['String'] | null),strategy_starts_with?: (Scalars['String'] | null),strategy_ends_with?: (Scalars['String'] | null),strategy_not_starts_with?: (Scalars['String'] | null),strategy_not_ends_with?: (Scalars['String'] | null),collateralToken?: (Scalars['String'] | null),collateralToken_not?: (Scalars['String'] | null),collateralToken_in?: ((Scalars['String'] | null)[] | null),collateralToken_not_in?: ((Scalars['String'] | null)[] | null),collateralToken_contains?: (Scalars['String'] | null),collateralToken_not_contains?: (Scalars['String'] | null),collateralToken_starts_with?: (Scalars['String'] | null),collateralToken_ends_with?: (Scalars['String'] | null),collateralToken_not_starts_with?: (Scalars['String'] | null),collateralToken_not_ends_with?: (Scalars['String'] | null),totalCollateralShares?: (Scalars['BigInt'] | null),totalCollateralShares_not?: (Scalars['BigInt'] | null),totalCollateralShares_in?: ((Scalars['BigInt'] | null)[] | null),totalCollateralShares_not_in?: ((Scalars['BigInt'] | null)[] | null),totalCollateralShares_gt?: (Scalars['BigInt'] | null),totalCollateralShares_lt?: (Scalars['BigInt'] | null),totalCollateralShares_gte?: (Scalars['BigInt'] | null),totalCollateralShares_lte?: (Scalars['BigInt'] | null),totalCollateralAmount?: (Scalars['BigInt'] | null),totalCollateralAmount_not?: (Scalars['BigInt'] | null),totalCollateralAmount_in?: ((Scalars['BigInt'] | null)[] | null),totalCollateralAmount_not_in?: ((Scalars['BigInt'] | null)[] | null),totalCollateralAmount_gt?: (Scalars['BigInt'] | null),totalCollateralAmount_lt?: (Scalars['BigInt'] | null),totalCollateralAmount_gte?: (Scalars['BigInt'] | null),totalCollateralAmount_lte?: (Scalars['BigInt'] | null),protocolFees?: (Scalars['BigInt'] | null),protocolFees_not?: (Scalars['BigInt'] | null),protocolFees_in?: ((Scalars['BigInt'] | null)[] | null),protocolFees_not_in?: ((Scalars['BigInt'] | null)[] | null),protocolFees_gt?: (Scalars['BigInt'] | null),protocolFees_lt?: (Scalars['BigInt'] | null),protocolFees_gte?: (Scalars['BigInt'] | null),protocolFees_lte?: (Scalars['BigInt'] | null),createdAt?: (Scalars['BigInt'] | null),createdAt_not?: (Scalars['BigInt'] | null),createdAt_in?: ((Scalars['BigInt'] | null)[] | null),createdAt_not_in?: ((Scalars['BigInt'] | null)[] | null),createdAt_gt?: (Scalars['BigInt'] | null),createdAt_lt?: (Scalars['BigInt'] | null),createdAt_gte?: (Scalars['BigInt'] | null),createdAt_lte?: (Scalars['BigInt'] | null),createdAtBlock?: (Scalars['BigInt'] | null),createdAtBlock_not?: (Scalars['BigInt'] | null),createdAtBlock_in?: ((Scalars['BigInt'] | null)[] | null),createdAtBlock_not_in?: ((Scalars['BigInt'] | null)[] | null),createdAtBlock_gt?: (Scalars['BigInt'] | null),createdAtBlock_lt?: (Scalars['BigInt'] | null),createdAtBlock_gte?: (Scalars['BigInt'] | null),createdAtBlock_lte?: (Scalars['BigInt'] | null),updatedAt?: (Scalars['BigInt'] | null),updatedAt_not?: (Scalars['BigInt'] | null),updatedAt_in?: ((Scalars['BigInt'] | null)[] | null),updatedAt_not_in?: ((Scalars['BigInt'] | null)[] | null),updatedAt_gt?: (Scalars['BigInt'] | null),updatedAt_lt?: (Scalars['BigInt'] | null),updatedAt_gte?: (Scalars['BigInt'] | null),updatedAt_lte?: (Scalars['BigInt'] | null),updatedAtBlock?: (Scalars['BigInt'] | null),updatedAtBlock_not?: (Scalars['BigInt'] | null),updatedAtBlock_in?: ((Scalars['BigInt'] | null)[] | null),updatedAtBlock_not_in?: ((Scalars['BigInt'] | null)[] | null),updatedAtBlock_gt?: (Scalars['BigInt'] | null),updatedAtBlock_lt?: (Scalars['BigInt'] | null),updatedAtBlock_gte?: (Scalars['BigInt'] | null),updatedAtBlock_lte?: (Scalars['BigInt'] | null)}
 
 export interface GlobalPageGenqlSelection{
     items?: GlobalGenqlSelection
@@ -896,32 +850,6 @@ export interface OptionParamsPageGenqlSelection{
 }
 
 export interface OptionParamsFilter {AND?: ((OptionParamsFilter | null)[] | null),OR?: ((OptionParamsFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),marketId?: (Scalars['BigInt'] | null),marketId_not?: (Scalars['BigInt'] | null),marketId_in?: ((Scalars['BigInt'] | null)[] | null),marketId_not_in?: ((Scalars['BigInt'] | null)[] | null),marketId_gt?: (Scalars['BigInt'] | null),marketId_lt?: (Scalars['BigInt'] | null),marketId_gte?: (Scalars['BigInt'] | null),marketId_lte?: (Scalars['BigInt'] | null),strikeLowerLimit?: (Scalars['BigInt'] | null),strikeLowerLimit_not?: (Scalars['BigInt'] | null),strikeLowerLimit_in?: ((Scalars['BigInt'] | null)[] | null),strikeLowerLimit_not_in?: ((Scalars['BigInt'] | null)[] | null),strikeLowerLimit_gt?: (Scalars['BigInt'] | null),strikeLowerLimit_lt?: (Scalars['BigInt'] | null),strikeLowerLimit_gte?: (Scalars['BigInt'] | null),strikeLowerLimit_lte?: (Scalars['BigInt'] | null),strikeUpperLimit?: (Scalars['BigInt'] | null),strikeUpperLimit_not?: (Scalars['BigInt'] | null),strikeUpperLimit_in?: ((Scalars['BigInt'] | null)[] | null),strikeUpperLimit_not_in?: ((Scalars['BigInt'] | null)[] | null),strikeUpperLimit_gt?: (Scalars['BigInt'] | null),strikeUpperLimit_lt?: (Scalars['BigInt'] | null),strikeUpperLimit_gte?: (Scalars['BigInt'] | null),strikeUpperLimit_lte?: (Scalars['BigInt'] | null),isPut?: (Scalars['Boolean'] | null),isPut_not?: (Scalars['Boolean'] | null),isPut_in?: ((Scalars['Boolean'] | null)[] | null),isPut_not_in?: ((Scalars['Boolean'] | null)[] | null),collateralPerShare?: (Scalars['BigInt'] | null),collateralPerShare_not?: (Scalars['BigInt'] | null),collateralPerShare_in?: ((Scalars['BigInt'] | null)[] | null),collateralPerShare_not_in?: ((Scalars['BigInt'] | null)[] | null),collateralPerShare_gt?: (Scalars['BigInt'] | null),collateralPerShare_lt?: (Scalars['BigInt'] | null),collateralPerShare_gte?: (Scalars['BigInt'] | null),collateralPerShare_lte?: (Scalars['BigInt'] | null),createdAt?: (Scalars['BigInt'] | null),createdAt_not?: (Scalars['BigInt'] | null),createdAt_in?: ((Scalars['BigInt'] | null)[] | null),createdAt_not_in?: ((Scalars['BigInt'] | null)[] | null),createdAt_gt?: (Scalars['BigInt'] | null),createdAt_lt?: (Scalars['BigInt'] | null),createdAt_gte?: (Scalars['BigInt'] | null),createdAt_lte?: (Scalars['BigInt'] | null),createdAtBlock?: (Scalars['BigInt'] | null),createdAtBlock_not?: (Scalars['BigInt'] | null),createdAtBlock_in?: ((Scalars['BigInt'] | null)[] | null),createdAtBlock_not_in?: ((Scalars['BigInt'] | null)[] | null),createdAtBlock_gt?: (Scalars['BigInt'] | null),createdAtBlock_lt?: (Scalars['BigInt'] | null),createdAtBlock_gte?: (Scalars['BigInt'] | null),createdAtBlock_lte?: (Scalars['BigInt'] | null)}
-
-export interface OrderFillHistoryGenqlSelection{
-    id?: boolean | number
-    orderHash?: boolean | number
-    maker?: boolean | number
-    taker?: boolean | number
-    optionTokenId?: boolean | number
-    makingAmount?: boolean | number
-    takingAmount?: boolean | number
-    remainingAmount?: boolean | number
-    transactionHash?: boolean | number
-    blockNumber?: boolean | number
-    timestamp?: boolean | number
-    __typename?: boolean | number
-    __scalar?: boolean | number
-}
-
-export interface OrderFillHistoryPageGenqlSelection{
-    items?: OrderFillHistoryGenqlSelection
-    pageInfo?: PageInfoGenqlSelection
-    totalCount?: boolean | number
-    __typename?: boolean | number
-    __scalar?: boolean | number
-}
-
-export interface OrderFillHistoryFilter {AND?: ((OrderFillHistoryFilter | null)[] | null),OR?: ((OrderFillHistoryFilter | null)[] | null),id?: (Scalars['String'] | null),id_not?: (Scalars['String'] | null),id_in?: ((Scalars['String'] | null)[] | null),id_not_in?: ((Scalars['String'] | null)[] | null),id_contains?: (Scalars['String'] | null),id_not_contains?: (Scalars['String'] | null),id_starts_with?: (Scalars['String'] | null),id_ends_with?: (Scalars['String'] | null),id_not_starts_with?: (Scalars['String'] | null),id_not_ends_with?: (Scalars['String'] | null),orderHash?: (Scalars['String'] | null),orderHash_not?: (Scalars['String'] | null),orderHash_in?: ((Scalars['String'] | null)[] | null),orderHash_not_in?: ((Scalars['String'] | null)[] | null),orderHash_contains?: (Scalars['String'] | null),orderHash_not_contains?: (Scalars['String'] | null),orderHash_starts_with?: (Scalars['String'] | null),orderHash_ends_with?: (Scalars['String'] | null),orderHash_not_starts_with?: (Scalars['String'] | null),orderHash_not_ends_with?: (Scalars['String'] | null),maker?: (Scalars['String'] | null),maker_not?: (Scalars['String'] | null),maker_in?: ((Scalars['String'] | null)[] | null),maker_not_in?: ((Scalars['String'] | null)[] | null),maker_contains?: (Scalars['String'] | null),maker_not_contains?: (Scalars['String'] | null),maker_starts_with?: (Scalars['String'] | null),maker_ends_with?: (Scalars['String'] | null),maker_not_starts_with?: (Scalars['String'] | null),maker_not_ends_with?: (Scalars['String'] | null),taker?: (Scalars['String'] | null),taker_not?: (Scalars['String'] | null),taker_in?: ((Scalars['String'] | null)[] | null),taker_not_in?: ((Scalars['String'] | null)[] | null),taker_contains?: (Scalars['String'] | null),taker_not_contains?: (Scalars['String'] | null),taker_starts_with?: (Scalars['String'] | null),taker_ends_with?: (Scalars['String'] | null),taker_not_starts_with?: (Scalars['String'] | null),taker_not_ends_with?: (Scalars['String'] | null),optionTokenId?: (Scalars['BigInt'] | null),optionTokenId_not?: (Scalars['BigInt'] | null),optionTokenId_in?: ((Scalars['BigInt'] | null)[] | null),optionTokenId_not_in?: ((Scalars['BigInt'] | null)[] | null),optionTokenId_gt?: (Scalars['BigInt'] | null),optionTokenId_lt?: (Scalars['BigInt'] | null),optionTokenId_gte?: (Scalars['BigInt'] | null),optionTokenId_lte?: (Scalars['BigInt'] | null),makingAmount?: (Scalars['BigInt'] | null),makingAmount_not?: (Scalars['BigInt'] | null),makingAmount_in?: ((Scalars['BigInt'] | null)[] | null),makingAmount_not_in?: ((Scalars['BigInt'] | null)[] | null),makingAmount_gt?: (Scalars['BigInt'] | null),makingAmount_lt?: (Scalars['BigInt'] | null),makingAmount_gte?: (Scalars['BigInt'] | null),makingAmount_lte?: (Scalars['BigInt'] | null),takingAmount?: (Scalars['BigInt'] | null),takingAmount_not?: (Scalars['BigInt'] | null),takingAmount_in?: ((Scalars['BigInt'] | null)[] | null),takingAmount_not_in?: ((Scalars['BigInt'] | null)[] | null),takingAmount_gt?: (Scalars['BigInt'] | null),takingAmount_lt?: (Scalars['BigInt'] | null),takingAmount_gte?: (Scalars['BigInt'] | null),takingAmount_lte?: (Scalars['BigInt'] | null),remainingAmount?: (Scalars['BigInt'] | null),remainingAmount_not?: (Scalars['BigInt'] | null),remainingAmount_in?: ((Scalars['BigInt'] | null)[] | null),remainingAmount_not_in?: ((Scalars['BigInt'] | null)[] | null),remainingAmount_gt?: (Scalars['BigInt'] | null),remainingAmount_lt?: (Scalars['BigInt'] | null),remainingAmount_gte?: (Scalars['BigInt'] | null),remainingAmount_lte?: (Scalars['BigInt'] | null),transactionHash?: (Scalars['String'] | null),transactionHash_not?: (Scalars['String'] | null),transactionHash_in?: ((Scalars['String'] | null)[] | null),transactionHash_not_in?: ((Scalars['String'] | null)[] | null),transactionHash_contains?: (Scalars['String'] | null),transactionHash_not_contains?: (Scalars['String'] | null),transactionHash_starts_with?: (Scalars['String'] | null),transactionHash_ends_with?: (Scalars['String'] | null),transactionHash_not_starts_with?: (Scalars['String'] | null),transactionHash_not_ends_with?: (Scalars['String'] | null),blockNumber?: (Scalars['BigInt'] | null),blockNumber_not?: (Scalars['BigInt'] | null),blockNumber_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_not_in?: ((Scalars['BigInt'] | null)[] | null),blockNumber_gt?: (Scalars['BigInt'] | null),blockNumber_lt?: (Scalars['BigInt'] | null),blockNumber_gte?: (Scalars['BigInt'] | null),blockNumber_lte?: (Scalars['BigInt'] | null),timestamp?: (Scalars['BigInt'] | null),timestamp_not?: (Scalars['BigInt'] | null),timestamp_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_not_in?: ((Scalars['BigInt'] | null)[] | null),timestamp_gt?: (Scalars['BigInt'] | null),timestamp_lt?: (Scalars['BigInt'] | null),timestamp_gte?: (Scalars['BigInt'] | null),timestamp_lte?: (Scalars['BigInt'] | null)}
 
 export interface OrderCancelHistoryGenqlSelection{
     id?: boolean | number
@@ -1029,18 +957,18 @@ export interface HourlyVolumeFilter {AND?: ((HourlyVolumeFilter | null)[] | null
     
 
 
-    const CollateralPositionPage_possibleTypes: string[] = ['CollateralPositionPage']
-    export const isCollateralPositionPage = (obj?: { __typename?: any } | null): obj is CollateralPositionPage => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isCollateralPositionPage"')
-      return CollateralPositionPage_possibleTypes.includes(obj.__typename)
+    const PositionPage_possibleTypes: string[] = ['PositionPage']
+    export const isPositionPage = (obj?: { __typename?: any } | null): obj is PositionPage => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isPositionPage"')
+      return PositionPage_possibleTypes.includes(obj.__typename)
     }
     
 
 
-    const CollateralPosition_possibleTypes: string[] = ['CollateralPosition']
-    export const isCollateralPosition = (obj?: { __typename?: any } | null): obj is CollateralPosition => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isCollateralPosition"')
-      return CollateralPosition_possibleTypes.includes(obj.__typename)
+    const Position_possibleTypes: string[] = ['Position']
+    export const isPosition = (obj?: { __typename?: any } | null): obj is Position => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isPosition"')
+      return Position_possibleTypes.includes(obj.__typename)
     }
     
 
@@ -1049,30 +977,6 @@ export interface HourlyVolumeFilter {AND?: ((HourlyVolumeFilter | null)[] | null
     export const isUser = (obj?: { __typename?: any } | null): obj is User => {
       if (!obj?.__typename) throw new Error('__typename is missing in "isUser"')
       return User_possibleTypes.includes(obj.__typename)
-    }
-    
-
-
-    const OptionPositionPage_possibleTypes: string[] = ['OptionPositionPage']
-    export const isOptionPositionPage = (obj?: { __typename?: any } | null): obj is OptionPositionPage => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isOptionPositionPage"')
-      return OptionPositionPage_possibleTypes.includes(obj.__typename)
-    }
-    
-
-
-    const OptionPosition_possibleTypes: string[] = ['OptionPosition']
-    export const isOptionPosition = (obj?: { __typename?: any } | null): obj is OptionPosition => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isOptionPosition"')
-      return OptionPosition_possibleTypes.includes(obj.__typename)
-    }
-    
-
-
-    const OptionParams_possibleTypes: string[] = ['OptionParams']
-    export const isOptionParams = (obj?: { __typename?: any } | null): obj is OptionParams => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isOptionParams"')
-      return OptionParams_possibleTypes.includes(obj.__typename)
     }
     
 
@@ -1093,34 +997,34 @@ export interface HourlyVolumeFilter {AND?: ((HourlyVolumeFilter | null)[] | null
     
 
 
-    const TransferDepositHistoryPage_possibleTypes: string[] = ['TransferDepositHistoryPage']
-    export const isTransferDepositHistoryPage = (obj?: { __typename?: any } | null): obj is TransferDepositHistoryPage => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isTransferDepositHistoryPage"')
-      return TransferDepositHistoryPage_possibleTypes.includes(obj.__typename)
+    const TransferCollateralSharesHistoryPage_possibleTypes: string[] = ['TransferCollateralSharesHistoryPage']
+    export const isTransferCollateralSharesHistoryPage = (obj?: { __typename?: any } | null): obj is TransferCollateralSharesHistoryPage => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isTransferCollateralSharesHistoryPage"')
+      return TransferCollateralSharesHistoryPage_possibleTypes.includes(obj.__typename)
     }
     
 
 
-    const TransferDepositHistory_possibleTypes: string[] = ['TransferDepositHistory']
-    export const isTransferDepositHistory = (obj?: { __typename?: any } | null): obj is TransferDepositHistory => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isTransferDepositHistory"')
-      return TransferDepositHistory_possibleTypes.includes(obj.__typename)
+    const TransferCollateralSharesHistory_possibleTypes: string[] = ['TransferCollateralSharesHistory']
+    export const isTransferCollateralSharesHistory = (obj?: { __typename?: any } | null): obj is TransferCollateralSharesHistory => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isTransferCollateralSharesHistory"')
+      return TransferCollateralSharesHistory_possibleTypes.includes(obj.__typename)
     }
     
 
 
-    const PurchaseHistoryPage_possibleTypes: string[] = ['PurchaseHistoryPage']
-    export const isPurchaseHistoryPage = (obj?: { __typename?: any } | null): obj is PurchaseHistoryPage => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isPurchaseHistoryPage"')
-      return PurchaseHistoryPage_possibleTypes.includes(obj.__typename)
+    const TransferOptionsSharesHistoryPage_possibleTypes: string[] = ['TransferOptionsSharesHistoryPage']
+    export const isTransferOptionsSharesHistoryPage = (obj?: { __typename?: any } | null): obj is TransferOptionsSharesHistoryPage => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isTransferOptionsSharesHistoryPage"')
+      return TransferOptionsSharesHistoryPage_possibleTypes.includes(obj.__typename)
     }
     
 
 
-    const PurchaseHistory_possibleTypes: string[] = ['PurchaseHistory']
-    export const isPurchaseHistory = (obj?: { __typename?: any } | null): obj is PurchaseHistory => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isPurchaseHistory"')
-      return PurchaseHistory_possibleTypes.includes(obj.__typename)
+    const TransferOptionsSharesHistory_possibleTypes: string[] = ['TransferOptionsSharesHistory']
+    export const isTransferOptionsSharesHistory = (obj?: { __typename?: any } | null): obj is TransferOptionsSharesHistory => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isTransferOptionsSharesHistory"')
+      return TransferOptionsSharesHistory_possibleTypes.includes(obj.__typename)
     }
     
 
@@ -1141,6 +1045,22 @@ export interface HourlyVolumeFilter {AND?: ((HourlyVolumeFilter | null)[] | null
     
 
 
+    const WithdrawHistoryPage_possibleTypes: string[] = ['WithdrawHistoryPage']
+    export const isWithdrawHistoryPage = (obj?: { __typename?: any } | null): obj is WithdrawHistoryPage => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isWithdrawHistoryPage"')
+      return WithdrawHistoryPage_possibleTypes.includes(obj.__typename)
+    }
+    
+
+
+    const WithdrawHistory_possibleTypes: string[] = ['WithdrawHistory']
+    export const isWithdrawHistory = (obj?: { __typename?: any } | null): obj is WithdrawHistory => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isWithdrawHistory"')
+      return WithdrawHistory_possibleTypes.includes(obj.__typename)
+    }
+    
+
+
     const UnwindHistoryPage_possibleTypes: string[] = ['UnwindHistoryPage']
     export const isUnwindHistoryPage = (obj?: { __typename?: any } | null): obj is UnwindHistoryPage => {
       if (!obj?.__typename) throw new Error('__typename is missing in "isUnwindHistoryPage"')
@@ -1157,18 +1077,18 @@ export interface HourlyVolumeFilter {AND?: ((HourlyVolumeFilter | null)[] | null
     
 
 
-    const TransferPositionHistoryPage_possibleTypes: string[] = ['TransferPositionHistoryPage']
-    export const isTransferPositionHistoryPage = (obj?: { __typename?: any } | null): obj is TransferPositionHistoryPage => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isTransferPositionHistoryPage"')
-      return TransferPositionHistoryPage_possibleTypes.includes(obj.__typename)
+    const OrderFillHistoryPage_possibleTypes: string[] = ['OrderFillHistoryPage']
+    export const isOrderFillHistoryPage = (obj?: { __typename?: any } | null): obj is OrderFillHistoryPage => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isOrderFillHistoryPage"')
+      return OrderFillHistoryPage_possibleTypes.includes(obj.__typename)
     }
     
 
 
-    const TransferPositionHistory_possibleTypes: string[] = ['TransferPositionHistory']
-    export const isTransferPositionHistory = (obj?: { __typename?: any } | null): obj is TransferPositionHistory => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isTransferPositionHistory"')
-      return TransferPositionHistory_possibleTypes.includes(obj.__typename)
+    const OrderFillHistory_possibleTypes: string[] = ['OrderFillHistory']
+    export const isOrderFillHistory = (obj?: { __typename?: any } | null): obj is OrderFillHistory => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isOrderFillHistory"')
+      return OrderFillHistory_possibleTypes.includes(obj.__typename)
     }
     
 
@@ -1185,6 +1105,14 @@ export interface HourlyVolumeFilter {AND?: ((HourlyVolumeFilter | null)[] | null
     export const isSettlementHistory = (obj?: { __typename?: any } | null): obj is SettlementHistory => {
       if (!obj?.__typename) throw new Error('__typename is missing in "isSettlementHistory"')
       return SettlementHistory_possibleTypes.includes(obj.__typename)
+    }
+    
+
+
+    const OptionParams_possibleTypes: string[] = ['OptionParams']
+    export const isOptionParams = (obj?: { __typename?: any } | null): obj is OptionParams => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isOptionParams"')
+      return OptionParams_possibleTypes.includes(obj.__typename)
     }
     
 
@@ -1217,22 +1145,6 @@ export interface HourlyVolumeFilter {AND?: ((HourlyVolumeFilter | null)[] | null
     export const isOptionParamsPage = (obj?: { __typename?: any } | null): obj is OptionParamsPage => {
       if (!obj?.__typename) throw new Error('__typename is missing in "isOptionParamsPage"')
       return OptionParamsPage_possibleTypes.includes(obj.__typename)
-    }
-    
-
-
-    const OrderFillHistory_possibleTypes: string[] = ['OrderFillHistory']
-    export const isOrderFillHistory = (obj?: { __typename?: any } | null): obj is OrderFillHistory => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isOrderFillHistory"')
-      return OrderFillHistory_possibleTypes.includes(obj.__typename)
-    }
-    
-
-
-    const OrderFillHistoryPage_possibleTypes: string[] = ['OrderFillHistoryPage']
-    export const isOrderFillHistoryPage = (obj?: { __typename?: any } | null): obj is OrderFillHistoryPage => {
-      if (!obj?.__typename) throw new Error('__typename is missing in "isOrderFillHistoryPage"')
-      return OrderFillHistoryPage_possibleTypes.includes(obj.__typename)
     }
     
 
