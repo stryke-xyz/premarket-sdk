@@ -9,10 +9,6 @@ import {
   serializePosition,
   serializeUserHistories,
 } from "../types/serializers.js";
-import {
-  serializeOptionMarket,
-  serializeOptionParams,
-} from "../types/serializers.js";
 
 /**
  * Get user positions for a specific market

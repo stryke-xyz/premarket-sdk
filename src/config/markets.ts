@@ -8,7 +8,10 @@ import { megaETHTestnet } from "./chains.js";
  */
 export type MarketType = "PRE-TGE" | "PRE-IPO";
 
-export type SUPPORTED_CHAINS = 31337 | 6343;
+export type SUPPORTED_CHAINS =
+  | typeof hardhat.id
+  | typeof megaETHTestnet.id
+  | typeof arbitrum.id;
 
 /**
  * Band configuration with strike limits and token IDs
@@ -152,6 +155,26 @@ export const CHAIN_MARKET_CONFIGS: Record<
         address: USDC[megaETHTestnet.id].address,
         decimals: USDC[megaETHTestnet.id].decimals,
         symbol: USDC[megaETHTestnet.id].symbol,
+      },
+    },
+  },
+  [arbitrum.id]: {
+    "1": {
+      marketKey: "market1",
+      id: "1",
+      name: "USDAI ICO",
+      type: "PRE-TGE",
+      bands: [
+        createBand("1", 1000000000n, 2000000000n),
+        createBand("1", 2000000000n, 5000000000n),
+        createBand("1", 5000000000n, 10000000000n),
+      ],
+      icon: "/images/usdai-icon.png",
+      stableTokenDecimals: 6,
+      collateralToken: {
+        address: USDC[arbitrum.id].address,
+        decimals: USDC[arbitrum.id].decimals,
+        symbol: USDC[arbitrum.id].symbol,
       },
     },
   },
