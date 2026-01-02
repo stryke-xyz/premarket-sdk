@@ -60,14 +60,15 @@ export function deserializePosition(data: any): Position {
     userId: String(data.userId),
     collateralShares: BigInt(data.collateralShares ?? "0"),
     optionsShares: BigInt(data.optionsShares ?? "0"),
+    exercisedOptionsShares: BigInt(data.exercisedOptionsShares ?? "0"),
+    exercisedCollateralShares: BigInt(data.exercisedCollateralShares ?? "0"),
     premiumEarned: BigInt(data.premiumEarned ?? "0"),
     fee: BigInt(data.fee ?? "0"),
-    settled: Boolean(data.settled),
     updatedAt: BigInt(data.updatedAt ?? "0"),
     updatedAtBlock: BigInt(data.updatedAtBlock ?? "0"),
     profit: BigInt(data.profit ?? "0"),
+    makerLoss: BigInt(data.makerLoss ?? "0"),
     averagePrice: BigInt(data.averagePrice ?? "0"),
-    optionsSharesExercised: BigInt(data.optionsSharesExercised ?? "0"),
     premiumPaid: BigInt(data.premiumPaid ?? "0"),
     optionMarket: data.optionMarket
       ? deserializeOptionMarket(data.optionMarket)
@@ -109,6 +110,7 @@ export function deserializeUserHistories(data: any): UserHistories {
     "collateralSharesToBurn",
     "optionSharesToBurn",
     "sharesBurnt",
+    "withdrawAmount",
     "totalCollateralSettled",
     "optionMarketId",
     "premiumAmount",
@@ -117,7 +119,6 @@ export function deserializeUserHistories(data: any): UserHistories {
     "makingAmount",
     "takingAmount",
     "price",
-    "optionTokenId",
   ];
 
   return {
@@ -148,17 +149,10 @@ export function deserializeUserHistories(data: any): UserHistories {
     withdrawHistory: (data.withdrawHistory || []).map((item: any) =>
       deserializeHistoryItem(item, bigintFields)
     ),
-    settlementHistory: (data.settlementHistory || []).map((item: any) =>
-      deserializeHistoryItem(item, bigintFields)
-    ),
     orderFillHistory: (data.orderFillHistory || []).map((item: any) => {
       const result = deserializeHistoryItem(item, bigintFields);
-      if (
-        result.optionTokenId != null &&
-        typeof result.optionTokenId === "string"
-      ) {
-        result.optionTokenId = BigInt(result.optionTokenId);
-      }
+      // optionTokenId is now a string (text) in the schema, not bigint
+      result.optionTokenId = String(item.optionTokenId ?? "");
       return result;
     }),
   };

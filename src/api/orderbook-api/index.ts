@@ -326,7 +326,6 @@ export class OrderbookApi {
         exerciseHistory: [],
         unwindHistory: [],
         withdrawHistory: [],
-        settlementHistory: [],
         orderFillHistory: [],
       };
     }

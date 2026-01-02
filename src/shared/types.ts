@@ -176,14 +176,15 @@ export interface Position {
   userId: string;
   collateralShares: bigint;
   optionsShares: bigint;
+  exercisedOptionsShares: bigint;
+  exercisedCollateralShares: bigint;
   premiumEarned: bigint;
   fee: bigint;
-  settled: boolean;
   updatedAt: bigint;
   updatedAtBlock: bigint;
   profit: bigint;
+  makerLoss: bigint;
   averagePrice: bigint;
-  optionsSharesExercised: bigint;
   premiumPaid: bigint;
   optionMarket?: OptionMarket;
   optionParams?: OptionParams;
@@ -278,16 +279,8 @@ export interface WithdrawHistory {
   user: `0x${string}`;
   receiver: `0x${string}`;
   sharesBurnt: bigint;
-  transactionHash: `0x${string}`;
-  blockNumber: bigint;
-  timestamp: bigint;
-}
-
-export interface SettlementHistory {
-  id: string;
-  optionId: string;
-  optionMarketId: string;
-  totalCollateralSettled: bigint;
+  withdrawAmount: bigint;
+  makerLoss: bigint;
   transactionHash: `0x${string}`;
   blockNumber: bigint;
   timestamp: bigint;
@@ -324,7 +317,7 @@ export interface OrderFillHistory {
   orderHash: `0x${string}`;
   maker: `0x${string}`;
   taker: `0x${string}`;
-  optionTokenId: bigint | null;
+  optionTokenId: string;
   makingAmount: bigint;
   takingAmount: bigint;
   price: bigint;
@@ -344,7 +337,6 @@ export interface UserHistories {
   exerciseHistory: ExerciseHistory[];
   unwindHistory: UnwindHistory[];
   withdrawHistory: WithdrawHistory[];
-  settlementHistory: SettlementHistory[];
   orderFillHistory: OrderFillHistory[];
 }
 
