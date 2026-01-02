@@ -38,7 +38,7 @@ export class OrderbookSyncClient extends BaseSyncClient<
         return;
       }
 
-      const url = `${this.config.snapshotUrl}/api/orders?marketId=${this.config.marketId}&status=ACTIVE`;
+      const url = `${this.config.snapshotUrl}/orderbook/api/orders?marketId=${this.config.marketId}&status=ACTIVE`;
 
       const response = await fetch(url);
       if (!response.ok) {
@@ -120,7 +120,7 @@ export class OrderbookSyncClient extends BaseSyncClient<
     this.setStatus("recovering");
 
     try {
-      const url = `${this.config.gapRecoveryUrl}/api/sync/messages?marketId=${this.config.marketId}&fromSeq=${fromSeq}&toSeq=${toSeq}`;
+      const url = `${this.config.gapRecoveryUrl}/orderbook/api/sync/messages?marketId=${this.config.marketId}&fromSeq=${fromSeq}&toSeq=${toSeq}`;
 
       const response = await fetch(url);
       const data = (await response.json()) as any;

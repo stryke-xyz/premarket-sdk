@@ -9,28 +9,12 @@ export * from "./utils/rand-bigint.js";
 export * from "./utils/mul-div.js";
 export * from "./utils/orderUtils.js";
 // Export shared types and utils
-export type { Order } from "./shared/types.js";
-export {
-  OrderType,
-  OrderStatus,
-  calculateOptionTokenId,
-} from "./shared/index.js";
-export type {
-  StoredOrder,
-  CreateOrderParams,
-  Option,
-  OrderSignature,
-  OrderQueryParams,
-  OrderResponse,
-  CreateOrderRequest,
-} from "./shared/index.js";
-export * from "./api/orderbook-api.js";
+export * from "./shared/index.js";
+export * from "./api/orderbook-api/index.js";
 export * from "./api/order-helper.js";
 export * from "./api/filler.js";
 // Export sync client
 export * from "./sync/index.js";
-// Export Ponder client
-export * from "./ponder/index.js";
 export * from "./config/index.js";
 export * from "./config/markets.js";
 export * from "./config/chains.js";

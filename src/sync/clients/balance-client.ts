@@ -50,7 +50,7 @@ export class BalanceSyncClient extends BaseSyncClient<
         return;
       }
 
-      const url = `${baseUrl}/api/sync/balance-snapshot?marketId=${this.config.marketId}`;
+      const url = `${baseUrl}/orderbook/api/sync/balance-snapshot?marketId=${this.config.marketId}`;
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(
@@ -131,7 +131,7 @@ export class BalanceSyncClient extends BaseSyncClient<
     this.setStatus("recovering");
 
     try {
-      const url = `${this.config.gapRecoveryUrl}/api/sync/balance-messages?marketId=${this.config.marketId}&fromSeq=${fromSeq}&toSeq=${toSeq}`;
+      const url = `${this.config.gapRecoveryUrl}/orderbook/api/sync/balance-messages?marketId=${this.config.marketId}&fromSeq=${fromSeq}&toSeq=${toSeq}`;
 
       const response = await fetch(url);
       if (!response.ok) {
