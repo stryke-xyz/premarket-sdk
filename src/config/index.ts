@@ -164,5 +164,5 @@ export const MOCK_PAYMASTER: Record<SUPPORTED_CHAINS, `0x${string}`> = {
 export const SIMPLE_ACCOUNT_FACTORY: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
   [megaETHTestnet.id]: "0xca98DA1cB523DBff9234145ecA1158110dDd40dC",
-  [arbitrum.id]: "0x4ab46EF28479A7eD6f5c5e16de5d871e64a190dD",
+  [arbitrum.id]: "0x70c5b7D839f85a1D84c8E77BF0E6104617Da4f34",
 };

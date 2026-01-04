@@ -177,6 +177,24 @@ export const CHAIN_MARKET_CONFIGS: Record<
         symbol: USDC[arbitrum.id].symbol,
       },
     },
+    "2": {
+      marketKey: "market1",
+      id: "2",
+      name: "GAIB ICO",
+      type: "PRE-TGE",
+      bands: [
+        createBand("2", 2000000000n, 3000000000n),
+        createBand("2", 3000000000n, 4000000000n),
+        createBand("2", 4000000000n, 50000000000n),
+      ],
+      icon: "/images/usdai-icon.png",
+      stableTokenDecimals: 6,
+      collateralToken: {
+        address: USDC[arbitrum.id].address,
+        decimals: USDC[arbitrum.id].decimals,
+        symbol: USDC[arbitrum.id].symbol,
+      },
+    },
   },
 };
 
