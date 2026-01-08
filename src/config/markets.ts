@@ -1,7 +1,7 @@
 import { hardhat, arbitrum } from "viem/chains";
 import { calculateOptionTokenId } from "../shared/utils.js";
 import { TOKEN1, TOKEN2, USDC } from "./index.js";
-import { megaETHTestnet } from "./chains.js";
+import { megaETH, megaETHTestnet } from "./chains.js";
 
 /**
  * Market type
@@ -11,7 +11,8 @@ export type MarketType = "PRE-TGE" | "PRE-IPO";
 export type SUPPORTED_CHAINS =
   | typeof hardhat.id
   | typeof megaETHTestnet.id
-  | typeof arbitrum.id;
+  | typeof arbitrum.id
+  | typeof megaETH.id;
 
 /**
  * Band configuration with strike limits and token IDs
@@ -193,6 +194,44 @@ export const CHAIN_MARKET_CONFIGS: Record<
         address: USDC[arbitrum.id].address,
         decimals: USDC[arbitrum.id].decimals,
         symbol: USDC[arbitrum.id].symbol,
+      },
+    },
+  },
+  [megaETH.id]: {
+    "1": {
+      marketKey: "market1",
+      id: "1",
+      name: "USDAI ICO",
+      type: "PRE-TGE",
+      bands: [
+        createBand("1", 1000000000n, 2000000000n),
+        createBand("1", 2000000000n, 5000000000n),
+        createBand("1", 5000000000n, 10000000000n),
+      ],
+      icon: "/images/usdai-icon.png",
+      stableTokenDecimals: 6,
+      collateralToken: {
+        address: USDC[megaETH.id].address,
+        decimals: USDC[megaETH.id].decimals,
+        symbol: USDC[megaETH.id].symbol,
+      },
+    },
+    "2": {
+      marketKey: "market1",
+      id: "2",
+      name: "GAIB ICO",
+      type: "PRE-TGE",
+      bands: [
+        createBand("2", 2000000000n, 3000000000n),
+        createBand("2", 3000000000n, 4000000000n),
+        createBand("2", 4000000000n, 50000000000n),
+      ],
+      icon: "/images/usdai-icon.png",
+      stableTokenDecimals: 6,
+      collateralToken: {
+        address: USDC[megaETH.id].address,
+        decimals: USDC[megaETH.id].decimals,
+        symbol: USDC[megaETH.id].symbol,
       },
     },
   },
