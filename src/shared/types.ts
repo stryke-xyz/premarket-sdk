@@ -27,46 +27,34 @@ export enum OrderType {
 }
 
 export enum OrderStatus {
-  ACTIVE = "ACTIVE",
-  FILLED = "FILLED",
+  OPEN = "OPEN",
+  PARTIALLY_FILLED = "PARTIALLY_FILLED",
+  FULLY_FILLED = "FULLY_FILLED",
   CANCELLED = "CANCELLED",
   EXPIRED = "EXPIRED",
 }
 
-export interface StoredOrder {
-  id: string;
-  orderHash: string;
-  orderType: OrderType;
+export interface CreateOrderParams {
+  marketId: string;
   order: Order;
   extensionEncoded: string;
   signature: OrderSignature;
-  marketId: string;
-  optionTokenId: string;
-  stableToken: string;
-  optionAmount: string;
-  stableAmount: string;
-  status: OrderStatus;
-  filledAmount: string;
-  remainingMakerAmount: string; // Remaining maker amount left for the order
-  maker: string;
-  operator?: string; // Optional operator address (for smart account orders signed by owner/subkey)
-  createdAt: number;
+  operator?: string;
   expiresAt?: number;
 }
 
-export interface CreateOrderParams {
-  orderType: OrderType;
-  marketId: string;
-  option: Option;
-  order: Order;
+export interface StoredOrder {
+  orderHash: string;
   extensionEncoded: string;
   signature: OrderSignature;
-  optionAmount: string;
-  stableAmount: string;
-  stableToken: string;
-  makerProxyAddress: string;
-  operator?: string; // Optional operator address (for smart account orders signed by owner/subkey)
+  marketId: string;
+  remainingMakerAmount: string;
+  order: Order;
+  operator?: string;
+  createdAt: number;
   expiresAt?: number;
+  status: OrderStatus;
+  fillableAmount: string;
 }
 
 // Alias for API compatibility

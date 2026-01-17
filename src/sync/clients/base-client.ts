@@ -9,7 +9,7 @@ import { RedisWsClient } from "../redis-ws-client.js";
  * @template TConfig - The config type (must have redisUrl and channel)
  */
 export abstract class BaseSyncClient<
-  TMessage extends { seq: number },
+  TMessage extends { seq: number; previousSeq: number },
   TChange,
   TData,
   TConfig extends { redisUrl: string; channel: string },
@@ -30,6 +30,9 @@ export abstract class BaseSyncClient<
   }
 
   async connect(): Promise<void> {
+    // Disconnect existing connection if any (for restarts)
+    await this.disconnect();
+
     this.setStatus("connecting");
 
     // Only allow ws:// or wss:// URLs
@@ -40,6 +43,10 @@ export abstract class BaseSyncClient<
       );
     }
 
+    // Set isProcessing to true to prevent queue processing until snapshot is fetched
+    this.isProcessing = true;
+
+    // Start WebSocket connection first (messages will be queued)
     this.wsClient = new RedisWsClient(wsUrl);
 
     this.wsClient.subscribe(this.config.channel, (messageStr: string) => {
@@ -51,9 +58,20 @@ export abstract class BaseSyncClient<
       }
     });
 
+    // Wait 200ms after subscription to ensure we don't miss any updates
+    // that might arrive immediately after subscribing
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // Fetch snapshot while messages are being queued (but not processed)
     this.setStatus("syncing");
     await this.fetchSnapshot();
+
+    // Now allow queue processing
+    this.isProcessing = false;
     this.setStatus("synced");
+
+    // Start processing any queued messages
+    this.processQueue();
   }
 
   protected enqueueMessage(message: TMessage): void {
@@ -70,32 +88,33 @@ export abstract class BaseSyncClient<
       while (this.incomingQueue.length > 0) {
         const message = this.incomingQueue.shift()!;
 
+        // Skip if we've already processed this sequence ID
         if (message.seq <= this.lastSeq) {
           continue;
         }
 
-        const expectedSeq = this.lastSeq + 1;
-
-        if (message.seq === expectedSeq) {
+        // Check if previousSeq matches our lastSeq (no gap)
+        if (message.previousSeq === this.lastSeq) {
+          // Perfect! Process this message and update lastSeq
           await this.applyMessage(message);
           this.lastSeq = message.seq;
-        } else if (message.seq > expectedSeq) {
-          const recovered = await this.recoverGap(expectedSeq, message.seq - 1);
-
-          for (const msg of recovered) {
-            if (msg.seq === this.lastSeq + 1) {
-              await this.applyMessage(msg);
-              this.lastSeq = msg.seq;
-            }
-          }
-
-          if (message.seq === this.lastSeq + 1) {
-            await this.applyMessage(message);
-            this.lastSeq = message.seq;
-          } else {
-            this.incomingQueue.unshift(message);
-            await this.recoverGap(this.lastSeq + 1, message.seq - 1);
-          }
+        } else if (message.previousSeq < this.lastSeq) {
+          // This message is out of order (previousSeq is behind us)
+          // This shouldn't happen in normal operation, but skip it
+          console.warn(
+            `Out of order message: previousSeq=${message.previousSeq}, lastSeq=${this.lastSeq}, seq=${message.seq}`
+          );
+          continue;
+        } else {
+          // Gap detected: previousSeq > lastSeq
+          // Trigger full resync instead of gap recovery
+          console.warn(
+            `Gap detected: previousSeq=${message.previousSeq}, lastSeq=${this.lastSeq}, seq=${message.seq}. Triggering full resync.`
+          );
+          // Clear the queue - full resync will reconnect and start fresh
+          this.incomingQueue = [];
+          await this.fullResync();
+          break;
         }
       }
     } finally {
@@ -108,15 +127,10 @@ export abstract class BaseSyncClient<
   }
 
   protected async fullResync(): Promise<void> {
-    this.isProcessing = true;
-    try {
-      this.incomingQueue = [];
-      this.lastSeq = 0;
-      await this.fetchSnapshot();
-      this.setStatus("synced");
-    } finally {
-      this.isProcessing = false;
-    }
+    this.setStatus("recovering");
+    // Disconnect and reconnect to restart the flow
+    await this.disconnect();
+    await this.connect();
   }
 
   protected setStatus(status: SyncStatus): void {
@@ -174,10 +188,18 @@ export abstract class BaseSyncClient<
   }
 
   async disconnect(): Promise<void> {
+    // Stop processing
+    this.isProcessing = true;
+
+    // Clear WebSocket connection
     if (this.wsClient) {
       this.wsClient.close();
       this.wsClient = null;
     }
+
+    // Clear queue
+    this.incomingQueue = [];
+
     this.setStatus("disconnected");
   }
 
@@ -186,8 +208,4 @@ export abstract class BaseSyncClient<
    */
   protected abstract fetchSnapshot(): Promise<void>;
   protected abstract applyMessage(message: TMessage): Promise<void> | void;
-  protected abstract recoverGap(
-    fromSeq: number,
-    toSeq: number
-  ): Promise<TMessage[]>;
 }

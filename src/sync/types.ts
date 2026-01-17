@@ -15,7 +15,8 @@ export interface OrderChange {
 }
 
 export interface SequencedMessage {
-  seq: number;
+  seq: number; // currentSequenceId
+  previousSeq: number; // previousSequenceId
   marketId: string;
   change: OrderChange;
   timestamp: number;
