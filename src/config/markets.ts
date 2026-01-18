@@ -47,6 +47,7 @@ export interface MarketConfig {
   icon?: string;
   stableTokenDecimals?: number;
   collateralToken: CollateralToken;
+  collateralPerBand: number;
 }
 
 /**
@@ -119,6 +120,7 @@ export const CHAIN_MARKET_CONFIGS: Record<
         decimals: TOKEN1[hardhat.id].decimals,
         symbol: TOKEN1[hardhat.id].symbol,
       },
+      collateralPerBand: 100,
     },
     "2": {
       marketKey: "market2",
@@ -137,6 +139,7 @@ export const CHAIN_MARKET_CONFIGS: Record<
         decimals: TOKEN2[hardhat.id].decimals,
         symbol: TOKEN2[hardhat.id].symbol,
       },
+      collateralPerBand: 100,
     },
   },
   [megaETHTestnet.id]: {
@@ -157,6 +160,7 @@ export const CHAIN_MARKET_CONFIGS: Record<
         decimals: USDC[megaETHTestnet.id].decimals,
         symbol: USDC[megaETHTestnet.id].symbol,
       },
+      collateralPerBand: 100,
     },
   },
   [arbitrum.id]: {
@@ -177,6 +181,7 @@ export const CHAIN_MARKET_CONFIGS: Record<
         decimals: USDC[arbitrum.id].decimals,
         symbol: USDC[arbitrum.id].symbol,
       },
+      collateralPerBand: 100,
     },
     "2": {
       marketKey: "market1",
@@ -195,6 +200,7 @@ export const CHAIN_MARKET_CONFIGS: Record<
         decimals: USDC[arbitrum.id].decimals,
         symbol: USDC[arbitrum.id].symbol,
       },
+      collateralPerBand: 100,
     },
   },
   [megaETH.id]: {
@@ -215,6 +221,7 @@ export const CHAIN_MARKET_CONFIGS: Record<
         decimals: USDC[megaETH.id].decimals,
         symbol: USDC[megaETH.id].symbol,
       },
+      collateralPerBand: 100,
     },
     "2": {
       marketKey: "market1",
@@ -233,6 +240,7 @@ export const CHAIN_MARKET_CONFIGS: Record<
         decimals: USDC[megaETH.id].decimals,
         symbol: USDC[megaETH.id].symbol,
       },
+      collateralPerBand: 100,
     },
   },
 };
