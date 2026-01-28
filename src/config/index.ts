@@ -1,5 +1,5 @@
 import { hardhat, Chain, arbitrum } from "viem/chains";
-import { SUPPORTED_CHAINS } from "./markets";
+import { SUPPORTED_CHAINS } from "./chains";
 import { megaETH, megaETHTestnet } from "./chains";
 
 export interface Token {
@@ -139,7 +139,7 @@ export const LIMIT_ORDER_PROTOCOL: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
   [megaETHTestnet.id]: "0xa0b7722c3F6c64010eEF97F045e1aA9126cC3e62",
   [arbitrum.id]: "0x8e25cc9aed1131c54b176ef2f0a3a5593db1554b",
-  [megaETH.id]: "0x6377531eb1ba4d5ec8846c03c7931495fbeb057b",
+  [megaETH.id]: "0x83c6AA89aa10Ce1B4A3a645b2aF1B03ff1D51534",
 };
 
 export const COLLATERAL_TOKEN_FACTORY: Record<SUPPORTED_CHAINS, `0x${string}`> =

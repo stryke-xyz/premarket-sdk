@@ -24,6 +24,47 @@ export class OrderHelper {
     return sharedCalculateOptionTokenId(option);
   }
 
+  buildERC20Order(params: {
+    maker: Address;
+    buyingToken: Address;
+    sellingToken: Address;
+    makingAmount: bigint;
+    takingAmount: bigint;
+    side:"BUY" | "SELL";
+    expiresAt?: bigint; // Optional expiration timestamp in seconds
+  }): {
+    order: LimitOrder;
+    calldata: string;
+    extensionEncoded: string;
+  } {
+
+    let makerTraits = MakerTraits.default()
+    .withNonce(randBigInt(UINT_40_MAX))
+    .allowPartialFills()
+    .allowMultipleFills()
+
+    if (params.expiresAt) {
+      makerTraits.withExpiration(params.expiresAt);
+    }
+
+    const order = new LimitOrder(
+      {
+        makerAsset: new OneInchAddress(params.sellingToken),
+        takerAsset: new OneInchAddress(params.buyingToken),
+        makingAmount: params.makingAmount,
+        takingAmount: params.takingAmount,
+        maker: new OneInchAddress(params.maker),
+      },
+      makerTraits
+    );
+
+    return {
+      order,
+      calldata: order.toCalldata(),
+      extensionEncoded: '0',
+    };
+  }
+
   /**
    * Build sell options order
    */

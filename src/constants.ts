@@ -1,5 +1,5 @@
 import { LIMIT_ORDER_PROTOCOL } from "./config";
-import { SUPPORTED_CHAINS } from "./config/markets";
+import { SUPPORTED_CHAINS } from "./config/chains";
 
 export const ZX = "0x";
 

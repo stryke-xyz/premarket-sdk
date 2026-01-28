@@ -2,17 +2,12 @@ import { hardhat, arbitrum } from "viem/chains";
 import { calculateOptionTokenId } from "../shared/utils.js";
 import { TOKEN1, TOKEN2, USDC } from "./index.js";
 import { megaETH, megaETHTestnet } from "./chains.js";
+import { SUPPORTED_CHAINS } from "./chains.js";
 
 /**
  * Market type
  */
 export type MarketType = "PRE-TGE" | "PRE-IPO";
-
-export type SUPPORTED_CHAINS =
-  | typeof hardhat.id
-  | typeof megaETHTestnet.id
-  | typeof arbitrum.id
-  | typeof megaETH.id;
 
 /**
  * Band configuration with strike limits and token IDs
@@ -24,6 +19,8 @@ export interface Band {
   strikeUpperDisplay: string;
   callTokenId: string;
   putTokenId: string;
+  erc20CallToken: string;
+  erc20PutToken: string;
 }
 
 /**
@@ -70,7 +67,15 @@ function formatStrikeValue(value: bigint): string {
 /**
  * Helper function to create a band with calculated token IDs and display values
  */
+// PROXY_ADDRESSES moved outside function to avoid accessing megaETH.id during module evaluation
+const PROXY_ADDRESSES: Record<number, Record<string, string[]>> = {
+  4326: { // megaETH.id = 4326
+    "3": ["0x468b1140431855233029b1Ad90Ea9C02B738A401".toLowerCase(), "0x4C32650D6cF5C70e441CF15D7c8b4CCfD6b473aE".toLowerCase(), "0xFdb92c8F5b914B1434517F8a077D3131F1884b2e".toLowerCase(), "0xF01bdc56c513BF288E883f683Fa1F4B7e498DBAD".toLowerCase(),"0x8627D53051948296a2Bc44C127499f19520A229A".toLowerCase(),"0xb4c3Aa021c167ddcc2e8061d47ceE5EA88577cB1".toLowerCase()],
+  },
+};
+
 function createBand(
+  bandIndex: number,
   marketId: string,
   strikeLowerLimit: bigint,
   strikeUpperLimit: bigint
@@ -85,6 +90,7 @@ function createBand(
       strikeLowerLimit: strikeLowerLimit.toString(),
       strikeUpperLimit: strikeUpperLimit.toString(),
       isPut: false,
+
     }),
     putTokenId: calculateOptionTokenId({
       marketId,
@@ -92,6 +98,8 @@ function createBand(
       strikeUpperLimit: strikeUpperLimit.toString(),
       isPut: true,
     }),
+    erc20CallToken: PROXY_ADDRESSES[megaETH.id]?.[marketId]?.[bandIndex] as `0x${string}` || "0x0000000000000000000000000000000000000000" as `0x${string}`,
+    erc20PutToken: PROXY_ADDRESSES[megaETH.id]?.[marketId]?.[bandIndex + 1] as `0x${string}` || "0x0000000000000000000000000000000000000000" as `0x${string}`,
   };
 }
 
@@ -109,9 +117,9 @@ export const CHAIN_MARKET_CONFIGS: Record<
       name: "Market 1",
       type: "PRE-TGE",
       bands: [
-        createBand("1", 1000000000n, 2000000000n),
-        createBand("1", 2000000000n, 5000000000n),
-        createBand("1", 5000000000n, 10000000000n),
+        createBand(0,"1", 1000000000n, 2000000000n),
+        createBand(1,"1", 2000000000n, 5000000000n),
+        createBand(2,"1", 5000000000n, 10000000000n),
       ],
       icon: "/images/usdai-icon.png",
       stableTokenDecimals: 18,
@@ -128,9 +136,9 @@ export const CHAIN_MARKET_CONFIGS: Record<
       name: "Market 2",
       type: "PRE-IPO",
       bands: [
-        createBand("2", 1000000000n, 2000000000n),
-        createBand("2", 2000000000n, 5000000000n),
-        createBand("2", 5000000000n, 10000000000n),
+        createBand(0,"2", 1000000000n, 2000000000n),
+        createBand(1,"2", 2000000000n, 5000000000n),
+        createBand(2,"2", 5000000000n, 10000000000n),
       ],
       icon: "/images/usdai-icon.png",
       stableTokenDecimals: 6,
@@ -149,9 +157,9 @@ export const CHAIN_MARKET_CONFIGS: Record<
       name: "USDAI ICO",
       type: "PRE-TGE",
       bands: [
-        createBand("1", 1000000000n, 2000000000n),
-        createBand("1", 2000000000n, 5000000000n),
-        createBand("1", 5000000000n, 10000000000n),
+        createBand(0,"1", 1000000000n, 2000000000n),
+        createBand(1,"1", 2000000000n, 5000000000n),
+        createBand(2,"1", 5000000000n, 10000000000n),
       ],
       icon: "/images/usdai-icon.png",
       stableTokenDecimals: 6,
@@ -170,9 +178,9 @@ export const CHAIN_MARKET_CONFIGS: Record<
       name: "USDAI ICO",
       type: "PRE-TGE",
       bands: [
-        createBand("1", 1000000000n, 2000000000n),
-        createBand("1", 2000000000n, 5000000000n),
-        createBand("1", 5000000000n, 10000000000n),
+        createBand(0,"1", 1000000000n, 2000000000n),
+        createBand(1,"1", 2000000000n, 5000000000n),
+        createBand(2,"1", 5000000000n, 10000000000n),
       ],
       icon: "/images/usdai-icon.png",
       stableTokenDecimals: 6,
@@ -189,9 +197,9 @@ export const CHAIN_MARKET_CONFIGS: Record<
       name: "GAIB ICO",
       type: "PRE-TGE",
       bands: [
-        createBand("2", 2000000000n, 3000000000n),
-        createBand("2", 3000000000n, 4000000000n),
-        createBand("2", 4000000000n, 50000000000n),
+        createBand(0,"2", 2000000000n, 3000000000n),
+        createBand(1,"2", 3000000000n, 4000000000n),
+        createBand(2,"2", 4000000000n, 50000000000n),
       ],
       icon: "/images/usdai-icon.png",
       stableTokenDecimals: 6,
@@ -210,9 +218,9 @@ export const CHAIN_MARKET_CONFIGS: Record<
       name: "USDAI ICO",
       type: "PRE-TGE",
       bands: [
-        createBand("1", 1000000000n, 2000000000n),
-        createBand("1", 2000000000n, 5000000000n),
-        createBand("1", 5000000000n, 10000000000n),
+        createBand(0,"1", 1000000000n, 2000000000n),
+        createBand(1,"1", 2000000000n, 5000000000n),
+        createBand(2,"1", 5000000000n, 10000000000n),
       ],
       icon: "/images/usdai-icon.png",
       stableTokenDecimals: 6,
@@ -229,9 +237,9 @@ export const CHAIN_MARKET_CONFIGS: Record<
       name: "GAIB ICO",
       type: "PRE-TGE",
       bands: [
-        createBand("2", 2000000000n, 3000000000n),
-        createBand("2", 3000000000n, 4000000000n),
-        createBand("2", 4000000000n, 50000000000n),
+        createBand(0,"2", 2000000000n, 3000000000n),
+        createBand(1,"2", 3000000000n, 4000000000n),
+        createBand(2,"2", 4000000000n, 50000000000n),
       ],
       icon: "/images/usdai-icon.png",
       stableTokenDecimals: 6,
@@ -241,6 +249,25 @@ export const CHAIN_MARKET_CONFIGS: Record<
         symbol: USDC[megaETH.id].symbol,
       },
       collateralPerBand: 100,
+    },
+    "3": {
+      marketKey: "market1",
+      id: "3",
+      name: "BITCONNECT ICO",
+      type: "PRE-TGE",
+      bands: [
+        createBand(0,"3", 2000000000n, 3000000000n),
+        createBand(1,"3", 3000000000n, 4000000000n),
+        createBand(2,"3", 4000000000n, 5000000000n),
+      ],
+      icon: "/images/usdai-icon.png",
+      stableTokenDecimals: 6,
+      collateralToken: {
+        address: USDC[megaETH.id].address,
+        decimals: USDC[megaETH.id].decimals,
+        symbol: USDC[megaETH.id].symbol,
+      },
+      collateralPerBand: 10,
     },
   },
 };

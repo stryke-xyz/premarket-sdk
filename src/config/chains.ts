@@ -1,4 +1,5 @@
 import { defineChain as defineChainViem } from "viem";
+import { hardhat, arbitrum } from "viem/chains";
 // USD 0x39A777BFfBF54a8366E6564626C6032DfF104b8D
 // collateralTokenFactory 0xe6199c7f1843C05241bE5d98d632967A7436996c
 // optionTokenFactory 0x3e0563BA483A2Ade27Ea36445F1621adCbDB67f8
@@ -48,3 +49,13 @@ export const megaETH = defineChainViem({
     },
   },
 });
+
+/**
+ * Supported chain IDs type
+ * Moved here to break circular dependency between markets.ts and index.ts
+ */
+export type SUPPORTED_CHAINS =
+  | typeof hardhat.id
+  | typeof megaETHTestnet.id
+  | typeof arbitrum.id
+  | typeof megaETH.id;

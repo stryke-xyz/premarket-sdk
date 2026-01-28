@@ -125,6 +125,9 @@ export class MarketDepthSyncClient {
           } else if (msg.type === "depth_update") {
             // Received depth update
             this.handleDepthUpdate(msg);
+          } else if (msg.type === "last_price") {
+            // Received last price update
+            this.handleLastPriceUpdate(msg);
           } else if (msg.type === "error") {
             console.error("WebSocket error:", msg.message);
             reject(new Error(msg.message));
@@ -217,6 +220,40 @@ export class MarketDepthSyncClient {
     };
     this.changeQueue.push(change);
     this.processChangeQueue();
+  }
+
+  private handleLastPriceUpdate(msg: {
+    tokenId: string;
+    lastPrice: string;
+  }): void {
+    const state = this.tokenStates.get(msg.tokenId);
+    if (!state) {
+      console.log("[DEPTH_CLIENT] Token not found for last_price update:", msg.tokenId);
+      return;
+    }
+
+    // Update last price in state
+    state.lastPrice = msg.lastPrice;
+
+    // Notify delta listeners with last_price update
+    this.deltaListeners.forEach((listener) => {
+      try {
+        const update: DepthUpdate = {
+          tokenId: msg.tokenId,
+          levels: [], // No depth changes, just last_price
+          bestBid: state.bestBid,
+          bestAsk: state.bestAsk,
+          lastPrice: msg.lastPrice,
+          seq: state.seq,
+          previousSeq: state.seq,
+        };
+        listener(this.config.marketId, update);
+      } catch (error) {
+        console.error("Error in delta listener for last_price:", error);
+      }
+    });
+
+    console.log(`[DEPTH_CLIENT] Updated lastPrice for ${msg.tokenId}: ${msg.lastPrice}`);
   }
 
   private async processChangeQueue(): Promise<void> {
