@@ -34,6 +34,9 @@ export enum OrderStatus {
   EXPIRED = "EXPIRED",
 }
 
+// Time in force options for orders
+export type TimeInForce = "FOK" | "FAK" | "GTC" | "GTD";
+
 export interface CreateOrderParams {
   marketId: string;
   order: Order;
@@ -41,24 +44,83 @@ export interface CreateOrderParams {
   signature: OrderSignature;
   operator?: string;
   expiresAt?: number;
+  timeInForce?: TimeInForce; // Default: GTC
+  postOnly?: boolean; // If true, place in book without matching
 }
 
+// Alias for API compatibility
+export type CreateOrderRequest = CreateOrderParams;
+
+// Stored order in database - has all required fields
 export interface StoredOrder {
   orderHash: string;
   extensionEncoded: string;
   signature: OrderSignature;
   marketId: string;
+  tokenId: string;
   remainingMakerAmount: string;
   order: Order;
   operator?: string;
   createdAt: number;
   expiresAt?: number;
   status: OrderStatus;
-  fillableAmount: string;
+  side: "bid" | "ask";
+  price: number;
 }
 
-// Alias for API compatibility
-export type CreateOrderRequest = CreateOrderParams;
+// Matchable order - extends StoredOrder, used for order matching
+export type MatchableOrder = StoredOrder;
+
+// Request to match an order against the book
+export interface MatchRequest {
+  marketId: string;
+  tokenId: string;
+  side: "bid" | "ask";
+  price: number;
+  amount: string;
+  timeInForce: TimeInForce;
+  postOnly?: boolean;
+  orderData: MatchableOrder;
+}
+
+// Single matched order from the book
+export interface MatchedOrder {
+  orderHash: string;
+  makingAmount: string;
+  takingAmount: string;
+  price: number;
+  maker: string;
+}
+
+// Result of a match operation
+export interface MatchResult {
+  success: boolean;
+  matches: MatchedOrder[];
+  totalMakingAmount: string;
+  totalTakingAmount: string;
+  remainingAmount: string;
+  createdOrder?: { orderHash: string; remainingAmount: string };
+  error?: string;
+}
+
+// Database match params
+export interface MatchAndUpdateParams {
+  marketId: string;
+  tokenId: string;
+  makerSide: "bid" | "ask"; // Side of orders we're matching against
+  takerPrice: number;
+  takerAmount: string;
+  createOrderForRemainder: boolean;
+  requireFullFill?: boolean;
+  orderData?: MatchableOrder;
+}
+
+// Create order result
+export interface CreateOrderResult {
+  order: MatchableOrder;
+  matchResult: MatchResult;
+  countFilled: number;
+}
 
 export interface OrderQueryParams {
   marketId?: string;
@@ -93,7 +155,6 @@ export interface OrderQueryParams {
 
 export interface OrdersSnapshot {
   orders: StoredOrder[];
-  seq: number;
   count: number;
 }
 

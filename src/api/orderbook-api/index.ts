@@ -117,7 +117,6 @@ export class OrderbookApi {
 
     return {
       orders: data.data.orders || [],
-      seq: data.data.seq || 0,
       count: data.data.count || 0,
     };
   }
