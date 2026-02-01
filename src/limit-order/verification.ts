@@ -9,7 +9,7 @@ import { Extension } from "./extensions/extension";
  * - Expiration is optional
  * - All other flags must be unset
  */
-export function validateMakerTraits(makerTraitsHex: string): void {
+export function validateMakerTraits(makerTraitsHex: string, type: "erc6909" | "erc20"): void {
   const traits = BigInt(makerTraitsHex);
 
   // Bit masks for allowed features
@@ -21,11 +21,18 @@ export function validateMakerTraits(makerTraitsHex: string): void {
   const lowBits = traits & ((1n << 200n) - 1n);
 
   // Check that HAS_EXTENSION_FLAG is set (required)
-  if ((traits & HAS_EXTENSION_FLAG) === 0n) {
+  if (type === "erc6909" && (traits & HAS_EXTENSION_FLAG) === 0n) {
     throw new Error(
       "Invalid maker traits: HAS_EXTENSION_FLAG (bit 249) is required"
     );
   }
+
+  if (type === "erc20" && (traits & HAS_EXTENSION_FLAG) !== 0n) {
+    throw new Error(
+      "Invalid maker traits: HAS_EXTENSION_FLAG (bit 249) must not be set for ERC20 orders"
+    );
+  }
+
 
   // Check that ALLOW_MULTIPLE_FILLS_FLAG is set (bit 254 = 1)
   const ALLOW_MULTIPLE_FILLS_FLAG = 1n << 254n;
@@ -54,7 +61,7 @@ export function validateMakerTraits(makerTraitsHex: string): void {
 
   if ((traits & forbiddenFlags) !== 0n) {
     throw new Error(
-      `Invalid maker traits: forbidden flags detected. Only HAS_EXTENSION_FLAG (bit 249) and ALLOW_MULTIPLE_FILLS_FLAG (bit 254) are allowed in high bits`
+      `Invalid maker traits: forbidden flags detected.`
     );
   }
 
@@ -69,8 +76,6 @@ export function validateMakerTraits(makerTraitsHex: string): void {
     throw new Error("Invalid maker traits: nonce is required");
   }
 
-  // Expiration is optional (can be 0)
-  // Allowed sender must be 0
   const allowedSender = lowBits & ALLOWED_SENDER_MASK;
   if (allowedSender !== 0n) {
     throw new Error("Invalid maker traits: allowedSender must be 0");

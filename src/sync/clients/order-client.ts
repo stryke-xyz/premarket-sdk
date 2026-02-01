@@ -45,6 +45,16 @@ export interface MarketDepthClientConfig {
   wsUrl: string;
   marketId: string;
   tokenIds: string[];
+  /** Heartbeat interval in ms (default: 30000) */
+  heartbeatIntervalMs?: number;
+  /** Heartbeat timeout - if no pong received within this time, reconnect (default: 10000) */
+  heartbeatTimeoutMs?: number;
+  /** Max reconnection attempts before giving up (default: Infinity) */
+  maxReconnectAttempts?: number;
+  /** Initial reconnect delay in ms (default: 1000) */
+  initialReconnectDelayMs?: number;
+  /** Max reconnect delay in ms (default: 30000) */
+  maxReconnectDelayMs?: number;
 }
 
 // Internal state per token
@@ -81,12 +91,42 @@ export class MarketDepthSyncClient {
     (marketId: string, update: DepthUpdate) => void
   > = new Set();
 
+  // Reconnection state
+  private shouldBeConnected: boolean = false;
+  private reconnectAttempts: number = 0;
+  private reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  // Heartbeat state
+  private heartbeatIntervalId: ReturnType<typeof setInterval> | null = null;
+  private heartbeatTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private lastPongTime: number = 0;
+
+  // Visibility change handler reference (for cleanup)
+  private visibilityChangeHandler: (() => void) | null = null;
+
   constructor(config: MarketDepthClientConfig) {
-    this.config = config;
+    this.config = {
+      heartbeatIntervalMs: 30000,
+      heartbeatTimeoutMs: 10000,
+      maxReconnectAttempts: Infinity,
+      initialReconnectDelayMs: 1000,
+      maxReconnectDelayMs: 30000,
+      ...config,
+    };
   }
 
   async connect(): Promise<void> {
-    await this.disconnect();
+    // Clean up any existing connection first
+    this.stopHeartbeat();
+    this.clearReconnectTimeout();
+    
+    if (this.ws) {
+      this.ws.onclose = null; // Prevent triggering reconnect
+      this.ws.close();
+      this.ws = null;
+    }
+
+    this.shouldBeConnected = true;
     this.setStatus("connecting");
 
     const wsUrl = this.config.wsUrl;
@@ -97,10 +137,17 @@ export class MarketDepthSyncClient {
     // Prevent queue processing until snapshots are received
     this.isProcessing = true;
 
+    // Set up visibility change handler
+    this.setupVisibilityChangeHandler();
+
     return new Promise((resolve, reject) => {
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
+        // Reset reconnect attempts on successful connection
+        this.reconnectAttempts = 0;
+        this.lastPongTime = Date.now();
+        
         // Send subscribe_market message
         this.ws!.send(
           JSON.stringify({
@@ -109,11 +156,21 @@ export class MarketDepthSyncClient {
             tokenIds: this.config.tokenIds,
           })
         );
+        
+        // Start heartbeat
+        this.startHeartbeat();
       };
 
       this.ws.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data as string);
+
+          // Handle pong response
+          if (msg.type === "pong") {
+            this.lastPongTime = Date.now();
+            this.clearHeartbeatTimeout();
+            return;
+          }
 
           if (msg.type === "subscribed_market") {
             // Received initial snapshots
@@ -139,13 +196,178 @@ export class MarketDepthSyncClient {
 
       this.ws.onerror = (error) => {
         console.error("WebSocket error:", error);
-        reject(error);
+        // Only reject if this is the initial connection
+        if (this.status === "connecting") {
+          reject(error);
+        }
       };
 
       this.ws.onclose = () => {
+        this.stopHeartbeat();
         this.setStatus("disconnected");
+        
+        // Attempt to reconnect if we should still be connected
+        if (this.shouldBeConnected) {
+          this.scheduleReconnect();
+        }
       };
     });
+  }
+
+  private setupVisibilityChangeHandler(): void {
+    // Only set up in browser environment
+    if (typeof document === "undefined") return;
+    
+    // Remove existing handler if any
+    this.removeVisibilityChangeHandler();
+
+    this.visibilityChangeHandler = () => {
+      if (document.visibilityState === "visible" && this.shouldBeConnected) {
+        // Tab became visible - check if connection is still healthy
+        this.checkConnectionHealth();
+      }
+    };
+
+    document.addEventListener("visibilitychange", this.visibilityChangeHandler);
+  }
+
+  private removeVisibilityChangeHandler(): void {
+    if (typeof document === "undefined") return;
+    
+    if (this.visibilityChangeHandler) {
+      document.removeEventListener("visibilitychange", this.visibilityChangeHandler);
+      this.visibilityChangeHandler = null;
+    }
+  }
+
+  private checkConnectionHealth(): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      // Connection is dead, trigger reconnect
+      console.log("Connection unhealthy on visibility change, reconnecting...");
+      this.handleConnectionLost();
+      return;
+    }
+
+    // Send a ping to verify the connection is actually working
+    try {
+      this.ws.send(JSON.stringify({ type: "ping" }));
+      
+      // Set a timeout for the pong response
+      this.clearHeartbeatTimeout();
+      this.heartbeatTimeoutId = setTimeout(() => {
+        console.log("Ping timeout on visibility change, reconnecting...");
+        this.handleConnectionLost();
+      }, this.config.heartbeatTimeoutMs!);
+    } catch {
+      // Send failed, connection is dead
+      this.handleConnectionLost();
+    }
+  }
+
+  private handleConnectionLost(): void {
+    this.stopHeartbeat();
+    
+    if (this.ws) {
+      this.ws.onclose = null; // Prevent double-triggering
+      this.ws.close();
+      this.ws = null;
+    }
+    
+    this.setStatus("disconnected");
+    
+    if (this.shouldBeConnected) {
+      this.scheduleReconnect();
+    }
+  }
+
+  private startHeartbeat(): void {
+    this.stopHeartbeat();
+    
+    this.heartbeatIntervalId = setInterval(() => {
+      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+        return;
+      }
+
+      try {
+        this.ws.send(JSON.stringify({ type: "ping" }));
+        
+        // Set timeout for pong response
+        this.clearHeartbeatTimeout();
+        this.heartbeatTimeoutId = setTimeout(() => {
+          console.log("Heartbeat timeout, reconnecting...");
+          this.handleConnectionLost();
+        }, this.config.heartbeatTimeoutMs!);
+      } catch {
+        // Send failed, connection is dead
+        this.handleConnectionLost();
+      }
+    }, this.config.heartbeatIntervalMs!);
+  }
+
+  private stopHeartbeat(): void {
+    if (this.heartbeatIntervalId) {
+      clearInterval(this.heartbeatIntervalId);
+      this.heartbeatIntervalId = null;
+    }
+    this.clearHeartbeatTimeout();
+  }
+
+  private clearHeartbeatTimeout(): void {
+    if (this.heartbeatTimeoutId) {
+      clearTimeout(this.heartbeatTimeoutId);
+      this.heartbeatTimeoutId = null;
+    }
+  }
+
+  private scheduleReconnect(): void {
+    if (!this.shouldBeConnected) return;
+    
+    const maxAttempts = this.config.maxReconnectAttempts!;
+    if (this.reconnectAttempts >= maxAttempts) {
+      console.error(`Max reconnection attempts (${maxAttempts}) reached, giving up`);
+      return;
+    }
+
+    // Exponential backoff with jitter
+    const baseDelay = this.config.initialReconnectDelayMs!;
+    const maxDelay = this.config.maxReconnectDelayMs!;
+    const delay = Math.min(
+      baseDelay * Math.pow(2, this.reconnectAttempts) + Math.random() * 1000,
+      maxDelay
+    );
+    
+    this.reconnectAttempts++;
+    this.setStatus("recovering");
+    
+    console.log(`Scheduling reconnect attempt ${this.reconnectAttempts} in ${Math.round(delay)}ms`);
+    
+    this.clearReconnectTimeout();
+    this.reconnectTimeoutId = setTimeout(() => {
+      this.performReconnect();
+    }, delay);
+  }
+
+  private clearReconnectTimeout(): void {
+    if (this.reconnectTimeoutId) {
+      clearTimeout(this.reconnectTimeoutId);
+      this.reconnectTimeoutId = null;
+    }
+  }
+
+  private async performReconnect(): Promise<void> {
+    if (!this.shouldBeConnected) return;
+
+    try {
+      // Clear state before reconnecting
+      this.tokenStates.clear();
+      this.changeQueue = [];
+      
+      await this.connect();
+      console.log("Reconnected successfully");
+    } catch (error) {
+      console.error("Reconnection failed:", error);
+      // Will trigger another reconnect via onclose handler
+    }
   }
 
   private handleSubscribedMarket(msg: {
@@ -228,7 +450,6 @@ export class MarketDepthSyncClient {
   }): void {
     const state = this.tokenStates.get(msg.tokenId);
     if (!state) {
-      console.log("[DEPTH_CLIENT] Token not found for last_price update:", msg.tokenId);
       return;
     }
 
@@ -253,7 +474,6 @@ export class MarketDepthSyncClient {
       }
     });
 
-    console.log(`[DEPTH_CLIENT] Updated lastPrice for ${msg.tokenId}: ${msg.lastPrice}`);
   }
 
   private async processChangeQueue(): Promise<void> {
@@ -266,9 +486,6 @@ export class MarketDepthSyncClient {
         const state = this.tokenStates.get(change.tokenId);
 
         if (!state) {
-          // Token not subscribed, skip
-          console.log("[DEPTH_CLIENT] Token not found in state, skipping:", change.tokenId);
-          console.log("[DEPTH_CLIENT] Available tokens:", Array.from(this.tokenStates.keys()));
           continue;
         }
 
@@ -278,8 +495,6 @@ export class MarketDepthSyncClient {
         // Allow seq === state.seq + 1 (normal case) or seq > state.seq (skipped some)
         // If newSeq <= state.seq, it's a duplicate or old message
         if (newSeq <= state.seq) {
-          // Duplicate or out-of-order, skip
-          console.log(`[DEPTH_CLIENT] Skipping old seq: ${newSeq} <= ${state.seq}`);
           continue;
         }
 
@@ -338,25 +553,6 @@ export class MarketDepthSyncClient {
     }
   }
 
-  /**
-   * Reconnect and reapply depth for all tracked tokens
-   */
-  private async reconnect(): Promise<void> {
-    this.setStatus("recovering");
-    
-    // Close existing connection
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
-    }
-    
-    // Clear state - will be repopulated from snapshots
-    this.tokenStates.clear();
-    this.changeQueue = [];
-    
-    // Reconnect
-    await this.connect();
-  }
 
   private setStatus(status: SyncStatus): void {
     if (this.status === status) return;
@@ -458,17 +654,32 @@ export class MarketDepthSyncClient {
   }
 
   async disconnect(): Promise<void> {
+    // Mark that we intentionally want to disconnect
+    this.shouldBeConnected = false;
     this.isProcessing = true;
 
+    // Clean up all timers and handlers
+    this.stopHeartbeat();
+    this.clearReconnectTimeout();
+    this.removeVisibilityChangeHandler();
+    this.reconnectAttempts = 0;
+
     if (this.ws) {
+      // Prevent onclose from triggering reconnect
+      this.ws.onclose = null;
+      
       // Send unsubscribe before closing
       if (this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(
-          JSON.stringify({
-            type: "unsubscribe_market",
-            marketId: this.config.marketId,
-          })
-        );
+        try {
+          this.ws.send(
+            JSON.stringify({
+              type: "unsubscribe_market",
+              marketId: this.config.marketId,
+            })
+          );
+        } catch {
+          // Ignore send errors during disconnect
+        }
       }
       this.ws.close();
       this.ws = null;

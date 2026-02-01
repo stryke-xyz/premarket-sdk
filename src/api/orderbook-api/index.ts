@@ -1,14 +1,20 @@
 // ============================================================================
-// TYPES
+// ORDERBOOK API CLIENT
 // ============================================================================
 
 import type {
   StoredOrder,
   CreateOrderParams,
-  OptionMarket,
-  Position,
+  MarketsResponse,
+  Erc6909Market,
+  Erc20Market,
+  ApiMarket,
+  UserPosition,
+  TradingPnL,
+  UserPnL,
+  TokenPnL,
+  Erc20PnL,
   UserHistories,
-  Volumes24hResponse,
   OrderbookApiConfig,
   OrderQueryParams,
   QueryOrdersResponse,
@@ -16,22 +22,18 @@ import type {
   SyncMessage,
   BalanceMessage,
   BalanceSnapshot,
+  DepthSnapshot,
 } from "../../shared/types.js";
-import {
-  deserializeOptionMarket,
-  deserializePosition,
-  deserializeUserHistories,
-} from "./deserializers.js";
 
 // ============================================================================
 // ORDERBOOK API CLASS
 // ============================================================================
 
 /**
- * Unified API client for both orderbook and options market operations
+ * Unified API client for orderbook and options market operations
  */
 export class OrderbookApi {
-  constructor(private readonly config: OrderbookApiConfig) {}
+  constructor(private readonly config: OrderbookApiConfig) { }
 
   // ============================================================================
   // ORDERBOOK METHODS
@@ -82,10 +84,7 @@ export class OrderbookApi {
   async queryOrders(params: OrderQueryParams): Promise<QueryOrdersResponse> {
     const queryParams = new URLSearchParams();
     if (params.marketId) queryParams.append("marketId", params.marketId);
-    if (params.orderType) queryParams.append("orderType", params.orderType);
     if (params.maker) queryParams.append("maker", params.maker);
-    if (params.stableToken)
-      queryParams.append("stableToken", params.stableToken);
     if (params.status) queryParams.append("status", params.status);
     if (params.limit) queryParams.append("limit", params.limit.toString());
     if (params.offset) queryParams.append("offset", params.offset.toString());
@@ -103,7 +102,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Get orders snapshot for a market (includes sequence number)
+   * Get orders snapshot for a market
    */
   async getOrdersSnapshot(marketId: string): Promise<OrdersSnapshot> {
     const response = await fetch(
@@ -122,39 +121,19 @@ export class OrderbookApi {
   }
 
   /**
-   * Get orders for a market
+   * Get depth snapshot for a market+token
    */
-  async getOrdersByMarket(marketId: string): Promise<StoredOrder[]> {
+  async getDepthSnapshot(marketId: string, tokenId: string): Promise<DepthSnapshot> {
     const response = await fetch(
-      `${this.config.baseUrl}/orderbook/api/orders?marketId=${marketId}`
+      `${this.config.baseUrl}/orderbook/api/depth?marketId=${marketId}&tokenId=${tokenId}`
     );
 
     const data = await response.json();
-    return data.success ? data.data.orders || [] : [];
-  }
+    if (!data.success) {
+      throw new Error(data.error || "Failed to get depth snapshot");
+    }
 
-  /**
-   * Get orders by option token ID
-   */
-  async getOrdersByOptionId(optionTokenId: string): Promise<StoredOrder[]> {
-    const response = await fetch(
-      `${this.config.baseUrl}/orderbook/api/orders?optionTokenId=${optionTokenId}`
-    );
-
-    const data = await response.json();
-    return data.success ? data.data.orders || [] : [];
-  }
-
-  /**
-   * Get active orders
-   */
-  async getActiveOrders(): Promise<StoredOrder[]> {
-    const response = await fetch(
-      `${this.config.baseUrl}/orderbook/api/orders/active`
-    );
-
-    const data = await response.json();
-    return data.success ? data.data.orders || [] : [];
+    return data.data;
   }
 
   /**
@@ -214,13 +193,13 @@ export class OrderbookApi {
   }
 
   // ============================================================================
-  // OPTIONS MARKET METHODS
+  // MARKET METHODS
   // ============================================================================
 
   /**
-   * Get all markets
+   * Get all markets (ERC6909 options + ERC20 pre-TGE)
    */
-  async getMarkets(): Promise<OptionMarket[]> {
+  async getMarkets(): Promise<MarketsResponse> {
     const response = await fetch(
       `${this.config.baseUrl}/premarket/api/markets`
     );
@@ -228,13 +207,14 @@ export class OrderbookApi {
     if (!data.success) {
       throw new Error(data.error || "Failed to fetch markets");
     }
-    return data.data.map(deserializeOptionMarket);
+    return data.data;
   }
 
   /**
    * Get a single market by ID
+   * Returns ERC6909 market with PRM tokens and final ticks, or ERC20 market with submarkets
    */
-  async getMarket(marketId: string): Promise<OptionMarket | null> {
+  async getMarket(marketId: string): Promise<ApiMarket | null> {
     const response = await fetch(
       `${this.config.baseUrl}/premarket/api/markets/${marketId}`
     );
@@ -245,48 +225,33 @@ export class OrderbookApi {
       }
       throw new Error(data.error || "Failed to fetch market");
     }
-    return deserializeOptionMarket(data.data);
-  }
-
-  /**
-   * Get 24h volumes for multiple option IDs
-   */
-  async get24hVolumes(
-    marketId: string,
-    optionIds: string[]
-  ): Promise<Volumes24hResponse> {
-    const optionIdsParam = optionIds.join(",");
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/markets/${marketId}/volumes/24h?optionIds=${optionIdsParam}`
-    );
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch 24h volumes");
-    }
     return data.data;
   }
 
   /**
-   * Get user positions for a specific market
+   * Get ERC6909 markets only (options markets)
    */
-  async getUserPositions(
-    userAddress: string,
-    marketId: string
-  ): Promise<Position[]> {
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/users/${userAddress}/positions/${marketId}`
-    );
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch positions");
-    }
-    return data.data.map(deserializePosition);
+  async getErc6909Markets(): Promise<Erc6909Market[]> {
+    const markets = await this.getMarkets();
+    return markets.erc6909;
   }
 
   /**
-   * Get all user positions across all markets
+   * Get ERC20 markets only (pre-TGE markets)
    */
-  async getAllUserPositions(userAddress: string): Promise<Position[]> {
+  async getErc20Markets(): Promise<Erc20Market[]> {
+    const markets = await this.getMarkets();
+    return markets.erc20;
+  }
+
+  // ============================================================================
+  // USER POSITION & PNL METHODS
+  // ============================================================================
+
+  /**
+   * Get user positions (vault operations: mint/redeem/unwind)
+   */
+  async getUserPositions(userAddress: string): Promise<UserPosition[]> {
     const response = await fetch(
       `${this.config.baseUrl}/premarket/api/users/${userAddress}/positions`
     );
@@ -294,39 +259,156 @@ export class OrderbookApi {
     if (!data.success) {
       throw new Error(data.error || "Failed to fetch positions");
     }
-    return data.data.map(deserializePosition);
+    return data.data;
   }
 
   /**
-   * Get user histories for a specific market
+   * Get user trading PnL (limit orders)
    */
-  async getUserHistories(
-    userAddress: string,
-    marketId: string
-  ): Promise<UserHistories> {
-    try {
-      const response = await fetch(
-        `${this.config.baseUrl}/premarket/api/users/${userAddress}/history/${marketId}`
-      );
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(data.error || "Failed to fetch history");
-      }
-      return deserializeUserHistories(data.data);
-    } catch (error) {
-      console.error(error);
-      return {
-        depositHistory: [],
-        transferDepositHistory: [],
-        transferCollateralSharesHistory: [],
-        transferOptionsSharesHistory: [],
-        purchaseHistory: [],
-        transferPositionHistory: [],
-        exerciseHistory: [],
-        unwindHistory: [],
-        withdrawHistory: [],
-        orderFillHistory: [],
-      };
+  async getUserTradingPnL(userAddress: string): Promise<TradingPnL[]> {
+    const response = await fetch(
+      `${this.config.baseUrl}/premarket/api/users/${userAddress}/trading`
+    );
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || "Failed to fetch trading PnL");
     }
+    return data.data;
+  }
+
+  /**
+   * Get user total PnL (positions + trading combined)
+   */
+  async getUserPnL(userAddress: string): Promise<UserPnL> {
+    const response = await fetch(
+      `${this.config.baseUrl}/premarket/api/users/${userAddress}/pnl`
+    );
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || "Failed to fetch PnL");
+    }
+    return data.data;
+  }
+
+  /**
+   * Get PnL for a specific ERC6909 token
+   */
+  async getTokenPnL(userAddress: string, tokenId: string): Promise<TokenPnL> {
+    const response = await fetch(
+      `${this.config.baseUrl}/premarket/api/users/${userAddress}/pnl/${tokenId}`
+    );
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || "Failed to fetch token PnL");
+    }
+    return data.data;
+  }
+
+  /**
+   * Get PnL for a specific ERC20 token
+   */
+  async getErc20PnL(userAddress: string, tokenAddress: string): Promise<Erc20PnL> {
+    const response = await fetch(
+      `${this.config.baseUrl}/premarket/api/users/${userAddress}/pnl/erc20/${tokenAddress}`
+    );
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || "Failed to fetch ERC20 PnL");
+    }
+    return data.data;
+  }
+
+  // ============================================================================
+  // HISTORY METHODS
+  // ============================================================================
+
+  /**
+   * Get all user histories (mints, redeems, unwinds, transfers, fills)
+   */
+  async getUserHistories(userAddress: string, limit?: number): Promise<UserHistories> {
+    const queryParams = limit ? `?limit=${limit}` : "";
+    const response = await fetch(
+      `${this.config.baseUrl}/premarket/api/users/${userAddress}/history${queryParams}`
+    );
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || "Failed to fetch history");
+    }
+    return data.data;
+  }
+
+  /**
+   * Get user mint history
+   */
+  async getMintHistory(userAddress: string, limit?: number): Promise<UserHistories["mints"]> {
+    const queryParams = limit ? `?limit=${limit}` : "";
+    const response = await fetch(
+      `${this.config.baseUrl}/premarket/api/users/${userAddress}/history/mints${queryParams}`
+    );
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || "Failed to fetch mint history");
+    }
+    return data.data;
+  }
+
+  /**
+   * Get user redeem history
+   */
+  async getRedeemHistory(userAddress: string, limit?: number): Promise<UserHistories["redeems"]> {
+    const queryParams = limit ? `?limit=${limit}` : "";
+    const response = await fetch(
+      `${this.config.baseUrl}/premarket/api/users/${userAddress}/history/redeems${queryParams}`
+    );
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || "Failed to fetch redeem history");
+    }
+    return data.data;
+  }
+
+  /**
+   * Get user unwind history
+   */
+  async getUnwindHistory(userAddress: string, limit?: number): Promise<UserHistories["unwinds"]> {
+    const queryParams = limit ? `?limit=${limit}` : "";
+    const response = await fetch(
+      `${this.config.baseUrl}/premarket/api/users/${userAddress}/history/unwinds${queryParams}`
+    );
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || "Failed to fetch unwind history");
+    }
+    return data.data;
+  }
+
+  /**
+   * Get user transfer history
+   */
+  async getTransferHistory(userAddress: string, limit?: number): Promise<UserHistories["transfers"]> {
+    const queryParams = limit ? `?limit=${limit}` : "";
+    const response = await fetch(
+      `${this.config.baseUrl}/premarket/api/users/${userAddress}/history/transfers${queryParams}`
+    );
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || "Failed to fetch transfer history");
+    }
+    return data.data;
+  }
+
+  /**
+   * Get user order fill history
+   */
+  async getFillHistory(userAddress: string, limit?: number): Promise<UserHistories["fills"]> {
+    const queryParams = limit ? `?limit=${limit}` : "";
+    const response = await fetch(
+      `${this.config.baseUrl}/premarket/api/users/${userAddress}/history/fills${queryParams}`
+    );
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || "Failed to fetch fill history");
+    }
+    return data.data;
   }
 }

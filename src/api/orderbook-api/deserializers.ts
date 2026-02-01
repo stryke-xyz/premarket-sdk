@@ -1,159 +1,294 @@
+/**
+ * Deserializers for API responses
+ * 
+ * Note: Most endpoints now return pre-formatted string values,
+ * so minimal deserialization is needed. These helpers are provided
+ * for cases where BigInt conversion is preferred on the client side.
+ */
+
 import type {
-  MarketStrategy,
-  OptionMarket,
-  OptionParams,
-  Position,
+  Erc6909Market,
+  UserPosition,
+  TradingPnL,
   UserHistories,
+  MintHistoryItem,
+  RedeemHistoryItem,
+  UnwindHistoryItem,
+  TransferHistoryItem,
+  OrderFillHistoryItem,
 } from "../../shared/types.js";
 
-export function deserializeMarketStrategy(data: any): MarketStrategy {
+/**
+ * Convert string amounts to BigInt for a position
+ */
+export function positionToBigInt(pos: UserPosition): {
+  id: string;
+  tokenId: bigint;
+  holding: bigint;
+  totalCost: bigint;
+  totalProceeds: bigint;
+  realizedPnL: bigint;
+  updatedAt: bigint;
+} {
   return {
-    id: String(data.id),
-    finalFDV: BigInt(data.finalFDV ?? "0"),
-    deadline: BigInt(data.deadline ?? "0"),
-    bandPrecision: BigInt(data.bandPrecision ?? "0"),
-    collateralPerBandPrecision: BigInt(data.collateralPerBandPrecision ?? "0"),
-    premiumRate: BigInt(data.premiumRate ?? "0"),
-    depositFeeRate: BigInt(data.depositFeeRate ?? "0"),
-    purchaseFeeRate: BigInt(data.purchaseFeeRate ?? "0"),
-    settlementFeeRate: BigInt(data.settlementFeeRate ?? "0"),
-    collateralToken: data.collateralToken as `0x${string}`,
+    id: pos.id,
+    tokenId: BigInt(pos.tokenId),
+    holding: BigInt(pos.holding),
+    totalCost: BigInt(pos.totalCost),
+    totalProceeds: BigInt(pos.totalProceeds),
+    realizedPnL: BigInt(pos.realizedPnL),
+    updatedAt: BigInt(pos.updatedAt),
   };
 }
 
-export function deserializeOptionMarket(data: any): OptionMarket {
+/**
+ * Convert string amounts to BigInt for trading PnL
+ */
+export function tradingPnLToBigInt(trading: TradingPnL): {
+  id: string;
+  asset: `0x${string}`;
+  tokenId: bigint | null;
+  totalBought: bigint;
+  totalSold: bigint;
+  totalSpent: bigint;
+  totalReceived: bigint;
+  realizedPnL: bigint;
+  updatedAt: bigint;
+} {
   return {
-    id: String(data.id),
-    callToken: data.callToken as `0x${string}`,
-    putToken: data.putToken as `0x${string}`,
-    expiry: BigInt(data.expiry ?? "0"),
-    maxTTL: BigInt(data.maxTTL ?? "0"),
-    strategy: data.strategy
-      ? deserializeMarketStrategy(data.strategy)
-      : ({} as MarketStrategy),
-    collateralToken: data.collateralToken as `0x${string}`,
-    totalCollateral: BigInt(data.totalCollateral ?? "0"),
-    totalCollateralAmount: BigInt(data.totalCollateralAmount ?? "0"),
-    protocolFees: BigInt(data.protocolFees ?? "0"),
+    id: trading.id,
+    asset: trading.asset,
+    tokenId: trading.tokenId ? BigInt(trading.tokenId) : null,
+    totalBought: BigInt(trading.totalBought),
+    totalSold: BigInt(trading.totalSold),
+    totalSpent: BigInt(trading.totalSpent),
+    totalReceived: BigInt(trading.totalReceived),
+    realizedPnL: BigInt(trading.realizedPnL),
+    updatedAt: BigInt(trading.updatedAt),
   };
 }
 
-export function deserializeOptionParams(data: any): OptionParams {
+/**
+ * Convert string amounts to BigInt for ERC6909 market data
+ * Returns null if market has no onchain optionMarketVault
+ */
+export function marketToBigInt(market: Erc6909Market): {
+  id: string;
+  marketId: bigint;
+  underlying: `0x${string}`;
+  collateral: `0x${string}`;
+  delivery: `0x${string}`;
+  owner: `0x${string}`;
+  creator: `0x${string}`;
+  tickSize: bigint;
+  tickSpacing: bigint;
+  tokensPerTickSize: bigint;
+  expiry: bigint;
+  depositFeeBps: bigint;
+  redeemFeeBps: bigint;
+  isCollateralScaled: boolean;
+  totalPrmMinted: bigint;
+  totalCollateralDeposited: bigint;
+  totalFeesCollected: bigint;
+  createdAt: bigint;
+  updatedAt: bigint;
+} | null {
+  if (!market.marketId || !market.optionMarketVault) {
+    return null;
+  }
+  const vault = market.optionMarketVault;
   return {
-    id: String(data.id),
-    marketId: BigInt(data.marketId ?? "0"),
-    strikeLowerLimit: BigInt(data.strikeLowerLimit ?? "0"),
-    strikeUpperLimit: BigInt(data.strikeUpperLimit ?? "0"),
-    isPut: Boolean(data.isPut),
-    collateralPerShare:
-      data.collateralPerShare != null
-        ? BigInt(data.collateralPerShare)
-        : undefined,
+    id: market.id,
+    marketId: BigInt(market.marketId),
+    underlying: vault.underlying,
+    collateral: vault.collateral,
+    delivery: vault.delivery,
+    owner: vault.owner,
+    creator: vault.creator,
+    tickSize: BigInt(vault.tickSize),
+    tickSpacing: BigInt(vault.tickSpacing),
+    tokensPerTickSize: BigInt(vault.tokensPerTickSize),
+    expiry: BigInt(vault.expiry),
+    depositFeeBps: BigInt(vault.depositFeeBps),
+    redeemFeeBps: BigInt(vault.redeemFeeBps),
+    isCollateralScaled: vault.isCollateralScaled,
+    totalPrmMinted: BigInt(vault.totalPrmMinted),
+    totalCollateralDeposited: BigInt(vault.totalCollateralDeposited),
+    totalFeesCollected: BigInt(vault.totalFeesCollected),
+    createdAt: BigInt(vault.createdAt),
+    updatedAt: BigInt(vault.updatedAt),
   };
 }
 
-export function deserializePosition(data: any): Position {
+/**
+ * Convert string amounts to BigInt for mint history
+ */
+export function mintHistoryToBigInt(mint: MintHistoryItem): {
+  id: string;
+  marketId: bigint;
+  prmTokenId: bigint;
+  oPrmTokenId: bigint;
+  minter: `0x${string}`;
+  amount: bigint;
+  collateralAmount: bigint;
+  fees: bigint;
+  tick: bigint;
+  isCall: boolean;
+  expiry: bigint;
+  transactionHash: `0x${string}`;
+  blockNumber: bigint;
+  timestamp: bigint;
+} {
   return {
-    id: String(data.id),
-    optionId: String(data.optionId ?? ""),
-    optionMarketId: String(data.optionMarketId ?? ""),
-    userId: String(data.userId),
-    collateralShares: BigInt(data.collateralShares ?? "0"),
-    optionsShares: BigInt(data.optionsShares ?? "0"),
-    exercisedOptionsShares: BigInt(data.exercisedOptionsShares ?? "0"),
-    exercisedCollateralShares: BigInt(data.exercisedCollateralShares ?? "0"),
-    premiumEarned: BigInt(data.premiumEarned ?? "0"),
-    fee: BigInt(data.fee ?? "0"),
-    updatedAt: BigInt(data.updatedAt ?? "0"),
-    updatedAtBlock: BigInt(data.updatedAtBlock ?? "0"),
-    profit: BigInt(data.profit ?? "0"),
-    makerLoss: BigInt(data.makerLoss ?? "0"),
-    averagePrice: BigInt(data.averagePrice ?? "0"),
-    premiumPaid: BigInt(data.premiumPaid ?? "0"),
-    optionMarket: data.optionMarket
-      ? deserializeOptionMarket(data.optionMarket)
-      : undefined,
-    optionParams: data.optionParams
-      ? deserializeOptionParams(data.optionParams)
-      : undefined,
+    id: mint.id,
+    marketId: BigInt(mint.marketId),
+    prmTokenId: BigInt(mint.prmTokenId),
+    oPrmTokenId: BigInt(mint.oPrmTokenId),
+    minter: mint.minter,
+    amount: BigInt(mint.amount),
+    collateralAmount: BigInt(mint.collateralAmount),
+    fees: BigInt(mint.fees),
+    tick: BigInt(mint.tick),
+    isCall: mint.isCall,
+    expiry: BigInt(mint.expiry),
+    transactionHash: mint.transactionHash,
+    blockNumber: BigInt(mint.blockNumber),
+    timestamp: BigInt(mint.timestamp),
   };
 }
 
-export function deserializeUserHistories(data: any): UserHistories {
-  const deserializeHistoryItem = (item: any, fields: string[]) => {
-    const result: any = { ...item };
-    for (const field of fields) {
-      if (result[field] != null) {
-        if (typeof result[field] === "string") {
-          result[field] = BigInt(result[field]);
-        } else if (result[field] === null) {
-          result[field] = null;
-        }
-      }
-    }
-    return result;
-  };
-
-  const bigintFields = [
-    "amount",
-    "collateralAmount",
-    "fee",
-    "timestamp",
-    "blockNumber",
-    "marketId",
-    "profitAmount",
-    "optionTokensBurnt",
-    "sharesUnutilized",
-    "makerLoss",
-    "purchaserProfit",
-    "collateralTokensToReturn",
-    "collateralSharesToBurn",
-    "optionSharesToBurn",
-    "sharesBurnt",
-    "withdrawAmount",
-    "totalCollateralSettled",
-    "optionMarketId",
-    "premiumAmount",
-    "optionShares",
-    "sharesUtilized",
-    "makingAmount",
-    "takingAmount",
-    "price",
-  ];
-
+/**
+ * Convert string amounts to BigInt for redeem history
+ */
+export function redeemHistoryToBigInt(redeem: RedeemHistoryItem): {
+  id: string;
+  oPrmTokenId: bigint;
+  prmTokenId: bigint;
+  redeemer: `0x${string}`;
+  balance: bigint;
+  profit: bigint;
+  fees: bigint;
+  finalTick: bigint;
+  transactionHash: `0x${string}`;
+  blockNumber: bigint;
+  timestamp: bigint;
+} {
   return {
-    depositHistory: (data.depositHistory || []).map((item: any) =>
-      deserializeHistoryItem(item, bigintFields)
-    ),
-    transferDepositHistory: (data.transferDepositHistory || []).map(
-      (item: any) => deserializeHistoryItem(item, bigintFields)
-    ),
-    transferCollateralSharesHistory: (
-      data.transferCollateralSharesHistory || []
-    ).map((item: any) => deserializeHistoryItem(item, bigintFields)),
-    transferOptionsSharesHistory: (data.transferOptionsSharesHistory || []).map(
-      (item: any) => deserializeHistoryItem(item, bigintFields)
-    ),
-    purchaseHistory: (data.purchaseHistory || []).map((item: any) =>
-      deserializeHistoryItem(item, bigintFields)
-    ),
-    transferPositionHistory: (data.transferPositionHistory || []).map(
-      (item: any) => deserializeHistoryItem(item, bigintFields)
-    ),
-    exerciseHistory: (data.exerciseHistory || []).map((item: any) =>
-      deserializeHistoryItem(item, bigintFields)
-    ),
-    unwindHistory: (data.unwindHistory || []).map((item: any) =>
-      deserializeHistoryItem(item, bigintFields)
-    ),
-    withdrawHistory: (data.withdrawHistory || []).map((item: any) =>
-      deserializeHistoryItem(item, bigintFields)
-    ),
-    orderFillHistory: (data.orderFillHistory || []).map((item: any) => {
-      const result = deserializeHistoryItem(item, bigintFields);
-      // optionTokenId is now a string (text) in the schema, not bigint
-      result.optionTokenId = String(item.optionTokenId ?? "");
-      return result;
-    }),
+    id: redeem.id,
+    oPrmTokenId: BigInt(redeem.oPrmTokenId),
+    prmTokenId: BigInt(redeem.prmTokenId),
+    redeemer: redeem.redeemer,
+    balance: BigInt(redeem.balance),
+    profit: BigInt(redeem.profit),
+    fees: BigInt(redeem.fees),
+    finalTick: BigInt(redeem.finalTick),
+    transactionHash: redeem.transactionHash,
+    blockNumber: BigInt(redeem.blockNumber),
+    timestamp: BigInt(redeem.timestamp),
+  };
+}
+
+/**
+ * Convert string amounts to BigInt for unwind history
+ */
+export function unwindHistoryToBigInt(unwind: UnwindHistoryItem): {
+  id: string;
+  marketId: bigint;
+  prmTokenId: bigint;
+  oPrmTokenId: bigint;
+  account: `0x${string}`;
+  prmBalance: bigint;
+  oPrmBalance: bigint;
+  collateralReturned: bigint;
+  tick: bigint;
+  isCall: boolean;
+  expiry: bigint;
+  transactionHash: `0x${string}`;
+  blockNumber: bigint;
+  timestamp: bigint;
+} {
+  return {
+    id: unwind.id,
+    marketId: BigInt(unwind.marketId),
+    prmTokenId: BigInt(unwind.prmTokenId),
+    oPrmTokenId: BigInt(unwind.oPrmTokenId),
+    account: unwind.account,
+    prmBalance: BigInt(unwind.prmBalance),
+    oPrmBalance: BigInt(unwind.oPrmBalance),
+    collateralReturned: BigInt(unwind.collateralReturned),
+    tick: BigInt(unwind.tick),
+    isCall: unwind.isCall,
+    expiry: BigInt(unwind.expiry),
+    transactionHash: unwind.transactionHash,
+    blockNumber: BigInt(unwind.blockNumber),
+    timestamp: BigInt(unwind.timestamp),
+  };
+}
+
+/**
+ * Convert string amounts to BigInt for transfer history
+ */
+export function transferHistoryToBigInt(transfer: TransferHistoryItem): {
+  id: string;
+  vaultId: string;
+  caller: `0x${string}`;
+  from: `0x${string}`;
+  to: `0x${string}`;
+  tokenId: bigint;
+  amount: bigint;
+  direction: "sent" | "received";
+  transactionHash: `0x${string}`;
+  blockNumber: bigint;
+  timestamp: bigint;
+} {
+  return {
+    id: transfer.id,
+    vaultId: transfer.vaultId,
+    caller: transfer.caller,
+    from: transfer.from,
+    to: transfer.to,
+    tokenId: BigInt(transfer.tokenId),
+    amount: BigInt(transfer.amount),
+    direction: transfer.direction,
+    transactionHash: transfer.transactionHash,
+    blockNumber: BigInt(transfer.blockNumber),
+    timestamp: BigInt(transfer.timestamp),
+  };
+}
+
+/**
+ * Convert string amounts to BigInt for fill history
+ */
+export function fillHistoryToBigInt(fill: OrderFillHistoryItem): {
+  id: string;
+  orderHash: `0x${string}`;
+  maker: `0x${string}`;
+  taker: `0x${string}`;
+  makerAsset: `0x${string}`;
+  takerAsset: `0x${string}`;
+  makingAmount: bigint;
+  takingAmount: bigint;
+  tradeType: string;
+  optionTokenId: bigint | null;
+  role: "maker" | "taker";
+  transactionHash: `0x${string}`;
+  blockNumber: bigint;
+  timestamp: bigint;
+} {
+  return {
+    id: fill.id,
+    orderHash: fill.orderHash,
+    maker: fill.maker,
+    taker: fill.taker,
+    makerAsset: fill.makerAsset,
+    takerAsset: fill.takerAsset,
+    makingAmount: BigInt(fill.makingAmount),
+    takingAmount: BigInt(fill.takingAmount),
+    tradeType: fill.tradeType,
+    optionTokenId: fill.optionTokenId ? BigInt(fill.optionTokenId) : null,
+    role: fill.role,
+    transactionHash: fill.transactionHash,
+    blockNumber: BigInt(fill.blockNumber),
+    timestamp: BigInt(fill.timestamp),
   };
 }

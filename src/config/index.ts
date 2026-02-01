@@ -135,6 +135,13 @@ export const USDC: Record<SUPPORTED_CHAINS, Token> = {
   },
 };
 
+export const OPTION_MARKET_VAULT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
+  [hardhat.id]: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+  [megaETHTestnet.id]: "0xB583C8d8218BfFE30bd45DB9F0E19a944Cb1deBd",
+  [arbitrum.id]: "0xd07280a68bd53b83b6b25861016bed637b3024ed",
+  [megaETH.id]: "0x7F2D7F8B0bf8868dde1F4733E11482b2a22Be6Bd".toLowerCase() as `0x${string}`,
+};
+
 export const LIMIT_ORDER_PROTOCOL: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
   [megaETHTestnet.id]: "0xa0b7722c3F6c64010eEF97F045e1aA9126cC3e62",
@@ -143,12 +150,12 @@ export const LIMIT_ORDER_PROTOCOL: Record<SUPPORTED_CHAINS, `0x${string}`> = {
 };
 
 export const COLLATERAL_TOKEN_FACTORY: Record<SUPPORTED_CHAINS, `0x${string}`> =
-  {
-    [hardhat.id]: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-    [megaETHTestnet.id]: "0x5Ee2E49C38F5976E27CC45C5A47817e140eBB69E",
-    [arbitrum.id]: "0xa1ff5ee51f8fa0a6408032be2c9568cd39dcb479",
-    [megaETH.id]: "0x3e0563ba483a2ade27ea36445f1621adcbdb67f8",
-  };
+{
+  [hardhat.id]: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+  [megaETHTestnet.id]: "0x5Ee2E49C38F5976E27CC45C5A47817e140eBB69E",
+  [arbitrum.id]: "0xa1ff5ee51f8fa0a6408032be2c9568cd39dcb479",
+  [megaETH.id]: "0x3e0563ba483a2ade27ea36445f1621adcbdb67f8",
+};
 
 export const OPTION_TOKEN_FACTORY: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",

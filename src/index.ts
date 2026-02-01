@@ -16,5 +16,6 @@ export * from "./api/filler.js";
 // Export sync client
 export * from "./sync/index.js";
 export * from "./config/index.js";
-export * from "./config/markets.js";
 export * from "./config/chains.js";
+// Export vault utilities (VaultInstrument, VaultMarket for onchain operations)
+export * from "./vault/index.js";

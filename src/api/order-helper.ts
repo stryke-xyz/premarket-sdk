@@ -4,7 +4,6 @@ import { Address as OneInchAddress } from "../address";
 import { randBigInt } from "../utils/rand-bigint";
 import { buildMakerAssetSuffix } from "../utils/orderUtils";
 import type { Option } from "../shared/types.js";
-import { calculateOptionTokenId as sharedCalculateOptionTokenId } from "../shared/utils.js";
 
 const UINT_40_MAX = (1n << 40n) - 1n;
 
@@ -14,15 +13,7 @@ export class OrderHelper {
       chainId: number;
       optionTokenFactoryAddress: Address;
     }
-  ) {}
-
-  /**
-   * Calculate option token ID from option parameters
-   * Delegates to shared utility function
-   */
-  calculateOptionTokenId(option: Option): Hex {
-    return sharedCalculateOptionTokenId(option);
-  }
+  ) { }
 
   buildERC20Order(params: {
     maker: Address;
@@ -30,7 +21,7 @@ export class OrderHelper {
     sellingToken: Address;
     makingAmount: bigint;
     takingAmount: bigint;
-    side:"BUY" | "SELL";
+    side: "BUY" | "SELL";
     expiresAt?: bigint; // Optional expiration timestamp in seconds
   }): {
     order: LimitOrder;
@@ -39,9 +30,9 @@ export class OrderHelper {
   } {
 
     let makerTraits = MakerTraits.default()
-    .withNonce(randBigInt(UINT_40_MAX))
-    .allowPartialFills()
-    .allowMultipleFills()
+      .withNonce(randBigInt(UINT_40_MAX))
+      .allowPartialFills()
+      .allowMultipleFills()
 
     if (params.expiresAt) {
       makerTraits.withExpiration(params.expiresAt);
@@ -75,6 +66,7 @@ export class OrderHelper {
     option: Option;
     optionAmount: string;
     stableAmount: string;
+    optionTokenId: Hex;
     expiresAt?: bigint; // Optional expiration timestamp in seconds
   }): {
     order: LimitOrder;
@@ -82,11 +74,10 @@ export class OrderHelper {
     calldata: string;
     extensionEncoded: string;
   } {
-    const optionTokenId = this.calculateOptionTokenId(params.option);
 
     const makerAssetSuffix = buildMakerAssetSuffix(
       this.config.optionTokenFactoryAddress,
-      optionTokenId
+      params.optionTokenId
     );
 
     const extension = new ExtensionBuilder()
@@ -117,7 +108,7 @@ export class OrderHelper {
 
     return {
       order,
-      optionTokenId,
+      optionTokenId: params.optionTokenId,
       calldata: order.toCalldata(),
       extensionEncoded: extension.encode(),
     };
@@ -136,6 +127,7 @@ export class OrderHelper {
     option: Option;
     optionAmount: string;
     stableAmount: string;
+    optionTokenId: Hex;
     expiresAt?: bigint; // Optional expiration timestamp in seconds
   }): {
     order: LimitOrder;
@@ -143,12 +135,11 @@ export class OrderHelper {
     calldata: string;
     extensionEncoded: string;
   } {
-    const optionTokenId = this.calculateOptionTokenId(params.option);
 
     // For buy orders, the taker asset is ERC6909 options, so we use takerAssetSuffix
     const takerAssetSuffix = buildMakerAssetSuffix(
       this.config.optionTokenFactoryAddress,
-      optionTokenId
+      params.optionTokenId
     );
 
     const extension = new ExtensionBuilder()
@@ -179,7 +170,7 @@ export class OrderHelper {
 
     return {
       order,
-      optionTokenId,
+      optionTokenId: params.optionTokenId,
       calldata: order.toCalldata(),
       extensionEncoded: extension.encode(),
     };
