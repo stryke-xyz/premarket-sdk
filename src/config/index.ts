@@ -146,7 +146,7 @@ export const LIMIT_ORDER_PROTOCOL: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
   [megaETHTestnet.id]: "0xa0b7722c3F6c64010eEF97F045e1aA9126cC3e62",
   [arbitrum.id]: "0x8e25cc9aed1131c54b176ef2f0a3a5593db1554b",
-  [megaETH.id]: "0x83c6AA89aa10Ce1B4A3a645b2aF1B03ff1D51534",
+  [megaETH.id]: "0x2641Bd40e1F6ecF9ACea0CEd5ff8886FEc7A88A3".toLowerCase() as `0x${string}`,
 };
 
 export const COLLATERAL_TOKEN_FACTORY: Record<SUPPORTED_CHAINS, `0x${string}`> =
@@ -185,7 +185,7 @@ export const ERC6909_PROXY: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690",
   [megaETHTestnet.id]: "0xC7B997B7a113108dA08562Fe1Bc87BF1bF3424B2",
   [arbitrum.id]: "0x7ddb3df04ac685e2f1da6fd638403e531682eb65",
-  [megaETH.id]: "0xee5c00744fca3b6d3ca03e1660464a80a6c360e8",
+  [megaETH.id]: "0xCe84c6139665e6ba1Ad274D486C2C557199C360F".toLowerCase() as `0x${string}`,
 };
 
 export const ENTRY_POINT: Record<SUPPORTED_CHAINS, `0x${string}`> = {

@@ -104,9 +104,9 @@ export class OrderbookApi {
   /**
    * Get orders snapshot for a market
    */
-  async getOrdersSnapshot(marketId: string): Promise<OrdersSnapshot> {
+  async getUserOrders(maker: string): Promise<StoredOrder[]> {
     const response = await fetch(
-      `${this.config.baseUrl}/orderbook/api/orders?marketId=${marketId}&status=ACTIVE`
+      `${this.config.baseUrl}/orderbook/api/orders/user/${maker}`
     );
 
     const data = await response.json();
@@ -114,10 +114,7 @@ export class OrderbookApi {
       throw new Error(data.error || "Failed to get orders snapshot");
     }
 
-    return {
-      orders: data.data.orders || [],
-      count: data.data.count || 0,
-    };
+    return data.data.orders || [];
   }
 
   /**

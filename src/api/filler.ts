@@ -19,7 +19,7 @@ export class OrderFiller {
     },
     private publicClient: PublicClient,
     private walletClient: WalletClient
-  ) {}
+  ) { }
 
   /**
    * Build writeContract parameters for filling an order from EOA maker
@@ -256,10 +256,8 @@ export class OrderFiller {
     const extensionBytes = storedOrder.extensionEncoded;
     const extensionLength = (extensionBytes.length - 2) / 2;
 
-    // Build args: just extension (no target address when filling for yourself)
     const args = extensionBytes as Hex;
 
-    // Build TakerTraits: bits 224-244 = extension length (no argsHasTarget flag)
     const takerTraits = BigInt(extensionLength) << 224n;
 
     return {
