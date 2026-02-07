@@ -79,14 +79,18 @@ export interface MatchRequest {
   timeInForce: TimeInForce;
   postOnly?: boolean;
   orderData: MatchableOrder;
+  /** If true, amount is in maker's makingAmount units. If false, amount is in maker's takingAmount units. */
+  isMakingAmount?: boolean;
 }
 
 export interface MatchedOrder {
   orderHash: string;
   makingAmount: string;
   takingAmount: string;
-  /** The amount to pass to fillContractOrderArgs when isMakingAmount=true */
+  /** The amount to pass to fillContractOrderArgs */
   fillAmount: string;
+  /** Whether fillAmount is in maker's makingAmount units (true) or takingAmount units (false) */
+  isMakingAmount: boolean;
   price: number;
   maker: string;
 }
@@ -110,6 +114,8 @@ export interface MatchAndUpdateParams {
   createOrderForRemainder: boolean;
   requireFullFill?: boolean;
   orderData?: MatchableOrder;
+  /** If true, takerAmount is in maker's makingAmount units. If false, takerAmount is in maker's takingAmount units. */
+  isMakingAmount?: boolean;
 }
 
 export interface CreateOrderResult {
