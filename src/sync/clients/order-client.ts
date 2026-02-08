@@ -491,21 +491,31 @@ export class MarketDepthSyncClient {
 
         const newSeq = parseInt(change.seq, 10);
 
-        // Gap detection: seq should be monotonically increasing
-        // Allow seq === state.seq + 1 (normal case) or seq > state.seq (skipped some)
-        // If newSeq <= state.seq, it's a duplicate or old message
+        // Duplicate or out-of-order: skip
         if (newSeq <= state.seq) {
           continue;
         }
 
+        // Strict ordering: next message's seq must equal previous current seq + 1 (no gaps)
+        if (newSeq > state.seq + 1) {
+          // Gap detected — requeue and trigger full resync to get fresh snapshot
+          this.changeQueue.unshift(change);
+          console.warn(
+            `[MarketDepth] Gap detected tokenId=${change.tokenId} expectedSeq=${state.seq + 1} gotSeq=${newSeq}. Resyncing.`
+          );
+          this.handleGap();
+          break;
+        }
+
+        const previousSeq = state.seq; // last seq before this update
+
         // Apply the single-level change
         this.applyChange(change, state);
-        state.seq = newSeq;
+        state.seq = newSeq; // current seq
 
-        // Notify delta listeners with the change
+        // Notify delta listeners: last seq -> current seq (next message must have seq === this current seq + 1)
         this.deltaListeners.forEach((listener) => {
           try {
-            // Convert to DepthUpdate format for backwards compat
             const update: DepthUpdate = {
               tokenId: change.tokenId,
               levels: [{ side: change.side, price: change.price, depth: change.depth }],
@@ -513,7 +523,7 @@ export class MarketDepthSyncClient {
               bestAsk: state.bestAsk,
               lastPrice: state.lastPrice,
               seq: newSeq,
-              previousSeq: state.seq - 1,
+              previousSeq,
             };
             listener(this.config.marketId, update);
           } catch (error) {
@@ -528,6 +538,20 @@ export class MarketDepthSyncClient {
         setImmediate(() => this.processChangeQueue());
       }
     }
+  }
+
+  private handleGap(): void {
+    this.isProcessing = true;
+    this.changeQueue = [];
+    this.tokenStates.clear();
+    if (this.ws) {
+      this.ws.onclose = null;
+      this.ws.close();
+      this.ws = null;
+    }
+    this.stopHeartbeat();
+    this.setStatus("recovering");
+    this.scheduleReconnect();
   }
 
   private applyChange(change: DepthChangeEvent, state: TokenDepthState): void {

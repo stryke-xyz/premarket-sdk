@@ -286,7 +286,7 @@ export function fillHistoryToBigInt(fill: OrderFillHistoryItem): {
     takingAmount: BigInt(fill.takingAmount),
     tradeType: fill.tradeType,
     optionTokenId: fill.optionTokenId ? BigInt(fill.optionTokenId) : null,
-    role: fill.role,
+    role: fill.role ?? "taker",
     transactionHash: fill.transactionHash,
     blockNumber: BigInt(fill.blockNumber),
     timestamp: BigInt(fill.timestamp),

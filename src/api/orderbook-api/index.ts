@@ -23,6 +23,7 @@ import type {
   BalanceMessage,
   BalanceSnapshot,
   DepthSnapshot,
+  MarketTradeItem,
 } from "../../shared/types.js";
 
 // ============================================================================
@@ -203,6 +204,21 @@ export class OrderbookApi {
     const data = await response.json();
     if (!data.success) {
       throw new Error(data.error || "Failed to fetch markets");
+    }
+    return data.data;
+  }
+
+  /**
+   * Get recent trades (order fills) for a market
+   */
+  async getMarketRecentTrades(marketId: string, limit?: number): Promise<MarketTradeItem[]> {
+    const queryParams = limit != null ? `?limit=${limit}` : "";
+    const response = await fetch(
+      `${this.config.baseUrl}/premarket/api/markets/${marketId}/trades${queryParams}`
+    );
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.error || "Failed to fetch market trades");
     }
     return data.data;
   }

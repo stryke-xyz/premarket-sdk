@@ -422,11 +422,17 @@ export interface OrderFillHistoryItem {
   takingAmount: string;
   tradeType: string;
   optionTokenId: string | null;
-  role: "maker" | "taker";
+  role?: "maker" | "taker";
+  marketId?: string | null;
   transactionHash: `0x${string}`;
   blockNumber: string;
   timestamp: string;
+  /** true = ask (maker sells), false = bid (maker buys); from API when available */
+  isAsk?: boolean;
 }
+
+/** Recent trade item as returned by getMarketRecentTrades */
+export type MarketTradeItem = OrderFillHistoryItem;
 
 export interface UserHistories {
   mints: MintHistoryItem[];

@@ -1,5 +1,6 @@
 export { BaseSyncClient } from "./clients/base-client.js";
 export { MarketDepthSyncClient } from "./clients/order-client.js";
+export { ActivitySyncClient } from "./clients/activity-client.js";
 export type {
   DepthLevel,
   TokenDepthSnapshot,
@@ -8,6 +9,10 @@ export type {
   DepthUpdate,
   MarketDepthClientConfig,
 } from "./clients/order-client.js";
+export type {
+  OrderFillEvent,
+  ActivityClientConfig,
+} from "./clients/activity-client.js";
 export type {
   OrderChange,
   SequencedMessage,
