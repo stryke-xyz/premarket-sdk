@@ -17,5 +17,7 @@ export * from "./api/filler.js";
 export * from "./sync/index.js";
 export * from "./config/index.js";
 export * from "./config/chains.js";
-// Export vault utilities (VaultInstrument, VaultMarket for onchain operations)
+// Export vault utilities (VaultInstrument, VaultMarket, mint/withdraw/redeem transaction builders)
 export * from "./vault/index.js";
+// Smart account (factory getAddress, accountCount, getCurrent)
+export * from "./smart-account.js";

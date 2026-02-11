@@ -3,7 +3,6 @@ import { LimitOrder, MakerTraits, ExtensionBuilder } from "../limit-order";
 import { Address as OneInchAddress } from "../address";
 import { randBigInt } from "../utils/rand-bigint";
 import { buildMakerAssetSuffix } from "../utils/orderUtils";
-import type { Option } from "../shared/types.js";
 
 const UINT_40_MAX = (1n << 40n) - 1n;
 
@@ -21,7 +20,6 @@ export class OrderHelper {
     sellingToken: Address;
     makingAmount: bigint;
     takingAmount: bigint;
-    side: "BUY" | "SELL";
     expiresAt?: bigint; // Optional expiration timestamp in seconds
   }): {
     order: LimitOrder;
@@ -63,7 +61,6 @@ export class OrderHelper {
     maker: Address;
     makerProxyAddress: Address;
     stableToken: Address;
-    option: Option;
     optionAmount: string;
     stableAmount: string;
     optionTokenId: Hex;
@@ -124,7 +121,6 @@ export class OrderHelper {
     maker: Address;
     makerProxyAddress: Address; // ERC6909 proxy for receiving options
     stableToken: Address;
-    option: Option;
     optionAmount: string;
     stableAmount: string;
     optionTokenId: Hex;
