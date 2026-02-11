@@ -12,7 +12,6 @@ export * from "./utils/orderUtils.js";
 export * from "./shared/index.js";
 export * from "./api/orderbook-api/index.js";
 export * from "./api/order-helper.js";
-export * from "./api/filler.js";
 // Export sync client
 export * from "./sync/index.js";
 export * from "./config/index.js";
