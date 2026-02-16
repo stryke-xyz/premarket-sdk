@@ -182,8 +182,11 @@ export class MarketDepthSyncClient {
           } else if (msg.type === "depth_update") {
             // Received depth update
             this.handleDepthUpdate(msg);
+          } else if (msg.type === "market_state") {
+            // Received market state (bestBid, bestAsk, lastPrice) - preferred over last_price
+            this.handleMarketStateUpdate(msg);
           } else if (msg.type === "last_price") {
-            // Received last price update
+            // Legacy: last price only (still supported)
             this.handleLastPriceUpdate(msg);
           } else if (msg.type === "error") {
             console.error("WebSocket error:", msg.message);
@@ -444,6 +447,40 @@ export class MarketDepthSyncClient {
     this.processChangeQueue();
   }
 
+  private handleMarketStateUpdate(msg: {
+    marketId: string;
+    tokenId: string;
+    bestBid: string | null;
+    bestAsk: string | null;
+    lastPrice: string | null;
+  }): void {
+    const state = this.tokenStates.get(msg.tokenId);
+    if (!state) {
+      return;
+    }
+
+    state.bestBid = msg.bestBid ?? state.bestBid;
+    state.bestAsk = msg.bestAsk ?? state.bestAsk;
+    state.lastPrice = msg.lastPrice ?? state.lastPrice;
+
+    this.deltaListeners.forEach((listener) => {
+      try {
+        const update: DepthUpdate = {
+          tokenId: msg.tokenId,
+          levels: [],
+          bestBid: state.bestBid,
+          bestAsk: state.bestAsk,
+          lastPrice: state.lastPrice,
+          seq: state.seq,
+          previousSeq: state.seq,
+        };
+        listener(this.config.marketId, update);
+      } catch (error) {
+        console.error("Error in delta listener for market_state:", error);
+      }
+    });
+  }
+
   private handleLastPriceUpdate(msg: {
     tokenId: string;
     lastPrice: string;
@@ -453,15 +490,13 @@ export class MarketDepthSyncClient {
       return;
     }
 
-    // Update last price in state
     state.lastPrice = msg.lastPrice;
 
-    // Notify delta listeners with last_price update
     this.deltaListeners.forEach((listener) => {
       try {
         const update: DepthUpdate = {
           tokenId: msg.tokenId,
-          levels: [], // No depth changes, just last_price
+          levels: [],
           bestBid: state.bestBid,
           bestAsk: state.bestAsk,
           lastPrice: msg.lastPrice,
@@ -473,7 +508,6 @@ export class MarketDepthSyncClient {
         console.error("Error in delta listener for last_price:", error);
       }
     });
-
   }
 
   private async processChangeQueue(): Promise<void> {
