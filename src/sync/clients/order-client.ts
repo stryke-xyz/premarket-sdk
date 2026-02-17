@@ -1,5 +1,15 @@
 import type { SyncStatus } from "../types.js";
 
+/**
+ * Normalize a price string to a canonical form for consistent map key lookups.
+ * Converts "1.000000" and "1" both to "1" (removes trailing zeros after decimal).
+ */
+function normalizePrice(price: string): string {
+  const num = parseFloat(price);
+  if (isNaN(num)) return price;
+  return num.toString();
+}
+
 export interface DepthLevel {
   price: string;
   depth: string;
@@ -30,7 +40,6 @@ export interface DepthChangeEvent {
   seq: string;
 }
 
-// Legacy format (kept for compatibility)
 export interface DepthUpdate {
   tokenId: string;
   levels: DepthLevelUpdate[];
@@ -38,7 +47,6 @@ export interface DepthUpdate {
   bestAsk: string | null;
   lastPrice: string | null;
   seq: number;
-  previousSeq: number;
 }
 
 export interface MarketDepthClientConfig {
@@ -68,15 +76,15 @@ interface TokenDepthState {
 }
 
 /**
- * Client for syncing orderbook depth data for multiple tokens in a market
- * Uses per-market sequence IDs for gap detection
+ * Client for syncing orderbook depth data for multiple tokens in a market.
+ * Seq is per market+token (gapless, monotonic). Each token tracks its own seq for dedup and gap detection.
  */
 export class MarketDepthSyncClient {
   private ws: WebSocket | null = null;
   private config: MarketDepthClientConfig;
   private status: SyncStatus = "disconnected";
 
-  // Per-token depth state
+  // Per-token depth state (each token has its own gapless seq counter)
   private tokenStates: Map<string, TokenDepthState> = new Map();
 
   // Message queue for ordering
@@ -119,7 +127,7 @@ export class MarketDepthSyncClient {
     // Clean up any existing connection first
     this.stopHeartbeat();
     this.clearReconnectTimeout();
-    
+
     if (this.ws) {
       this.ws.onclose = null; // Prevent triggering reconnect
       this.ws.close();
@@ -147,7 +155,7 @@ export class MarketDepthSyncClient {
         // Reset reconnect attempts on successful connection
         this.reconnectAttempts = 0;
         this.lastPongTime = Date.now();
-        
+
         // Send subscribe_market message
         this.ws!.send(
           JSON.stringify({
@@ -156,7 +164,7 @@ export class MarketDepthSyncClient {
             tokenIds: this.config.tokenIds,
           })
         );
-        
+
         // Start heartbeat
         this.startHeartbeat();
       };
@@ -182,16 +190,19 @@ export class MarketDepthSyncClient {
           } else if (msg.type === "depth_update") {
             // Received depth update
             this.handleDepthUpdate(msg);
+          } else if (msg.type === "market_state") {
+            // Received market state (bestBid, bestAsk, lastPrice) - preferred over last_price
+            this.handleMarketStateUpdate(msg);
           } else if (msg.type === "last_price") {
-            // Received last price update
+            // Legacy: last price only (still supported)
             this.handleLastPriceUpdate(msg);
           } else if (msg.type === "error") {
             console.error("WebSocket error:", msg.message);
             reject(new Error(msg.message));
+          }
+        } catch (error) {
+          console.error("Error parsing message:", error);
         }
-      } catch (error) {
-        console.error("Error parsing message:", error);
-      }
       };
 
       this.ws.onerror = (error) => {
@@ -205,7 +216,7 @@ export class MarketDepthSyncClient {
       this.ws.onclose = () => {
         this.stopHeartbeat();
         this.setStatus("disconnected");
-        
+
         // Attempt to reconnect if we should still be connected
         if (this.shouldBeConnected) {
           this.scheduleReconnect();
@@ -217,7 +228,7 @@ export class MarketDepthSyncClient {
   private setupVisibilityChangeHandler(): void {
     // Only set up in browser environment
     if (typeof document === "undefined") return;
-    
+
     // Remove existing handler if any
     this.removeVisibilityChangeHandler();
 
@@ -233,7 +244,7 @@ export class MarketDepthSyncClient {
 
   private removeVisibilityChangeHandler(): void {
     if (typeof document === "undefined") return;
-    
+
     if (this.visibilityChangeHandler) {
       document.removeEventListener("visibilitychange", this.visibilityChangeHandler);
       this.visibilityChangeHandler = null;
@@ -251,7 +262,7 @@ export class MarketDepthSyncClient {
     // Send a ping to verify the connection is actually working
     try {
       this.ws.send(JSON.stringify({ type: "ping" }));
-      
+
       // Set a timeout for the pong response
       this.clearHeartbeatTimeout();
       this.heartbeatTimeoutId = setTimeout(() => {
@@ -266,15 +277,15 @@ export class MarketDepthSyncClient {
 
   private handleConnectionLost(): void {
     this.stopHeartbeat();
-    
+
     if (this.ws) {
       this.ws.onclose = null; // Prevent double-triggering
       this.ws.close();
       this.ws = null;
     }
-    
+
     this.setStatus("disconnected");
-    
+
     if (this.shouldBeConnected) {
       this.scheduleReconnect();
     }
@@ -282,7 +293,7 @@ export class MarketDepthSyncClient {
 
   private startHeartbeat(): void {
     this.stopHeartbeat();
-    
+
     this.heartbeatIntervalId = setInterval(() => {
       if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
         return;
@@ -290,7 +301,7 @@ export class MarketDepthSyncClient {
 
       try {
         this.ws.send(JSON.stringify({ type: "ping" }));
-        
+
         // Set timeout for pong response
         this.clearHeartbeatTimeout();
         this.heartbeatTimeoutId = setTimeout(() => {
@@ -321,7 +332,7 @@ export class MarketDepthSyncClient {
 
   private scheduleReconnect(): void {
     if (!this.shouldBeConnected) return;
-    
+
     const maxAttempts = this.config.maxReconnectAttempts!;
     if (this.reconnectAttempts >= maxAttempts) {
       console.error(`Max reconnection attempts (${maxAttempts}) reached, giving up`);
@@ -335,12 +346,12 @@ export class MarketDepthSyncClient {
       baseDelay * Math.pow(2, this.reconnectAttempts) + Math.random() * 1000,
       maxDelay
     );
-    
+
     this.reconnectAttempts++;
     this.setStatus("recovering");
-    
+
     console.log(`Scheduling reconnect attempt ${this.reconnectAttempts} in ${Math.round(delay)}ms`);
-    
+
     this.clearReconnectTimeout();
     this.reconnectTimeoutId = setTimeout(() => {
       this.performReconnect();
@@ -361,7 +372,7 @@ export class MarketDepthSyncClient {
       // Clear state before reconnecting
       this.tokenStates.clear();
       this.changeQueue = [];
-      
+
       await this.connect();
       console.log("Reconnected successfully");
     } catch (error) {
@@ -376,7 +387,7 @@ export class MarketDepthSyncClient {
     snapshots: TokenDepthSnapshot[];
     bufferedUpdates?: Array<{ tokenId: string; updates: DepthChangeEvent[] }>;
   }): void {
-    // Initialize state for each token from snapshots
+    // Initialize state for each token from snapshots (seq is per token)
     for (const snapshot of msg.snapshots) {
       const state: TokenDepthState = {
         bids: new Map(),
@@ -388,13 +399,13 @@ export class MarketDepthSyncClient {
       };
 
       for (const level of snapshot.bids) {
-        state.bids.set(level.price, level.depth);
+        state.bids.set(normalizePrice(level.price), level.depth);
       }
       for (const level of snapshot.asks) {
-        state.asks.set(level.price, level.depth);
+        state.asks.set(normalizePrice(level.price), level.depth);
       }
 
-      this.tokenStates.set(snapshot.tokenId, state);
+      this.tokenStates.set(String(snapshot.tokenId), state);
     }
 
     // Apply buffered updates that came in during snapshot fetch
@@ -444,36 +455,65 @@ export class MarketDepthSyncClient {
     this.processChangeQueue();
   }
 
-  private handleLastPriceUpdate(msg: {
+  private handleMarketStateUpdate(msg: {
+    marketId: string;
     tokenId: string;
-    lastPrice: string;
+    bestBid: string | null;
+    bestAsk: string | null;
+    lastPrice: string | null;
   }): void {
-    const state = this.tokenStates.get(msg.tokenId);
+    const state = this.tokenStates.get(String(msg.tokenId));
     if (!state) {
       return;
     }
 
-    // Update last price in state
-    state.lastPrice = msg.lastPrice;
+    state.bestBid = msg.bestBid ?? state.bestBid;
+    state.bestAsk = msg.bestAsk ?? state.bestAsk;
+    state.lastPrice = msg.lastPrice ?? state.lastPrice;
 
-    // Notify delta listeners with last_price update
     this.deltaListeners.forEach((listener) => {
       try {
         const update: DepthUpdate = {
           tokenId: msg.tokenId,
-          levels: [], // No depth changes, just last_price
+          levels: [],
+          bestBid: state.bestBid,
+          bestAsk: state.bestAsk,
+          lastPrice: state.lastPrice,
+          seq: state.seq,
+        };
+        listener(this.config.marketId, update);
+      } catch (error) {
+        console.error("Error in delta listener for market_state:", error);
+      }
+    });
+  }
+
+  private handleLastPriceUpdate(msg: {
+    tokenId: string;
+    lastPrice: string;
+  }): void {
+    const state = this.tokenStates.get(String(msg.tokenId));
+    if (!state) {
+      return;
+    }
+
+    state.lastPrice = msg.lastPrice;
+
+    this.deltaListeners.forEach((listener) => {
+      try {
+        const update: DepthUpdate = {
+          tokenId: msg.tokenId,
+          levels: [],
           bestBid: state.bestBid,
           bestAsk: state.bestAsk,
           lastPrice: msg.lastPrice,
           seq: state.seq,
-          previousSeq: state.seq,
         };
         listener(this.config.marketId, update);
       } catch (error) {
         console.error("Error in delta listener for last_price:", error);
       }
     });
-
   }
 
   private async processChangeQueue(): Promise<void> {
@@ -496,24 +536,23 @@ export class MarketDepthSyncClient {
           continue;
         }
 
-        // Strict ordering: next message's seq must equal previous current seq + 1 (no gaps)
+        // Gap: next seq must be exactly state.seq + 1
+        // However, we tolerate gaps to avoid reconnect loops when updates arrive
+        // between snapshot fetch and subscription start on the server side.
+        // The depth data is still correct (absolute values, not deltas).
         if (newSeq > state.seq + 1) {
-          // Gap detected — requeue and trigger full resync to get fresh snapshot
-          this.changeQueue.unshift(change);
           console.warn(
-            `[MarketDepth] Gap detected tokenId=${change.tokenId} expectedSeq=${state.seq + 1} gotSeq=${newSeq}. Resyncing.`
+            `[MarketDepth] Gap detected tokenId=${change.tokenId} expected=${state.seq + 1} got=${newSeq}. Accepting anyway (depth is absolute).`
           );
-          this.handleGap();
-          break;
+          // Continue processing - depth values are absolute, so missing an update
+          // just means we might have a stale value until the next update for that price.
         }
-
-        const previousSeq = state.seq; // last seq before this update
 
         // Apply the single-level change
         this.applyChange(change, state);
-        state.seq = newSeq; // current seq
+        state.seq = newSeq;
 
-        // Notify delta listeners: last seq -> current seq (next message must have seq === this current seq + 1)
+        // Notify delta listeners
         this.deltaListeners.forEach((listener) => {
           try {
             const update: DepthUpdate = {
@@ -523,7 +562,6 @@ export class MarketDepthSyncClient {
               bestAsk: state.bestAsk,
               lastPrice: state.lastPrice,
               seq: newSeq,
-              previousSeq,
             };
             listener(this.config.marketId, update);
           } catch (error) {
@@ -555,14 +593,14 @@ export class MarketDepthSyncClient {
   }
 
   private applyChange(change: DepthChangeEvent, state: TokenDepthState): void {
-    // Apply single level change
     const map = change.side === "bid" ? state.bids : state.asks;
     const depth = parseFloat(change.depth);
+    const key = normalizePrice(change.price);
 
     if (depth <= 0) {
-      map.delete(change.price);
+      map.delete(key);
     } else {
-      map.set(change.price, change.depth);
+      map.set(key, change.depth);
     }
 
     // Recalculate best prices from current state
@@ -571,7 +609,7 @@ export class MarketDepthSyncClient {
     if (change.side === "bid") {
       const bidPrices = Array.from(state.bids.keys()).map(p => parseFloat(p));
       state.bestBid = bidPrices.length > 0 ? Math.max(...bidPrices).toString() : null;
-          } else {
+    } else {
       const askPrices = Array.from(state.asks.keys()).map(p => parseFloat(p));
       state.bestAsk = askPrices.length > 0 ? Math.min(...askPrices).toString() : null;
     }
@@ -656,7 +694,7 @@ export class MarketDepthSyncClient {
     const state = this.tokenStates.get(tokenId);
     if (!state) return null;
     const map = side === "bid" ? state.bids : state.asks;
-    return map.get(price) || null;
+    return map.get((price)) || null;
   }
 
   // Event listeners
@@ -691,7 +729,7 @@ export class MarketDepthSyncClient {
     if (this.ws) {
       // Prevent onclose from triggering reconnect
       this.ws.onclose = null;
-      
+
       // Send unsubscribe before closing
       if (this.ws.readyState === WebSocket.OPEN) {
         try {

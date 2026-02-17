@@ -1,19 +1,29 @@
 import type { SyncStatus } from "../types.js";
 
 /**
- * Order fill event from worker (published by webhook from rrelayer transaction_confirmed).
+ * Order fill event from activity stream (published via PG logical replication from Ponder).
+ * 
+ * Two sources:
+ * - orders_matched:{marketId} channel: includes maker, taker, transactionHash, blockNumber
+ * - user:{address} channel: does not include maker/taker (user already knows their address)
  */
 export interface OrderFillEvent {
   type: "order_fill";
-  marketId: string;
+  marketId: string | null;
   orderHash: string;
-  maker: string;
-  taker: string;
+  /** Maker address (null for user channel messages) */
+  maker: string | null;
+  /** Taker address (null for user channel messages) */
+  taker: string | null;
+  makerAsset: string;
+  takerAsset: string;
   makingAmount: string;
   takingAmount: string;
-  transactionHash: string;
-  /** true = ask (maker sells), false = bid (maker buys); set by webhook when USDC_ADDRESS is configured */
-  isAsk?: boolean;
+  optionTokenId: string | null;
+  transactionHash: string | null;
+  blockNumber: string | null;
+  /** Blockchain timestamp (seconds since epoch, null for user channel) */
+  timestamp: string | null;
 }
 
 export interface ActivityClientConfig {
@@ -135,18 +145,24 @@ export class ActivitySyncClient {
             return;
           }
 
-          // Accept every order_fill (no seq/gap checks)
-          if (msg.type === "order_fill") {
+          // Accept fill events (no seq/gap checks)
+          // "order_fill" comes from orders_matched:{marketId} channel
+          // "fill" comes from user:{address} channel
+          if (msg.type === "order_fill" || msg.type === "fill") {
             const fill: OrderFillEvent = {
               type: "order_fill",
-              marketId: msg.marketId,
+              marketId: msg.marketId ?? null,
               orderHash: msg.orderHash,
-              maker: msg.maker,
-              taker: msg.taker,
+              maker: msg.maker ?? null,
+              taker: msg.taker ?? null,
+              makerAsset: msg.makerAsset ?? "",
+              takerAsset: msg.takerAsset ?? "",
               makingAmount: msg.makingAmount,
               takingAmount: msg.takingAmount,
-              transactionHash: msg.transactionHash,
-              ...(msg.isAsk !== undefined && { isAsk: msg.isAsk }),
+              optionTokenId: msg.optionTokenId ?? null,
+              transactionHash: msg.transactionHash ?? null,
+              blockNumber: msg.blockNumber ?? null,
+              timestamp: msg.timestamp ?? null,
             };
             this.fillListeners.forEach((listener) => {
               try {
