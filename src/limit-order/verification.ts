@@ -8,6 +8,10 @@ import { Extension } from "./extensions/extension";
  * - Nonce is required
  * - Expiration is optional
  * - All other flags must be unset
+ *
+ * Notes:
+ * - ERC6909 orders require HAS_EXTENSION_FLAG.
+ * - ERC20 orders may include HAS_EXTENSION_FLAG when extension customData is used (e.g. fee id hint).
  */
 export function validateMakerTraits(makerTraitsHex: string, type: "erc6909" | "erc20"): void {
   const traits = BigInt(makerTraitsHex);
@@ -24,12 +28,6 @@ export function validateMakerTraits(makerTraitsHex: string, type: "erc6909" | "e
   if (type === "erc6909" && (traits & HAS_EXTENSION_FLAG) === 0n) {
     throw new Error(
       "Invalid maker traits: HAS_EXTENSION_FLAG (bit 249) is required"
-    );
-  }
-
-  if (type === "erc20" && (traits & HAS_EXTENSION_FLAG) !== 0n) {
-    throw new Error(
-      "Invalid maker traits: HAS_EXTENSION_FLAG (bit 249) must not be set for ERC20 orders"
     );
   }
 
@@ -112,8 +110,8 @@ export function validateExtension(
   if (extension.postInteraction !== "0x") {
     throw new Error("Invalid extension: postInteraction must be empty");
   }
-  if (extension.customData !== "0x") {
-    throw new Error("Invalid extension: customData must be empty");
+  if (extension.customData !== "0x" && extension.customData.length !== 66) {
+    throw new Error("Invalid extension: customData must be empty or bytes32");
   }
 
   const hasMakerSuffix = extension.makerAssetSuffix !== "0x";

@@ -16,5 +16,5 @@ export const OrderTypeDefinition = [
     {name: 'makerTraits', type: 'uint256'}
 ]
 
-export const LimitOrderV4TypeDataName = '1inch Limit Order Protocol'
+export const LimitOrderV4TypeDataName = 'LOP'
 export const LimitOrderV4TypeDataVersion = '4'

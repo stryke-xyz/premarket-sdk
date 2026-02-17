@@ -2,18 +2,24 @@ import { pad, toHex, type Hex, recoverAddress, concat } from "viem";
 import { LimitOrder } from "../limit-order";
 import type { OrderSignature } from "../shared/types.js";
 
+const ZERO_BYTES32 = `0x${"0".repeat(64)}` as const;
+
 /**
  * Build makerAssetSuffix for ERC6909 extension
  */
 export function buildMakerAssetSuffix(
   tokenAddress: string,
-  tokenId: Hex
+  tokenId: Hex,
+  feeId?: Hex
 ): string {
   const tokenPadded = pad(tokenAddress as Hex, { size: 32 }).slice(2);
   const tokenIdPadded = pad(tokenId, { size: 32 }).slice(2);
   const offsetPadded = pad(toHex(192), { size: 32 }).slice(2);
-  const lengthPadded = pad(toHex(0), { size: 32 }).slice(2);
-  return "0x" + tokenPadded + tokenIdPadded + offsetPadded + lengthPadded;
+  const hasFeeId = Boolean(feeId && feeId !== ZERO_BYTES32);
+  const lengthPadded = pad(toHex(hasFeeId ? 32 : 0), { size: 32 }).slice(2);
+  const feeIdPadded = hasFeeId ? pad(feeId as Hex, { size: 32 }).slice(2) : "";
+
+  return "0x" + tokenPadded + tokenIdPadded + offsetPadded + lengthPadded + feeIdPadded;
 }
 
 /**

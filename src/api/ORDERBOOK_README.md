@@ -15,11 +15,11 @@ You must build the order, sign it, then send the serialized order + extension + 
 
 ```ts
 import { OrderHelper } from "@premarket/sdk";
-import { OPTION_TOKEN_FACTORY } from "@premarket/sdk"; // or your chain config
+import { OPTION_MARKET_VAULT } from "@premarket/sdk"; // or your chain config
 
 const orderHelper = new OrderHelper({
   chainId: 4326,
-  optionTokenFactoryAddress: OPTION_TOKEN_FACTORY[4326],
+  optionMarketVaultAddress: OPTION_MARKET_VAULT[4326],
 });
 ```
 
@@ -35,6 +35,7 @@ const { order, extensionEncoded } = orderHelper.buildSellOptionsOrder({
   optionAmount: "1000000000000000000", // 1e18 units
   stableAmount: "500000", // USDC (6 decimals)
   optionTokenId: instrument.oPrmTokenId || instrument.prmTokenId,
+  feeId: optionalFeeIdBytes32, // optional, bytes32 fee routing id
   expiresAt: BigInt(Math.floor(Date.now() / 1000) + 86400), // optional
 });
 ```
@@ -49,6 +50,7 @@ const { order, extensionEncoded } = orderHelper.buildBuyOptionsOrder({
   optionAmount: "1000000000000000000",
   stableAmount: "500000",
   optionTokenId: instrument.oPrmTokenId || instrument.prmTokenId,
+  feeId: optionalFeeIdBytes32, // optional, bytes32 fee routing id
   expiresAt: optionalExpiresAt,
 });
 ```
@@ -62,6 +64,7 @@ const { order, extensionEncoded } = orderHelper.buildERC20Order({
   sellingToken: tokenYouGive,
   makingAmount: amountYouGive,
   takingAmount: amountYouReceive,
+  feeId: optionalFeeIdBytes32, // optional, bytes32 fee routing id
   expiresAt: optionalExpiresAt,
 });
 ```

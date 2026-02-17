@@ -5,12 +5,19 @@ import { randBigInt } from "../utils/rand-bigint";
 import { buildMakerAssetSuffix } from "../utils/orderUtils";
 
 const UINT_40_MAX = (1n << 40n) - 1n;
+const ZERO_BYTES32 = `0x${"0".repeat(64)}` as const;
+
+function hasFeeId(feeId?: Hex): boolean {
+  return Boolean(feeId && feeId !== ZERO_BYTES32);
+}
 
 export class OrderHelper {
   constructor(
     private config: {
       chainId: number;
-      optionTokenFactoryAddress: Address;
+      optionMarketVaultAddress?: Address;
+      /** @deprecated Use optionMarketVaultAddress */
+      optionTokenFactoryAddress?: Address;
     }
   ) { }
 
@@ -20,6 +27,7 @@ export class OrderHelper {
     sellingToken: Address;
     makingAmount: bigint;
     takingAmount: bigint;
+    feeId?: Hex;
     expiresAt?: bigint; // Optional expiration timestamp in seconds
   }): {
     order: LimitOrder;
@@ -27,10 +35,19 @@ export class OrderHelper {
     extensionEncoded: string;
   } {
 
-    let makerTraits = MakerTraits.default()
+    const makerTraits = MakerTraits.default()
       .withNonce(randBigInt(UINT_40_MAX))
       .allowPartialFills()
       .allowMultipleFills()
+
+    let extensionEncoded = "0";
+    let extension = undefined;
+    if (hasFeeId(params.feeId)) {
+      const extensionBuilder = new ExtensionBuilder().withCustomData(params.feeId as Hex);
+      extension = extensionBuilder.build();
+      extensionEncoded = extension.encode();
+      makerTraits.withExtension();
+    }
 
     if (params.expiresAt) {
       makerTraits.withExpiration(params.expiresAt);
@@ -44,13 +61,14 @@ export class OrderHelper {
         takingAmount: params.takingAmount,
         maker: new OneInchAddress(params.maker),
       },
-      makerTraits
+      makerTraits,
+      extension
     );
 
     return {
       order,
       calldata: order.toCalldata(),
-      extensionEncoded: '0',
+      extensionEncoded,
     };
   }
 
@@ -64,6 +82,7 @@ export class OrderHelper {
     optionAmount: string;
     stableAmount: string;
     optionTokenId: Hex;
+    feeId?: Hex;
     expiresAt?: bigint; // Optional expiration timestamp in seconds
   }): {
     order: LimitOrder;
@@ -72,14 +91,19 @@ export class OrderHelper {
     extensionEncoded: string;
   } {
 
-    const makerAssetSuffix = buildMakerAssetSuffix(
-      this.config.optionTokenFactoryAddress,
-      params.optionTokenId
-    );
+    const vaultAddress =
+      this.config.optionMarketVaultAddress || this.config.optionTokenFactoryAddress;
+    if (!vaultAddress) {
+      throw new Error("OrderHelper requires optionMarketVaultAddress");
+    }
 
-    const extension = new ExtensionBuilder()
-      .withMakerAssetSuffix(makerAssetSuffix)
-      .build();
+    const makerAssetSuffix = buildMakerAssetSuffix(vaultAddress, params.optionTokenId, params.feeId);
+
+    const extensionBuilder = new ExtensionBuilder().withMakerAssetSuffix(makerAssetSuffix);
+    if (hasFeeId(params.feeId)) {
+      extensionBuilder.withCustomData(params.feeId as Hex);
+    }
+    const extension = extensionBuilder.build();
 
     const makerTraits = MakerTraits.default()
       .withNonce(randBigInt(UINT_40_MAX))
@@ -124,6 +148,7 @@ export class OrderHelper {
     optionAmount: string;
     stableAmount: string;
     optionTokenId: Hex;
+    feeId?: Hex;
     expiresAt?: bigint; // Optional expiration timestamp in seconds
   }): {
     order: LimitOrder;
@@ -133,14 +158,18 @@ export class OrderHelper {
   } {
 
     // For buy orders, the taker asset is ERC6909 options, so we use takerAssetSuffix
-    const takerAssetSuffix = buildMakerAssetSuffix(
-      this.config.optionTokenFactoryAddress,
-      params.optionTokenId
-    );
+    const vaultAddress =
+      this.config.optionMarketVaultAddress || this.config.optionTokenFactoryAddress;
+    if (!vaultAddress) {
+      throw new Error("OrderHelper requires optionMarketVaultAddress");
+    }
+    const takerAssetSuffix = buildMakerAssetSuffix(vaultAddress, params.optionTokenId, params.feeId);
 
-    const extension = new ExtensionBuilder()
-      .withTakerAssetSuffix(takerAssetSuffix)
-      .build();
+    const extensionBuilder = new ExtensionBuilder().withTakerAssetSuffix(takerAssetSuffix);
+    if (hasFeeId(params.feeId)) {
+      extensionBuilder.withCustomData(params.feeId as Hex);
+    }
+    const extension = extensionBuilder.build();
 
     const makerTraits = MakerTraits.default()
       .withNonce(randBigInt(UINT_40_MAX))
