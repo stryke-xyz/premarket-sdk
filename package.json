@@ -1,5 +1,5 @@
 {
-  "name": "@revocelot165/test",
+  "name": "@stryke-xyz/premarket-sdk",
   "version": "1.6.0",
   "type": "module",
   "module": "dist/esm/index.js",
