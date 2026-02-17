@@ -74,9 +74,9 @@ export const TOKEN1: Record<SUPPORTED_CHAINS, Token> = {
     decimals: 18,
   },
   [megaETH.id]: {
-    name: "Token 1",
-    symbol: "USDAI",
-    address: ZERO_ADDRESS,
+    name: "USDm",
+    symbol: "USDm",
+    address: "0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7",
     decimals: 18,
   },
 };
@@ -101,9 +101,9 @@ export const TOKEN2: Record<SUPPORTED_CHAINS, Token> = {
     decimals: 6,
   },
   [megaETH.id]: {
-    name: "Token 2",
-    symbol: "USDC",
-    address: ZERO_ADDRESS,
+    name: "USDT0",
+    symbol: "USDT0",
+    address: "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
     decimals: 6,
   },
 };
@@ -128,9 +128,27 @@ export const USDC: Record<SUPPORTED_CHAINS, Token> = {
     decimals: 6,
   },
   [megaETH.id]: {
-    name: "USD Coin",
+    name: "Mock USD Coin",
     symbol: "USDC",
-    address: "0xe6199c7f1843c05241be5d98d632967a7436996c",
+    address: "0xb3FD5bF1590d653b14159bD848E5536f8Fe2d941",
+    decimals: 6,
+  },
+};
+
+export const USDM: Partial<Record<SUPPORTED_CHAINS, Token>> = {
+  [megaETH.id]: {
+    name: "USDm",
+    symbol: "USDm",
+    address: "0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7",
+    decimals: 18,
+  },
+};
+
+export const USDT0: Partial<Record<SUPPORTED_CHAINS, Token>> = {
+  [megaETH.id]: {
+    name: "USDT0",
+    symbol: "USDT0",
+    address: "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
     decimals: 6,
   },
 };
@@ -139,14 +157,14 @@ export const OPTION_MARKET_VAULT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
   [megaETHTestnet.id]: "0xB583C8d8218BfFE30bd45DB9F0E19a944Cb1deBd",
   [arbitrum.id]: "0xd07280a68bd53b83b6b25861016bed637b3024ed",
-  [megaETH.id]: "0x7F2D7F8B0bf8868dde1F4733E11482b2a22Be6Bd".toLowerCase() as `0x${string}`,
+  [megaETH.id]: "0x1b24F86AB31C999f417222781b96A9e2EFeB80a7",
 };
 
 export const LIMIT_ORDER_PROTOCOL: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
   [megaETHTestnet.id]: "0xa0b7722c3F6c64010eEF97F045e1aA9126cC3e62",
   [arbitrum.id]: "0x8e25cc9aed1131c54b176ef2f0a3a5593db1554b",
-  [megaETH.id]: "0x2641Bd40e1F6ecF9ACea0CEd5ff8886FEc7A88A3".toLowerCase() as `0x${string}`,
+  [megaETH.id]: "0xCf24f40D2dd88084e9C28FE34Ba9E24AFDACb7C2",
 };
 
 export const COLLATERAL_TOKEN_FACTORY: Record<SUPPORTED_CHAINS, `0x${string}`> =
@@ -178,14 +196,14 @@ export const OPTION_MARKET: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
   [megaETHTestnet.id]: "0xB583C8d8218BfFE30bd45DB9F0E19a944Cb1deBd",
   [arbitrum.id]: "0xd07280a68bd53b83b6b25861016bed637b3024ed",
-  [megaETH.id]: "0xca98da1cb523dbff9234145eca1158110ddd40dc",
+  [megaETH.id]: "0x1b24F86AB31C999f417222781b96A9e2EFeB80a7",
 };
 
 export const ERC6909_PROXY: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690",
   [megaETHTestnet.id]: "0xC7B997B7a113108dA08562Fe1Bc87BF1bF3424B2",
   [arbitrum.id]: "0x7ddb3df04ac685e2f1da6fd638403e531682eb65",
-  [megaETH.id]: "0xCe84c6139665e6ba1Ad274D486C2C557199C360F".toLowerCase() as `0x${string}`,
+  [megaETH.id]: "0xEE7f074Af2A7EbE27475b12A758e60C73504B576",
 };
 
 export const ENTRY_POINT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
@@ -206,5 +224,37 @@ export const SIMPLE_ACCOUNT_FACTORY: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
   [megaETHTestnet.id]: "0xca98DA1cB523DBff9234145ecA1158110dDd40dC",
   [arbitrum.id]: "0x70c5b7D839f85a1D84c8E77BF0E6104617Da4f34",
-  [megaETH.id]: "0x660091e2e131550552a6aCb7E0FbcF14AcBD0339",
+  [megaETH.id]: "0x3569aea2de7099E0EeEcd6936850DB390FFFbA5F",
+};
+
+export const OPTION_MARKET_VAULT_OWNER: Partial<Record<
+  SUPPORTED_CHAINS,
+  `0x${string}`
+>> = {
+  [megaETH.id]: "0xE0D8dF790b2c2522b05b4bF2b6fFF38423DF1B3e",
+};
+
+export const OPTION_MARKET_VAULT_KEEPER: Partial<Record<
+  SUPPORTED_CHAINS,
+  `0x${string}`
+>> = {
+  [megaETH.id]: "0x0d6D72Bd9F436D24b9b11F21A929C6AAa8075611",
+};
+
+export const LIMIT_ORDER_PROTOCOL_MULTICALL: Partial<Record<
+  SUPPORTED_CHAINS,
+  `0x${string}`
+>> = {
+  [megaETH.id]: "0xa1B7bCb613F3644d1c369250Cb33D6ee0A19e2cE",
+};
+
+export const FEE_REGISTRY: Partial<Record<SUPPORTED_CHAINS, `0x${string}`>> = {
+  [megaETH.id]: "0x7767047E9d7591d4F611Cdb36D35e885bDac30be",
+};
+
+export const ERC_TOKENS_RESTRICTION_MODULE: Partial<Record<
+  SUPPORTED_CHAINS,
+  `0x${string}`
+>> = {
+  [megaETH.id]: "0xa4f0c83Ddc6b86513ab9Fd7115F20498AeD24FC0",
 };
