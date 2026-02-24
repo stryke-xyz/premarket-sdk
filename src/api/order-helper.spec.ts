@@ -98,7 +98,7 @@ describe("OrderHelper fee-aware order building", () => {
     expect(decoded.customData).toBe("0x");
   });
 
-  it("buildBuyOptionsOrder encodes fee id into suffix and customData", () => {
+  it("buildBuyOptionsOrder encodes fee id into suffix and customData (first 32 bytes feeId, second 32 bytes marketId)", () => {
     const helper = new OrderHelper({
       chainId: 4326,
       optionMarketVaultAddress: VAULT_ADDRESS,
@@ -111,6 +111,7 @@ describe("OrderHelper fee-aware order building", () => {
       optionAmount: "1000000000000000000",
       stableAmount: "5000000",
       optionTokenId: OPTION_TOKEN_ID,
+      marketId: "1",
       feeId: FEE_ID,
     });
 
@@ -121,7 +122,9 @@ describe("OrderHelper fee-aware order building", () => {
     expect(suffix.offset).toBe(192n);
     expect(suffix.length).toBe(32n);
     expect(suffix.id).toBe(FEE_ID);
-    expect(decoded.customData).toBe(FEE_ID);
+    expect(decoded.customData.length).toBe(130);
+    expect(decoded.customData.slice(0, 66)).toBe(FEE_ID);
+    expect(decoded.customData.slice(66)).toBe("0x0000000000000000000000000000000000000000000000000000000000000031");
   });
 
   it("supports deprecated optionTokenFactoryAddress config as fallback", () => {

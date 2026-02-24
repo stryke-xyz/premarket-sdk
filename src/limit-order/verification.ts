@@ -110,8 +110,12 @@ export function validateExtension(
   if (extension.postInteraction !== "0x") {
     throw new Error("Invalid extension: postInteraction must be empty");
   }
-  if (extension.customData !== "0x" && extension.customData.length !== 66) {
-    throw new Error("Invalid extension: customData must be empty or bytes32");
+  if (
+    extension.customData !== "0x" &&
+    extension.customData.length !== 66 &&
+    extension.customData.length !== 130
+  ) {
+    throw new Error("Invalid extension: customData must be empty, bytes32, or 64 bytes (feeId + marketId)");
   }
 
   const hasMakerSuffix = extension.makerAssetSuffix !== "0x";

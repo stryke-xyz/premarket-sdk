@@ -1,4 +1,4 @@
-import { pad, toHex, type Address, type Hex, type WalletClient } from "viem";
+import { pad, toHex, concat, type Address, type Hex, type WalletClient } from "viem";
 import { LimitOrder, MakerTraits, ExtensionBuilder } from "../limit-order";
 import { Address as OneInchAddress } from "../address";
 import { randBigInt } from "../utils/rand-bigint";
@@ -9,6 +9,27 @@ const ZERO_BYTES32 = `0x${"0".repeat(64)}` as const;
 
 function hasFeeId(feeId?: Hex): boolean {
   return Boolean(feeId && feeId !== ZERO_BYTES32);
+}
+
+/** Encode a string (max 32 bytes UTF-8) as 32 bytes with the string at the end (right-padded). */
+function encodeMarketIdBytes32(marketId: string): Hex {
+  const utf8 = new TextEncoder().encode(marketId);
+  if (utf8.length > 32) throw new Error("marketId must be at most 32 bytes");
+  const padded = new Uint8Array(32);
+  padded.set(utf8, 32 - utf8.length);
+  return (`0x${Array.from(padded)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")}`) as Hex;
+}
+
+/** Custom data: first 32 bytes = feeId (or zeros), second 32 bytes = marketId string (or zeros). */
+function buildCustomData(feeId?: Hex, marketId?: string): Hex {
+  const first = hasFeeId(feeId) ? pad(feeId as Hex, { size: 32 }) : ZERO_BYTES32;
+  const second =
+    marketId != null && marketId !== ""
+      ? encodeMarketIdBytes32(marketId)
+      : ZERO_BYTES32;
+  return concat([first, second]);
 }
 
 export class OrderHelper {
@@ -28,6 +49,7 @@ export class OrderHelper {
     makingAmount: bigint;
     takingAmount: bigint;
     feeId?: Hex;
+    marketId?: string;
     expiresAt?: bigint; // Optional expiration timestamp in seconds
   }): {
     order: LimitOrder;
@@ -40,10 +62,12 @@ export class OrderHelper {
       .allowPartialFills()
       .allowMultipleFills()
 
+    const hasMarketId = params.marketId != null && params.marketId !== "";
     let extensionEncoded = "0";
     let extension = undefined;
-    if (hasFeeId(params.feeId)) {
-      const extensionBuilder = new ExtensionBuilder().withCustomData(params.feeId as Hex);
+    if (hasFeeId(params.feeId) || hasMarketId) {
+      const customData = buildCustomData(params.feeId, params.marketId ?? "");
+      const extensionBuilder = new ExtensionBuilder().withCustomData(customData);
       extension = extensionBuilder.build();
       extensionEncoded = extension.encode();
       makerTraits.withExtension();
@@ -83,6 +107,7 @@ export class OrderHelper {
     stableAmount: string;
     optionTokenId: Hex;
     feeId?: Hex;
+    marketId?: string;
     expiresAt?: bigint; // Optional expiration timestamp in seconds
   }): {
     order: LimitOrder;
@@ -100,9 +125,7 @@ export class OrderHelper {
     const makerAssetSuffix = buildMakerAssetSuffix(vaultAddress, params.optionTokenId, params.feeId);
 
     const extensionBuilder = new ExtensionBuilder().withMakerAssetSuffix(makerAssetSuffix);
-    if (hasFeeId(params.feeId)) {
-      extensionBuilder.withCustomData(params.feeId as Hex);
-    }
+    extensionBuilder.withCustomData(buildCustomData(params.feeId, params.marketId ?? ""));
     const extension = extensionBuilder.build();
 
     const makerTraits = MakerTraits.default()
@@ -148,6 +171,7 @@ export class OrderHelper {
     optionAmount: string;
     stableAmount: string;
     optionTokenId: Hex;
+    marketId: string;
     feeId?: Hex;
     expiresAt?: bigint; // Optional expiration timestamp in seconds
   }): {
@@ -166,9 +190,7 @@ export class OrderHelper {
     const takerAssetSuffix = buildMakerAssetSuffix(vaultAddress, params.optionTokenId, params.feeId);
 
     const extensionBuilder = new ExtensionBuilder().withTakerAssetSuffix(takerAssetSuffix);
-    if (hasFeeId(params.feeId)) {
-      extensionBuilder.withCustomData(params.feeId as Hex);
-    }
+    extensionBuilder.withCustomData(buildCustomData(params.feeId, params.marketId));
     const extension = extensionBuilder.build();
 
     const makerTraits = MakerTraits.default()

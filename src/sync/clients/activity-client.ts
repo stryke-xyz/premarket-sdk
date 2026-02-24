@@ -51,6 +51,8 @@ export class ActivitySyncClient {
   private status: SyncStatus = "disconnected";
 
   private fillListeners: Set<(event: OrderFillEvent) => void> = new Set();
+  private userFillListeners: Set<(event: OrderFillEvent) => void> = new Set();
+  private marketFillListeners: Set<(event: OrderFillEvent) => void> = new Set();
   private statusListeners: Set<(status: SyncStatus) => void> = new Set();
 
   private shouldBeConnected = false;
@@ -147,8 +149,11 @@ export class ActivitySyncClient {
 
           // Accept fill events (no seq/gap checks)
           // "order_fill" comes from orders_matched:{marketId} channel
-          // "fill" comes from user:{address} channel
+          // "fill" comes from user_info:{address} channel
           if (msg.type === "order_fill" || msg.type === "fill") {
+            const isFromUserChannel = msg.type === "fill";
+            const isFromMarketChannel = msg.type === "order_fill";
+            
             const fill: OrderFillEvent = {
               type: "order_fill",
               marketId: msg.marketId ?? null,
@@ -164,6 +169,8 @@ export class ActivitySyncClient {
               blockNumber: msg.blockNumber ?? null,
               timestamp: msg.timestamp ?? null,
             };
+            
+            // Notify generic fill listeners (all events)
             this.fillListeners.forEach((listener) => {
               try {
                 listener(fill);
@@ -171,6 +178,28 @@ export class ActivitySyncClient {
                 console.error("Error in fill listener:", e);
               }
             });
+            
+            // Notify user-specific listeners (only events from user_info channel)
+            if (isFromUserChannel) {
+              this.userFillListeners.forEach((listener) => {
+                try {
+                  listener(fill);
+                } catch (e) {
+                  console.error("Error in user fill listener:", e);
+                }
+              });
+            }
+            
+            // Notify market-specific listeners (only events from orders_matched channel)
+            if (isFromMarketChannel) {
+              this.marketFillListeners.forEach((listener) => {
+                try {
+                  listener(fill);
+                } catch (e) {
+                  console.error("Error in market fill listener:", e);
+                }
+              });
+            }
           }
         } catch (e) {
           console.error("Error parsing activity message:", e);
@@ -319,6 +348,18 @@ export class ActivitySyncClient {
   onOrderFill(callback: (event: OrderFillEvent) => void): () => void {
     this.fillListeners.add(callback);
     return () => this.fillListeners.delete(callback);
+  }
+
+  /** Subscribe to fills from user_info channel only (user's orders being filled) */
+  onUserFill(callback: (event: OrderFillEvent) => void): () => void {
+    this.userFillListeners.add(callback);
+    return () => this.userFillListeners.delete(callback);
+  }
+
+  /** Subscribe to fills from orders_matched channel only (market activity) */
+  onMarketFill(callback: (event: OrderFillEvent) => void): () => void {
+    this.marketFillListeners.add(callback);
+    return () => this.marketFillListeners.delete(callback);
   }
 
   async disconnect(): Promise<void> {
