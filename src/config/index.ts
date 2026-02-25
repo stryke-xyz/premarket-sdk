@@ -224,7 +224,7 @@ export const SIMPLE_ACCOUNT_FACTORY: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
   [megaETHTestnet.id]: "0xca98DA1cB523DBff9234145ecA1158110dDd40dC",
   [arbitrum.id]: "0x70c5b7D839f85a1D84c8E77BF0E6104617Da4f34",
-  [megaETH.id]: "0x2934fbf21906719B24ba26aE62FA3fBD68a16CB3",
+  [megaETH.id]: "0x2934fbf21906719B24ba26aE62FA3fBD68a16CB3"
 };
 
 export const OPTION_MARKET_VAULT_OWNER: Partial<Record<
