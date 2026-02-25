@@ -124,24 +124,11 @@ Types: `CreateOrderParams`, `StoredOrder`, `Order`, `OrderSignature`, `Option` a
 
 ## 4. Smart account and vault (mint, withdraw, redeem)
 
-**Smart account** (factory with `getAddress(owner, depositor, salt)` and `accountCount(owner)`):
+**Smart account** – Factory has `getAddress(owner, depositor, salt)` and `accountCount(owner)`. Owner = signer (e.g. sub-key); depositor = EOA.
 
-```ts
-import {
-  SmartAccountHelper,
-  getCurrentSmartAccount,
-  SIMPLE_ACCOUNT_FACTORY,
-} from "@premarket/sdk";
+**Frontend pattern (single account, salt 0):** Use `getAddress(owner, depositor, 0n)`, then check deployed via `getCode` (deployed when code is non-empty). Deploy with `createAccount(owner, 0n)`.
 
-const factoryAddress = SIMPLE_ACCOUNT_FACTORY[chainId];
-const helper = new SmartAccountHelper({ factoryAddress });
-const { address, salt, deployed } = await helper.getCurrent(
-  publicClient,
-  owner,
-  depositor,
-);
-// or: getCurrentSmartAccount(publicClient, factoryAddress, owner, depositor);
-```
+**SDK pattern:** `getCurrentSmartAccount(publicClient, factoryAddress, owner, depositor)` or `SmartAccountHelper` – same address as frontend when 0 or 1 account (salt 0). `isSmartAccountDeployed(client, address)` for strict deployed check.
 
 **Vault transactions** (OptionMarketVault mint / withdraw / redeem / unwind):
 
@@ -163,11 +150,11 @@ const mintTx = buildMintTransaction(
 );
 
 // Unwind (before expiry) or withdraw (after settlement)
-const withdrawTx = buildWithdrawTransaction(vaultAddress, prmTokenId);
-// or buildUnwindTransaction(vaultAddress, prmTokenId);
+const withdrawTx = buildWithdrawTransaction(vaultAddress, prmTokenId, amount, receiverAddress);
+// or buildUnwindTransaction(vaultAddress, prmTokenId, amount, receiverAddress);
 
 // Redeem oPRM after expiry to claim profit
-const redeemTx = buildRedeemTransaction(vaultAddress, oPrmTokenId);
+const redeemTx = buildRedeemTransaction(vaultAddress, oPrmTokenId, receiverAddress);
 
 // Approve + mint in one batch (e.g. for a single UserOp)
 const batch = buildBatchedMintTransactions(

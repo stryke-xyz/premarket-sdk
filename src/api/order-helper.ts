@@ -37,8 +37,6 @@ export class OrderHelper {
     private config: {
       chainId: number;
       optionMarketVaultAddress?: Address;
-      /** @deprecated Use optionMarketVaultAddress */
-      optionTokenFactoryAddress?: Address;
     }
   ) { }
 
@@ -117,7 +115,7 @@ export class OrderHelper {
   } {
 
     const vaultAddress =
-      this.config.optionMarketVaultAddress || this.config.optionTokenFactoryAddress;
+      this.config.optionMarketVaultAddress;
     if (!vaultAddress) {
       throw new Error("OrderHelper requires optionMarketVaultAddress");
     }
@@ -183,7 +181,7 @@ export class OrderHelper {
 
     // For buy orders, the taker asset is ERC6909 options, so we use takerAssetSuffix
     const vaultAddress =
-      this.config.optionMarketVaultAddress || this.config.optionTokenFactoryAddress;
+      this.config.optionMarketVaultAddress;
     if (!vaultAddress) {
       throw new Error("OrderHelper requires optionMarketVaultAddress");
     }

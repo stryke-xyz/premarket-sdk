@@ -2,20 +2,14 @@
  * OptionMarketVault transaction builders: mint (deposit), withdraw, redeem, unwind.
  * Use these to build calldata for sponsored txs or direct sends.
  */
-
-import { encodeFunctionData, maxUint256, parseAbi, type Hex } from "viem";
-import type { VaultInstrument } from "./types.js";
+import { encodeFunctionData, erc20Abi, maxUint256, parseAbi, type Address, type Hex } from "viem";
+import { VaultInstrument } from "./types";
 
 const optionMarketVaultAbi = parseAbi([
   "function mint((uint256 marketId, uint256 tick, bool isCall) ins, uint256 amt) external returns (uint256 prmTokenId, uint256 oPrmTokenId)",
-  "function withdraw(uint256 prmTokenId) external",
-  "function redeem(uint256 oPrmTokenId) external returns (uint256 profit)",
+  "function withdraw(uint256 prmTokenId, uint256 amount, address rec) external",
+  "function redeem(uint256 oPrmTokenId, address rec) external returns (uint256 profit)",
 ]);
-
-const erc20Abi = parseAbi([
-  "function approve(address spender, uint256 amount) external returns (bool)",
-]);
-
 export interface TransactionCall {
   to: `0x${string}`;
   value?: bigint;
@@ -54,21 +48,24 @@ export function buildMintTransaction(
  * Build a withdraw transaction (unwind or post-settlement).
  * Before expiry: unwind (burns PRM + oPRM, returns collateral).
  * After expiry: settle and return collateral minus loss.
- * Uses the 1-arg overload: withdraw(prmTokenId).
  *
  * @param vaultAddress - OptionMarketVault contract address
  * @param prmTokenId - PRM token id (even number)
+ * @param amount - Amount to withdraw/unwind (in vault token precision, 1e18)
+ * @param receiver - Address to receive collateral
  */
 export function buildWithdrawTransaction(
   vaultAddress: `0x${string}`,
-  prmTokenId: bigint
+  prmTokenId: bigint,
+  amount: bigint,
+  receiver: Address
 ): TransactionCall {
   return {
     to: vaultAddress,
     data: encodeFunctionData({
       abi: optionMarketVaultAbi,
       functionName: "withdraw",
-      args: [prmTokenId],
+      args: [prmTokenId, amount, receiver],
     }),
   };
 }
@@ -78,17 +75,19 @@ export function buildWithdrawTransaction(
  *
  * @param vaultAddress - OptionMarketVault contract address
  * @param oPrmTokenId - Option PRM token id (odd number)
+ * @param receiver - Address to receive profit
  */
 export function buildRedeemTransaction(
   vaultAddress: `0x${string}`,
-  oPrmTokenId: bigint
+  oPrmTokenId: bigint,
+  receiver: Address
 ): TransactionCall {
   return {
     to: vaultAddress,
     data: encodeFunctionData({
       abi: optionMarketVaultAbi,
       functionName: "redeem",
-      args: [oPrmTokenId],
+      args: [oPrmTokenId, receiver],
     }),
   };
 }
@@ -96,12 +95,19 @@ export function buildRedeemTransaction(
 /**
  * Build an unwind transaction (alias for withdraw).
  * Burns both PRM and oPRM to reclaim collateral before expiry.
+ *
+ * @param vaultAddress - OptionMarketVault contract address
+ * @param prmTokenId - PRM token id (even number)
+ * @param amount - Amount to unwind (in vault token precision, 1e18)
+ * @param receiver - Address to receive collateral
  */
 export function buildUnwindTransaction(
   vaultAddress: `0x${string}`,
-  prmTokenId: bigint
+  prmTokenId: bigint,
+  amount: bigint,
+  receiver: Address
 ): TransactionCall {
-  return buildWithdrawTransaction(vaultAddress, prmTokenId);
+  return buildWithdrawTransaction(vaultAddress, prmTokenId, amount, receiver);
 }
 
 /**
