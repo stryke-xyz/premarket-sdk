@@ -1,4 +1,4 @@
-import {randomBytes} from 'ethers'
+import { randomBytes } from "node:crypto";
 
 export function randBigInt(max: number | bigint): bigint {
     let bytesCount = 0

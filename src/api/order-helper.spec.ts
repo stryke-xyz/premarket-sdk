@@ -1,150 +1,80 @@
 import { OrderHelper } from "./order-helper.js";
-import { Extension } from "../limit-order/extensions/extension.js";
+import { SignatureType, TradeType } from "../exchange/index.js";
 
-const VAULT_ADDRESS = "0x1111111111111111111111111111111111111111" as const;
+const EXCHANGE_ADDRESS = "0x1111111111111111111111111111111111111111" as const;
 const MAKER_ADDRESS = "0x2222222222222222222222222222222222222222" as const;
-const MAKER_PROXY_ADDRESS = "0x3333333333333333333333333333333333333333" as const;
-const STABLE_TOKEN = "0x4444444444444444444444444444444444444444" as const;
-const BUY_TOKEN = "0x5555555555555555555555555555555555555555" as const;
-const SELL_TOKEN = "0x6666666666666666666666666666666666666666" as const;
-const OPTION_TOKEN_ID =
-  "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" as const;
-const FEE_ID =
-  "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" as const;
 
-function hasBit(value: bigint, bit: bigint): boolean {
-  return (value & (1n << bit)) !== 0n;
-}
-
-function decodeSuffixMeta(suffix: string): {
-  token: string;
-  tokenId: string;
-  offset: bigint;
-  length: bigint;
-  id: string;
-} {
-  const data = suffix.slice(2);
-  const token = `0x${data.slice(24, 64)}`;
-  const tokenId = `0x${data.slice(64, 128)}`;
-  const offset = BigInt(`0x${data.slice(128, 192)}`);
-  const length = BigInt(`0x${data.slice(192, 256)}`);
-  const id = data.length >= 320 ? `0x${data.slice(256, 320)}` : "0x";
-
-  return { token, tokenId, offset, length, id };
-}
-
-describe("OrderHelper fee-aware order building", () => {
-  it("buildERC20Order keeps extension empty when feeId is not provided", () => {
+describe("OrderHelper (Exchange)", () => {
+  it("builds a SELL order with default receiver and signature type", () => {
     const helper = new OrderHelper({
       chainId: 4326,
-      optionMarketVaultAddress: VAULT_ADDRESS,
+      exchangeAddress: EXCHANGE_ADDRESS,
     });
 
-    const { order, extensionEncoded } = helper.buildERC20Order({
+    const order = helper.buildSellOrder({
       maker: MAKER_ADDRESS,
-      buyingToken: BUY_TOKEN,
-      sellingToken: SELL_TOKEN,
+      marketId: 1n,
       makingAmount: 10n,
       takingAmount: 20n,
+      tokenId: 100n,
+      nonce: 5n,
+      deadline: 1_900_000_000n,
     });
 
-    const orderStruct = order.build();
-    expect(extensionEncoded).toBe("0");
-    expect(hasBit(BigInt(orderStruct.makerTraits), 249n)).toBe(false);
+    expect(order.maker).toBe(MAKER_ADDRESS);
+    expect(order.receiver).toBe(MAKER_ADDRESS);
+    expect(order.tradeType).toBe(TradeType.SELL);
+    expect(order.signatureType).toBe(SignatureType.EIP712);
   });
 
-  it("buildERC20Order attaches customData and extension flag when feeId is provided", () => {
+  it("builds a BUY order with explicit receiver", () => {
     const helper = new OrderHelper({
       chainId: 4326,
-      optionMarketVaultAddress: VAULT_ADDRESS,
+      exchangeAddress: EXCHANGE_ADDRESS,
     });
+    const receiver = "0x3333333333333333333333333333333333333333" as const;
 
-    const { order, extensionEncoded } = helper.buildERC20Order({
+    const order = helper.buildBuyOrder({
       maker: MAKER_ADDRESS,
-      buyingToken: BUY_TOKEN,
-      sellingToken: SELL_TOKEN,
-      makingAmount: 10n,
-      takingAmount: 20n,
-      feeId: FEE_ID,
+      receiver,
+      marketId: 2n,
+      makingAmount: 30n,
+      takingAmount: 40n,
+      tokenId: 200n,
+      nonce: 6n,
+      deadline: 1_900_000_010n,
+      signatureType: SignatureType.ERC1271,
     });
 
-    const decoded = Extension.decode(extensionEncoded);
-    const orderStruct = order.build();
-    expect(decoded.customData).toBe(FEE_ID);
-    expect(hasBit(BigInt(orderStruct.makerTraits), 249n)).toBe(true);
+    expect(order.receiver).toBe(receiver);
+    expect(order.tradeType).toBe(TradeType.BUY);
+    expect(order.signatureType).toBe(SignatureType.ERC1271);
   });
 
-  it("buildSellOptionsOrder encodes vault/token suffix without fee id by default", () => {
+  it("serializes and hashes orders deterministically", () => {
     const helper = new OrderHelper({
       chainId: 4326,
-      optionMarketVaultAddress: VAULT_ADDRESS,
+      exchangeAddress: EXCHANGE_ADDRESS,
     });
 
-    const { extensionEncoded } = helper.buildSellOptionsOrder({
+    const order = helper.buildOrder({
       maker: MAKER_ADDRESS,
-      makerProxyAddress: MAKER_PROXY_ADDRESS,
-      stableToken: STABLE_TOKEN,
-      optionAmount: "1000000000000000000",
-      stableAmount: "5000000",
-      optionTokenId: OPTION_TOKEN_ID,
+      receiver: MAKER_ADDRESS,
+      marketId: 3n,
+      makingAmount: 50n,
+      takingAmount: 75n,
+      tokenId: 300n,
+      nonce: 7n,
+      deadline: 1_900_000_020n,
+      tradeType: TradeType.SELL,
+      salt: 123n,
     });
 
-    const decoded = Extension.decode(extensionEncoded);
-    const suffix = decodeSuffixMeta(decoded.makerAssetSuffix);
-    expect(suffix.token).toBe(VAULT_ADDRESS);
-    expect(suffix.tokenId).toBe(OPTION_TOKEN_ID);
-    expect(suffix.offset).toBe(192n);
-    expect(suffix.length).toBe(0n);
-    expect(decoded.customData).toBe("0x");
-  });
+    const serialized = helper.serializeOrder(order);
+    const hash = helper.hashOrder(order);
 
-  it("buildBuyOptionsOrder encodes fee id into suffix and customData (first 32 bytes feeId, second 32 bytes marketId)", () => {
-    const helper = new OrderHelper({
-      chainId: 4326,
-      optionMarketVaultAddress: VAULT_ADDRESS,
-    });
-
-    const { extensionEncoded } = helper.buildBuyOptionsOrder({
-      maker: MAKER_ADDRESS,
-      makerProxyAddress: MAKER_PROXY_ADDRESS,
-      stableToken: STABLE_TOKEN,
-      optionAmount: "1000000000000000000",
-      stableAmount: "5000000",
-      optionTokenId: OPTION_TOKEN_ID,
-      marketId: "1",
-      feeId: FEE_ID,
-    });
-
-    const decoded = Extension.decode(extensionEncoded);
-    const suffix = decodeSuffixMeta(decoded.takerAssetSuffix);
-    expect(suffix.token).toBe(VAULT_ADDRESS);
-    expect(suffix.tokenId).toBe(OPTION_TOKEN_ID);
-    expect(suffix.offset).toBe(192n);
-    expect(suffix.length).toBe(32n);
-    expect(suffix.id).toBe(FEE_ID);
-    expect(decoded.customData.length).toBe(130);
-    expect(decoded.customData.slice(0, 66)).toBe(FEE_ID);
-    expect(decoded.customData.slice(66)).toBe("0x0000000000000000000000000000000000000000000000000000000000000031");
-  });
-
-  it("supports deprecated optionTokenFactoryAddress config as fallback", () => {
-    const helper = new OrderHelper({
-      chainId: 4326,
-      optionTokenFactoryAddress: VAULT_ADDRESS,
-    });
-
-    const { extensionEncoded } = helper.buildSellOptionsOrder({
-      maker: MAKER_ADDRESS,
-      makerProxyAddress: MAKER_PROXY_ADDRESS,
-      stableToken: STABLE_TOKEN,
-      optionAmount: "1000000000000000000",
-      stableAmount: "5000000",
-      optionTokenId: OPTION_TOKEN_ID,
-    });
-
-    const decoded = Extension.decode(extensionEncoded);
-    const suffix = decodeSuffixMeta(decoded.makerAssetSuffix);
-    expect(suffix.token).toBe(VAULT_ADDRESS);
+    expect(serialized.salt).toBe("123");
+    expect(serialized.tradeType).toBe(TradeType.SELL);
+    expect(hash).toMatch(/^0x[0-9a-f]{64}$/);
   });
 });
-

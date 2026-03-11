@@ -103,7 +103,7 @@ export async function getCurrentSmartAccount(
  * Helper class that holds config and exposes the same methods.
  */
 export class SmartAccountHelper {
-  constructor(public config: SmartAccountConfig) {}
+  constructor(public config: SmartAccountConfig) { }
 
   get factoryAddress(): `0x${string}` {
     return this.config.factoryAddress;

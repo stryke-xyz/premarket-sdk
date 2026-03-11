@@ -1,0 +1,82 @@
+import type { Address } from "viem";
+
+export enum MarketType {
+  ERC20xERC20 = 0,
+  ERC20xERC6909 = 1,
+}
+
+export interface RegistryMarket {
+  underlying: Address;
+  collateral: Address;
+  delivery: Address;
+  owner: Address;
+  tickSize: bigint;
+  tickSpacing: bigint;
+  tokensPerTickSize: bigint;
+  expiry: bigint;
+  depositFeeBps: bigint;
+  redeemFeeBps: bigint;
+  makerFeeBps: bigint;
+  takerFeeBps: bigint;
+  marketType: MarketType;
+  isCollateralScaled: boolean;
+}
+
+export interface SerializedRegistryMarket {
+  underlying: Address;
+  collateral: Address;
+  delivery: Address;
+  owner: Address;
+  tickSize: string;
+  tickSpacing: string;
+  tokensPerTickSize: string;
+  expiry: string;
+  depositFeeBps: string;
+  redeemFeeBps: string;
+  makerFeeBps: string;
+  takerFeeBps: string;
+  marketType: number;
+  isCollateralScaled: boolean;
+}
+
+export function serializeRegistryMarket(
+  market: RegistryMarket
+): SerializedRegistryMarket {
+  return {
+    underlying: market.underlying,
+    collateral: market.collateral,
+    delivery: market.delivery,
+    owner: market.owner,
+    tickSize: market.tickSize.toString(),
+    tickSpacing: market.tickSpacing.toString(),
+    tokensPerTickSize: market.tokensPerTickSize.toString(),
+    expiry: market.expiry.toString(),
+    depositFeeBps: market.depositFeeBps.toString(),
+    redeemFeeBps: market.redeemFeeBps.toString(),
+    makerFeeBps: market.makerFeeBps.toString(),
+    takerFeeBps: market.takerFeeBps.toString(),
+    marketType: Number(market.marketType),
+    isCollateralScaled: market.isCollateralScaled,
+  };
+}
+
+export function deserializeRegistryMarket(
+  market: SerializedRegistryMarket
+): RegistryMarket {
+  return {
+    underlying: market.underlying,
+    collateral: market.collateral,
+    delivery: market.delivery,
+    owner: market.owner,
+    tickSize: BigInt(market.tickSize),
+    tickSpacing: BigInt(market.tickSpacing),
+    tokensPerTickSize: BigInt(market.tokensPerTickSize),
+    expiry: BigInt(market.expiry),
+    depositFeeBps: BigInt(market.depositFeeBps),
+    redeemFeeBps: BigInt(market.redeemFeeBps),
+    makerFeeBps: BigInt(market.makerFeeBps),
+    takerFeeBps: BigInt(market.takerFeeBps),
+    marketType: market.marketType as MarketType,
+    isCollateralScaled: market.isCollateralScaled,
+  };
+}

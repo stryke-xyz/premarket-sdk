@@ -1,6 +1,9 @@
-import {isAddress} from 'ethers'
-import {add0x} from '@1inch/byte-utils'
+import { isAddress } from "viem";
 import assert from 'assert'
+
+function add0x(value: string): `0x${string}` {
+    return (value.startsWith("0x") ? value : `0x${value}`) as `0x${string}`
+}
 
 export class Address {
     static NATIVE_CURRENCY = new Address(

@@ -9,6 +9,14 @@ const optionMarketVaultAbi = parseAbi([
   "function mint((uint256 marketId, uint256 tick, bool isCall) ins, uint256 amt) external returns (uint256 prmTokenId, uint256 oPrmTokenId)",
   "function withdraw(uint256 prmTokenId, uint256 amount, address rec) external",
   "function redeem(uint256 oPrmTokenId, address rec) external returns (uint256 profit)",
+  "function delegateRedeem(uint256 oPrmTokenId, address rec) external returns (uint256 profit)",
+  "function delegateWithdraw(uint256 prmTokenId, uint256 amount, address owner, address rec) external",
+  "function fillMarketDelivery(uint256 marketId, uint256 amount) external",
+  "function setOperator(address operator, bool approved) external returns (bool)",
+  "function setRole(address addr, uint8 role, bool enabled) external",
+  "function setExerciseWindow(uint256 window) external",
+  "function updateFinalTick(uint256 marketId, uint256 tick) external",
+  "function updateMarketExpiry(uint256 marketId, uint256 expiry) external",
 ]);
 export interface TransactionCall {
   to: `0x${string}`;
@@ -93,6 +101,24 @@ export function buildRedeemTransaction(
 }
 
 /**
+ * Build a delegated redeem transaction. Callable only by RedeemKeeper role.
+ */
+export function buildDelegateRedeemTransaction(
+  vaultAddress: `0x${string}`,
+  oPrmTokenId: bigint,
+  receiver: Address
+): TransactionCall {
+  return {
+    to: vaultAddress,
+    data: encodeFunctionData({
+      abi: optionMarketVaultAbi,
+      functionName: "delegateRedeem",
+      args: [oPrmTokenId, receiver],
+    }),
+  };
+}
+
+/**
  * Build an unwind transaction (alias for withdraw).
  * Burns both PRM and oPRM to reclaim collateral before expiry.
  *
@@ -108,6 +134,134 @@ export function buildUnwindTransaction(
   receiver: Address
 ): TransactionCall {
   return buildWithdrawTransaction(vaultAddress, prmTokenId, amount, receiver);
+}
+
+/**
+ * Build a delegated withdraw transaction. Callable only by WithdrawKeeper role.
+ */
+export function buildDelegateWithdrawTransaction(
+  vaultAddress: `0x${string}`,
+  prmTokenId: bigint,
+  amount: bigint,
+  owner: Address,
+  receiver: Address
+): TransactionCall {
+  return {
+    to: vaultAddress,
+    data: encodeFunctionData({
+      abi: optionMarketVaultAbi,
+      functionName: "delegateWithdraw",
+      args: [prmTokenId, amount, owner, receiver],
+    }),
+  };
+}
+
+/**
+ * Build market delivery funding transaction for physical settlement markets.
+ */
+export function buildFillMarketDeliveryTransaction(
+  vaultAddress: `0x${string}`,
+  marketId: bigint,
+  amount: bigint
+): TransactionCall {
+  return {
+    to: vaultAddress,
+    data: encodeFunctionData({
+      abi: optionMarketVaultAbi,
+      functionName: "fillMarketDelivery",
+      args: [marketId, amount],
+    }),
+  };
+}
+
+/**
+ * Build operator approval transaction for ERC6909 delegated transfers.
+ */
+export function buildSetOperatorTransaction(
+  vaultAddress: `0x${string}`,
+  operator: Address,
+  approved: boolean
+): TransactionCall {
+  return {
+    to: vaultAddress,
+    data: encodeFunctionData({
+      abi: optionMarketVaultAbi,
+      functionName: "setOperator",
+      args: [operator, approved],
+    }),
+  };
+}
+
+/**
+ * Build role update transaction (owner only).
+ */
+export function buildSetRoleTransaction(
+  vaultAddress: `0x${string}`,
+  account: Address,
+  role: number,
+  enabled: boolean
+): TransactionCall {
+  return {
+    to: vaultAddress,
+    data: encodeFunctionData({
+      abi: optionMarketVaultAbi,
+      functionName: "setRole",
+      args: [account, role, enabled],
+    }),
+  };
+}
+
+/**
+ * Build exercise window update transaction (owner only).
+ */
+export function buildSetExerciseWindowTransaction(
+  vaultAddress: `0x${string}`,
+  window: bigint
+): TransactionCall {
+  return {
+    to: vaultAddress,
+    data: encodeFunctionData({
+      abi: optionMarketVaultAbi,
+      functionName: "setExerciseWindow",
+      args: [window],
+    }),
+  };
+}
+
+/**
+ * Build final tick update transaction (FinalTickKeeper role).
+ */
+export function buildUpdateFinalTickTransaction(
+  vaultAddress: `0x${string}`,
+  marketId: bigint,
+  tick: bigint
+): TransactionCall {
+  return {
+    to: vaultAddress,
+    data: encodeFunctionData({
+      abi: optionMarketVaultAbi,
+      functionName: "updateFinalTick",
+      args: [marketId, tick],
+    }),
+  };
+}
+
+/**
+ * Build market expiry update transaction (MarketFinalizer role).
+ */
+export function buildUpdateMarketExpiryTransaction(
+  vaultAddress: `0x${string}`,
+  marketId: bigint,
+  expiry: bigint
+): TransactionCall {
+  return {
+    to: vaultAddress,
+    data: encodeFunctionData({
+      abi: optionMarketVaultAbi,
+      functionName: "updateMarketExpiry",
+      args: [marketId, expiry],
+    }),
+  };
 }
 
 /**

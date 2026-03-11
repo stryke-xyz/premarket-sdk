@@ -167,6 +167,15 @@ export const LIMIT_ORDER_PROTOCOL: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [megaETH.id]: "0xCf24f40D2dd88084e9C28FE34Ba9E24AFDACb7C2",
 };
 
+export const EXCHANGE = LIMIT_ORDER_PROTOCOL;
+
+/**
+ * Contract addresses for MarketsRegistry.
+ * Keep as partial because deployment addresses can differ by environment.
+ */
+export const MARKETS_REGISTRY: Partial<Record<SUPPORTED_CHAINS, `0x${string}`>> =
+  {};
+
 export const COLLATERAL_TOKEN_FACTORY: Record<SUPPORTED_CHAINS, `0x${string}`> =
 {
   [hardhat.id]: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",

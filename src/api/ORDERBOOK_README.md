@@ -1,244 +1,77 @@
-# Orderbook integration
+# Orderbook integration (Exchange-based)
 
-This doc covers how to **build and sign orders** before posting them to the orderbook API. The relevant modules are:
+This SDK now targets `Exchange` + `MarketsRegistry` + `OptionMarketVault`.
 
-- **`OrderHelper`** – build limit orders (ERC20 or options) and sign them.
-- **`OrderbookApi`** – HTTP client for creating orders, querying orders, depth, and markets.
+## Core flow
 
----
+1. Build an `Exchange` order with `OrderHelper`.
+2. Sign typed data (EIP-712) with maker wallet.
+3. Submit `{ marketId, order, signature, ... }` to your orderbook API.
+4. Fill/match on-chain via `ExchangeContract` tx builders.
 
-## 1. Setting up orders before posting
-
-You must build the order, sign it, then send the serialized order + extension + signature to the API. The API does not build or sign for you.
-
-### 1.1 Create an OrderHelper
+## Build and sign
 
 ```ts
-import { OrderHelper } from "@premarket/sdk";
-import { OPTION_MARKET_VAULT } from "@premarket/sdk"; // or your chain config
+import {
+  OrderHelper,
+  TradeType,
+  SignatureType,
+} from "@premarket/sdk";
 
-const orderHelper = new OrderHelper({
+const helper = new OrderHelper({
   chainId: 4326,
-  optionMarketVaultAddress: OPTION_MARKET_VAULT[4326],
+  exchangeAddress: "0x...",
 });
-```
 
-### 1.2 Build the order (options vs ERC20)
-
-**Sell options** (maker gives options, receives stable):
-
-```ts
-const { order, extensionEncoded } = orderHelper.buildSellOptionsOrder({
-  maker: smartAccountAddress,
-  makerProxyAddress: erc6909ProxyAddress, // maker’s ERC6909 proxy
-  stableToken: usdcAddress,
-  optionAmount: "1000000000000000000", // 1e18 units
-  stableAmount: "500000", // USDC (6 decimals)
-  optionTokenId: instrument.oPrmTokenId || instrument.prmTokenId,
-  feeId: optionalFeeIdBytes32, // optional, bytes32 fee routing id
-  expiresAt: BigInt(Math.floor(Date.now() / 1000) + 86400), // optional
+const order = helper.buildOrder({
+  maker: "0xmaker...",
+  receiver: "0xreceiver...", // optional, defaults to maker
+  nonce: 12n,
+  marketId: 7n,
+  makingAmount: 1_000_000n,
+  takingAmount: 500_000n,
+  deadline: 1_900_000_000n,
+  tradeType: TradeType.SELL,
+  signatureType: SignatureType.EIP712,
+  tokenId: 123456n,
 });
+
+const signature = await helper.signOrder(order, walletClient); // 0x...
+const orderPayload = helper.serializeOrder(order);
 ```
 
-**Buy options** (maker gives stable, receives options):
-
-```ts
-const { order, extensionEncoded } = orderHelper.buildBuyOptionsOrder({
-  maker: smartAccountAddress,
-  makerProxyAddress: erc6909ProxyAddress,
-  stableToken: usdcAddress,
-  optionAmount: "1000000000000000000",
-  stableAmount: "500000",
-  optionTokenId: instrument.oPrmTokenId || instrument.prmTokenId,
-  feeId: optionalFeeIdBytes32, // optional, bytes32 fee routing id
-  expiresAt: optionalExpiresAt,
-});
-```
-
-**ERC20 (e.g. pre-TGE) orders:**
-
-```ts
-const { order, extensionEncoded } = orderHelper.buildERC20Order({
-  maker: smartAccountAddress,
-  buyingToken: tokenYouReceive,
-  sellingToken: tokenYouGive,
-  makingAmount: amountYouGive,
-  takingAmount: amountYouReceive,
-  feeId: optionalFeeIdBytes32, // optional, bytes32 fee routing id
-  expiresAt: optionalExpiresAt,
-});
-```
-
-For ERC20 orders, `extensionEncoded` is `'0'`; for options you use the value returned from the builder.
-
-### 1.3 Sign the order
-
-Sign with the smart accounts owner wallet. The signature is EIP-712 over the limit-order struct.
-
-```ts
-const signature = await orderHelper.signOrder(order, walletClient);
-// => { r: string; vs: string }
-```
-
-`walletClient` must be a viem `WalletClient` with an `account`
-
-### 1.4 Build the API payload and post
-
-The API expects the **serialized** order (string fields), not the `LimitOrder` object. Use `order.build()` for that.
+## Create API payload
 
 ```ts
 import { OrderbookApi } from "@premarket/sdk";
 
 const api = new OrderbookApi({ baseUrl: "https://..." });
 
-const createParams = {
-  marketId,
-  order: order.build(), // { salt, maker, receiver, makerAsset, takerAsset, makingAmount, takingAmount, makerTraits }
-  extensionEncoded,
-  signature,
-  operator: subKeyAddress,
-  timeInForce: "GTC", // optional: "FOK" | "FAK" | "GTC" | "GTD"
-  postOnly: false, // optional
-};
-
-const storedOrder = await api.createOrder(createParams, bearerToken);
-```
-
-Summary: **OrderHelper** (build + sign) → **order.build()** + extension + signature → **OrderbookApi.createOrder()**.
-
-## You can view the http response in our api page
-
-## 3. Quick reference
-
-| Goal                           | Use                                                                                                           |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| Build + sign order before POST | `OrderHelper` (buildSellOptionsOrder / buildBuyOptionsOrder / buildERC20Order) → signOrder → order.build()    |
-| POST order to API              | `OrderbookApi.createOrder({ marketId, order: order.build(), extensionEncoded, signature, ... }, bearerToken)` |
-| Fill order (EOA maker)         | `OrderFiller.buildFillOrderParams` / `fillOrder` or `fillOrderTo`                                             |
-| Fill order (contract maker)    | `OrderFiller.buildFillContractOrderParams` / `fillContractOrder` or `fillContractOrderTo` + owner signature   |
-| Get order / depth / markets    | `OrderbookApi.getOrder`, `getDepthSnapshot`, `getMarket`, `getUserOrders`, etc.                               |
-
-Types: `CreateOrderParams`, `StoredOrder`, `Order`, `OrderSignature`, `Option` are in `@premarket/sdk` (from `shared/types`).
-
----
-
-## 4. Smart account and vault (mint, withdraw, redeem)
-
-**Smart account** – Factory has `getAddress(owner, depositor, salt)` and `accountCount(owner)`. Owner = signer (e.g. sub-key); depositor = EOA.
-
-**Frontend pattern (single account, salt 0):** Use `getAddress(owner, depositor, 0n)`, then check deployed via `getCode` (deployed when code is non-empty). Deploy with `createAccount(owner, 0n)`.
-
-**SDK pattern:** `getCurrentSmartAccount(publicClient, factoryAddress, owner, depositor)` or `SmartAccountHelper` – same address as frontend when 0 or 1 account (salt 0). `isSmartAccountDeployed(client, address)` for strict deployed check.
-
-**Vault transactions** (OptionMarketVault mint / withdraw / redeem / unwind):
-
-```ts
-import {
-  buildMintTransaction,
-  buildWithdrawTransaction,
-  buildRedeemTransaction,
-  buildUnwindTransaction,
-  buildApproveTransaction,
-  buildBatchedMintTransactions,
-} from "@premarket/sdk";
-
-// Deposit collateral → get PRM + oPRM
-const mintTx = buildMintTransaction(
-  vaultAddress,
-  { marketId, tick, isCall },
-  prmAmount,
-);
-
-// Unwind (before expiry) or withdraw (after settlement)
-const withdrawTx = buildWithdrawTransaction(vaultAddress, prmTokenId, amount, receiverAddress);
-// or buildUnwindTransaction(vaultAddress, prmTokenId, amount, receiverAddress);
-
-// Redeem oPRM after expiry to claim profit
-const redeemTx = buildRedeemTransaction(vaultAddress, oPrmTokenId, receiverAddress);
-
-// Approve + mint in one batch (e.g. for a single UserOp)
-const batch = buildBatchedMintTransactions(
-  collateralTokenAddress,
-  vaultAddress,
-  { marketId, tick, isCall },
-  collateralAmount,
-  prmAmount,
-);
-```
-
-Each builder returns `{ to, data, value? }`. To **submit** these (e.g. mint, withdraw, redeem) you use the **sponsor API** (backend pays gas). The frontend uses the sponsor API like this:
-
-**1. Build one or more transactions** (SDK above):
-
-```ts
-const mintTx = buildMintTransaction(
-  vaultAddress,
-  { marketId, tick, isCall },
-  prmAmount,
-);
-// For batched: const txs = [approveTx, mintTx];
-```
-
-**2. Get the smart account nonce** (read from chain):
-
-```ts
-// Smart account contract exposes signatureNonce()
-const currentNonce = await publicClient.readContract({
-  address: smartAccountAddress,
-  abi: parseAbi(["function signatureNonce() view returns (uint256)"]),
-  functionName: "signatureNonce",
-});
-const nextNonce = currentNonce + 1n;
-```
-
-**3. Sign the sponsor message** (owner key signs; EIP-191):
-
-```ts
-import { keccak256, encodePacked } from "viem";
-
-const deadline = BigInt(Math.floor(Date.now() / 1000) + 600); // e.g. 10 min
-const messageHash = keccak256(
-  encodePacked(
-    ["address", "uint256", "uint256", "uint256"],
-    [smartAccountAddress, nextNonce, deadline, BigInt(chainId)],
-  ),
-);
-const signature = await ownerWallet.signMessage({
-  message: { raw: messageHash },
-});
-```
-
-**4. POST to the sponsor endpoint** (your app may proxy to `{BASE}/orderbook/api/smart-account/sponsor`):
-
-```ts
-const body = {
-  txData: {
-    dest: [mintTx.to],
-    value: [mintTx.value?.toString() ?? "0"],
-    func: [mintTx.data ?? "0x"],
-    deadline: deadline.toString(),
+await api.createOrder(
+  {
+    marketId: orderPayload.marketId,
+    order: orderPayload,
+    signature,
+    timeInForce: "GTC",
+    postOnly: false,
   },
-  signature, // hex from step 3
-  accountData: {
-    owner: ownerAddress,
-    depositor: depositorAddress,
-    salt: salt.toString(),
-  },
-};
-
-const res = await fetch("/api/smart-account/sponsor", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "x-chain-id": chainId.toString(),
-    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-  },
-  body: JSON.stringify(body),
-});
-const { success, data } = await res.json();
-// data.hash is the transaction hash once mined
+  bearerToken,
+);
 ```
 
-For **multiple txs in one batch** (e.g. approve + mint), use arrays: `dest: [tx1.to, tx2.to]`, `value: [tx1.value ?? "0", tx2.value ?? "0"]`, `func: [tx1.data, tx2.data]`. After a successful sponsored tx, the smart account’s nonce increments; use the new nonce for the next request.
+## On-chain execution helpers
 
-Token ID helpers: `prmToOptionTokenId`, `optionPrmToPrm` from `@premarket/sdk` (vault).
+```ts
+import { ExchangeContract } from "@premarket/sdk";
+
+const exchange = new ExchangeContract("0xexchange...");
+
+const fillTx = exchange.buildFillOrderTx(orderPayload, 100000n, signature);
+// { to, data, value }
+```
+
+## Notes
+
+- Old `LimitOrderProtocol`/extension/makerTraits flows are removed from public SDK exports.
+- Signature is now raw `0x...` bytes (not `{ r, vs }`).
+- `OrderStatus` interpretation for `remaining = 0` and non-terminal status is handled via `getExecutableMakingAmount`.

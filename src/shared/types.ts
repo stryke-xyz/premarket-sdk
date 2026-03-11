@@ -4,19 +4,19 @@
 
 export interface Order {
   salt: string;
-  maker: string;
-  receiver: string;
-  makerAsset: string;
-  takerAsset: string;
+  nonce: string;
+  marketId: string;
   makingAmount: string;
   takingAmount: string;
-  makerTraits: string;
+  deadline: string;
+  maker: string;
+  receiver: string;
+  tradeType: number;
+  signatureType: number;
+  tokenId: string;
 }
 
-export interface OrderSignature {
-  r: string;
-  vs: string;
-}
+export type OrderSignature = `0x${string}`;
 
 /**
  * Option parameters for legacy OptionTokenFactory
@@ -42,7 +42,6 @@ export type TimeInForce = "FOK" | "FAK" | "GTC" | "GTD";
 export interface CreateOrderParams {
   marketId: string;
   order: Order;
-  extensionEncoded: string;
   signature: OrderSignature;
   operator?: string;
   expiresAt?: number;
@@ -54,7 +53,6 @@ export type CreateOrderRequest = CreateOrderParams;
 
 export interface StoredOrder {
   orderHash: string;
-  extensionEncoded: string;
   signature: OrderSignature;
   marketId: string;
   tokenId: string;
@@ -87,7 +85,7 @@ export interface MatchedOrder {
   orderHash: string;
   makingAmount: string;
   takingAmount: string;
-  /** The amount to pass to fillContractOrderArgs */
+  /** The amount to pass to Exchange.fillOrder */
   fillAmount: string;
   /** Whether fillAmount is in maker's makingAmount units (true) or takingAmount units (false) */
   isMakingAmount: boolean;

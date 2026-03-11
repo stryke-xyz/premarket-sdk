@@ -11,16 +11,18 @@ export const PNL_PRECISION = 10n ** 18n;
  */
 export enum Role {
     RedeemKeeper = 0,
-    FinalTickKeeper = 1,
-    MarketFinalizer = 2,
-    MarketCreator = 3,
-    DeliverySupplier = 4,
+    WithdrawKeeper = 1,
+    FinalTickKeeper = 2,
+    MarketFinalizer = 3,
+    MarketCreator = 4,
+    DeliverySupplier = 5,
 }
 
 export const ROLE_NAMES: Record<number, string> = {
     [Role.MarketCreator]: "MarketCreator",
     [Role.FinalTickKeeper]: "FinalTickKeeper",
     [Role.RedeemKeeper]: "RedeemKeeper",
+    [Role.WithdrawKeeper]: "WithdrawKeeper",
     [Role.MarketFinalizer]: "MarketFinalizer",
     [Role.DeliverySupplier]: "DeliverySupplier",
 };
