@@ -18,10 +18,6 @@ import type {
   OrderbookApiConfig,
   OrderQueryParams,
   QueryOrdersResponse,
-  OrdersSnapshot,
-  SyncMessage,
-  BalanceMessage,
-  BalanceSnapshot,
   DepthSnapshot,
   MarketTradeItem,
 } from "../../shared/types.js";
@@ -129,62 +125,6 @@ export class OrderbookApi {
     const data = await response.json();
     if (!data.success) {
       throw new Error(data.error || "Failed to get depth snapshot");
-    }
-
-    return data.data;
-  }
-
-  /**
-   * Get sync messages for gap recovery
-   */
-  async getSyncMessages(
-    marketId: string,
-    fromSeq: number,
-    toSeq: number
-  ): Promise<SyncMessage[]> {
-    const response = await fetch(
-      `${this.config.baseUrl}/orderbook/api/sync/messages?marketId=${marketId}&fromSeq=${fromSeq}&toSeq=${toSeq}`
-    );
-
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch sync messages");
-    }
-
-    return data.data || [];
-  }
-
-  /**
-   * Get balance messages for gap recovery
-   */
-  async getBalanceMessages(
-    marketId: string,
-    fromSeq: number,
-    toSeq: number
-  ): Promise<BalanceMessage[]> {
-    const response = await fetch(
-      `${this.config.baseUrl}/orderbook/api/sync/balance-messages?marketId=${marketId}&fromSeq=${fromSeq}&toSeq=${toSeq}`
-    );
-
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch balance messages");
-    }
-
-    return data.data || [];
-  }
-
-  /**
-   * Get balance snapshot for a market
-   */
-  async getBalanceSnapshot(marketId: string): Promise<BalanceSnapshot> {
-    const response = await fetch(
-      `${this.config.baseUrl}/orderbook/api/sync/balance-snapshot?marketId=${marketId}`
-    );
-
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch balance snapshot");
     }
 
     return data.data;

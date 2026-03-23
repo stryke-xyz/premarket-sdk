@@ -21,7 +21,12 @@ export interface VaultMarket {
     expiry: bigint;
     depositFeeBps: bigint;
     redeemFeeBps: bigint;
+    makerFeeBps: bigint;
+    takerFeeBps: bigint;
+    rolloverFeeBps: bigint;
+    marketType: number;
     isCollateralScaled: boolean;
+    nonRollable: boolean;
 }
 
 /** @deprecated Use VaultInstrument instead */
@@ -30,10 +35,11 @@ export type Instrument = VaultInstrument;
 export type Market = VaultMarket;
 
 export interface PrmInfo {
-    expiry: bigint;
-    isCall: boolean;
     marketId: bigint;
+    expiry: bigint;
     tick: bigint;
+    totalRedeemProfit: bigint;
+    isCall: boolean;
 }
 
 export interface TokenIdParams {

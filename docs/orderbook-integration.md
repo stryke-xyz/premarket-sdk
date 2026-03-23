@@ -62,3 +62,12 @@ const tx = exchange.buildFillOrderTx(payloadOrder, 500n, signature);
 Use `buildMintTransaction`, `buildWithdrawTransaction`, `buildRedeemTransaction`,
 `buildDelegateRedeemTransaction`, `buildDelegateWithdrawTransaction`, and
 `buildFillMarketDeliveryTransaction` for settlement lifecycle operations.
+
+## Registry helpers
+
+Use `MarketsRegistryContract` only for the live `MarketsRegistry` callable
+surface such as `addMarket`, `updateToken`, `setWhitelisted`, and
+`updateMarketExpiry`.
+
+Delivery-filled state is tracked on `OptionMarketVault.marketDeliveryFilled`,
+not on `MarketsRegistry`.

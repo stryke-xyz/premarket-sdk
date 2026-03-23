@@ -25,8 +25,10 @@ function normalizeMarket(market: MarketLike) {
     redeemFeeBps: BigInt(market.redeemFeeBps),
     makerFeeBps: BigInt(market.makerFeeBps),
     takerFeeBps: BigInt(market.takerFeeBps),
+    rolloverFeeBps: BigInt(market.rolloverFeeBps),
     marketType: Number(market.marketType),
     isCollateralScaled: market.isCollateralScaled,
+    nonRollable: market.nonRollable,
   };
 }
 

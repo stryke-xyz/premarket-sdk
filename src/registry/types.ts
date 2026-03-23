@@ -18,8 +18,10 @@ export interface RegistryMarket {
   redeemFeeBps: bigint;
   makerFeeBps: bigint;
   takerFeeBps: bigint;
+  rolloverFeeBps: bigint;
   marketType: MarketType;
   isCollateralScaled: boolean;
+  nonRollable: boolean;
 }
 
 export interface SerializedRegistryMarket {
@@ -35,8 +37,10 @@ export interface SerializedRegistryMarket {
   redeemFeeBps: string;
   makerFeeBps: string;
   takerFeeBps: string;
+  rolloverFeeBps: string;
   marketType: number;
   isCollateralScaled: boolean;
+  nonRollable: boolean;
 }
 
 export function serializeRegistryMarket(
@@ -55,8 +59,10 @@ export function serializeRegistryMarket(
     redeemFeeBps: market.redeemFeeBps.toString(),
     makerFeeBps: market.makerFeeBps.toString(),
     takerFeeBps: market.takerFeeBps.toString(),
+    rolloverFeeBps: market.rolloverFeeBps.toString(),
     marketType: Number(market.marketType),
     isCollateralScaled: market.isCollateralScaled,
+    nonRollable: market.nonRollable,
   };
 }
 
@@ -76,7 +82,9 @@ export function deserializeRegistryMarket(
     redeemFeeBps: BigInt(market.redeemFeeBps),
     makerFeeBps: BigInt(market.makerFeeBps),
     takerFeeBps: BigInt(market.takerFeeBps),
+    rolloverFeeBps: BigInt(market.rolloverFeeBps),
     marketType: market.marketType as MarketType,
     isCollateralScaled: market.isCollateralScaled,
+    nonRollable: market.nonRollable,
   };
 }

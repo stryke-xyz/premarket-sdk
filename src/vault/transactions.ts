@@ -10,13 +10,16 @@ const optionMarketVaultAbi = parseAbi([
   "function withdraw(uint256 prmTokenId, uint256 amount, address rec) external",
   "function redeem(uint256 oPrmTokenId, address rec) external returns (uint256 profit)",
   "function delegateRedeem(uint256 oPrmTokenId, address rec) external returns (uint256 profit)",
+  "function delegateRollover(uint256 oldPrmTokenId, address holder) external returns (uint256 newPrmTokenId, uint256 newOPrmTokenId, uint256 newAmount)",
   "function delegateWithdraw(uint256 prmTokenId, uint256 amount, address owner, address rec) external",
   "function fillMarketDelivery(uint256 marketId, uint256 amount) external",
+  "function rollover(uint256 oldPrmTokenId) external returns (uint256 newPrmTokenId, uint256 newOPrmTokenId, uint256 newAmount)",
   "function setOperator(address operator, bool approved) external returns (bool)",
   "function setRole(address addr, uint8 role, bool enabled) external",
-  "function setExerciseWindow(uint256 window) external",
+  "function setRolloverEnabled(bool enabled) external",
   "function updateFinalTick(uint256 marketId, uint256 tick) external",
   "function updateMarketExpiry(uint256 marketId, uint256 expiry) external",
+  "function updateMarketExpiryFromMarket(uint256 marketId, uint256 expiry) external",
 ]);
 export interface TransactionCall {
   to: `0x${string}`;
@@ -119,6 +122,24 @@ export function buildDelegateRedeemTransaction(
 }
 
 /**
+ * Build a delegated rollover transaction. Callable only by RolloverKeeper role.
+ */
+export function buildDelegateRolloverTransaction(
+  vaultAddress: `0x${string}`,
+  oldPrmTokenId: bigint,
+  holder: Address
+): TransactionCall {
+  return {
+    to: vaultAddress,
+    data: encodeFunctionData({
+      abi: optionMarketVaultAbi,
+      functionName: "delegateRollover",
+      args: [oldPrmTokenId, holder],
+    }),
+  };
+}
+
+/**
  * Build an unwind transaction (alias for withdraw).
  * Burns both PRM and oPRM to reclaim collateral before expiry.
  *
@@ -175,6 +196,23 @@ export function buildFillMarketDeliveryTransaction(
 }
 
 /**
+ * Build a rollover preference update transaction.
+ */
+export function buildSetRolloverEnabledTransaction(
+  vaultAddress: `0x${string}`,
+  enabled: boolean
+): TransactionCall {
+  return {
+    to: vaultAddress,
+    data: encodeFunctionData({
+      abi: optionMarketVaultAbi,
+      functionName: "setRolloverEnabled",
+      args: [enabled],
+    }),
+  };
+}
+
+/**
  * Build operator approval transaction for ERC6909 delegated transfers.
  */
 export function buildSetOperatorTransaction(
@@ -212,23 +250,6 @@ export function buildSetRoleTransaction(
 }
 
 /**
- * Build exercise window update transaction (owner only).
- */
-export function buildSetExerciseWindowTransaction(
-  vaultAddress: `0x${string}`,
-  window: bigint
-): TransactionCall {
-  return {
-    to: vaultAddress,
-    data: encodeFunctionData({
-      abi: optionMarketVaultAbi,
-      functionName: "setExerciseWindow",
-      args: [window],
-    }),
-  };
-}
-
-/**
  * Build final tick update transaction (FinalTickKeeper role).
  */
 export function buildUpdateFinalTickTransaction(
@@ -260,6 +281,41 @@ export function buildUpdateMarketExpiryTransaction(
       abi: optionMarketVaultAbi,
       functionName: "updateMarketExpiry",
       args: [marketId, expiry],
+    }),
+  };
+}
+
+/**
+ * Build a market-owned expiry update transaction.
+ */
+export function buildUpdateMarketExpiryFromMarketTransaction(
+  vaultAddress: `0x${string}`,
+  marketId: bigint,
+  expiry: bigint
+): TransactionCall {
+  return {
+    to: vaultAddress,
+    data: encodeFunctionData({
+      abi: optionMarketVaultAbi,
+      functionName: "updateMarketExpiryFromMarket",
+      args: [marketId, expiry],
+    }),
+  };
+}
+
+/**
+ * Build a direct rollover transaction for caller-held expired PRM.
+ */
+export function buildRolloverTransaction(
+  vaultAddress: `0x${string}`,
+  oldPrmTokenId: bigint
+): TransactionCall {
+  return {
+    to: vaultAddress,
+    data: encodeFunctionData({
+      abi: optionMarketVaultAbi,
+      functionName: "rollover",
+      args: [oldPrmTokenId],
     }),
   };
 }

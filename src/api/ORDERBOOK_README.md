@@ -75,3 +75,6 @@ const fillTx = exchange.buildFillOrderTx(orderPayload, 100000n, signature);
 - Old `LimitOrderProtocol`/extension/makerTraits flows are removed from public SDK exports.
 - Signature is now raw `0x...` bytes (not `{ r, vs }`).
 - `OrderStatus` interpretation for `remaining = 0` and non-terminal status is handled via `getExecutableMakingAmount`.
+- `buildSetExerciseWindowTransaction` was removed to match the current `OptionMarketVault` ABI.
+- `MarketsRegistryContract` now tracks only the live `MarketsRegistry` callable surface.
+- Delivery-filled state belongs to `OptionMarketVault.marketDeliveryFilled(marketId, expiry)`, not `MarketsRegistry`.

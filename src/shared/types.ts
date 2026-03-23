@@ -44,7 +44,6 @@ export interface CreateOrderParams {
   order: Order;
   signature: OrderSignature;
   operator?: string;
-  expiresAt?: number;
   timeInForce?: TimeInForce;
   postOnly?: boolean;
 }
@@ -60,7 +59,6 @@ export interface StoredOrder {
   order: Order;
   operator?: string;
   createdAt: number;
-  expiresAt?: number;
   status: OrderStatus;
   side: "bid" | "ask";
   price: number;
@@ -150,23 +148,6 @@ export interface QueryOrdersResponse {
   count: number;
   limit: number;
   offset: number;
-}
-
-export interface SyncMessage {
-  seq: number;
-  type: string;
-  data: any;
-}
-
-export interface BalanceMessage {
-  seq: number;
-  type: string;
-  data: any;
-}
-
-export interface BalanceSnapshot {
-  balances: any[];
-  seq: number;
 }
 
 // ============================================================================
