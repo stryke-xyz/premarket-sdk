@@ -24,7 +24,6 @@
     "build:types": "tsc --project tsconfig.types.json",
     "test": "bun test src",
     "test:e2e": "bun test test/e2e/index.test.ts",
-    "ponder:codegen": "genql --schema ./src/ponder/schema.graphql --output ./src/ponder/generated",
     "fill-orderbook": "bun run scripts/fill-orderbook.ts"
   },
   "dependencies": {
