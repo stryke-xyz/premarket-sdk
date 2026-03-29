@@ -7,7 +7,8 @@
  */
 
 import type {
-  Erc6909Market,
+  Market,
+  MarketInstrument,
   UserPosition,
   TradingPnL,
   UserHistories,
@@ -17,6 +18,134 @@ import type {
   TransferHistoryItem,
   OrderFillHistoryItem,
 } from "../../shared/types.js";
+
+export interface BigIntMarketInstrument {
+  id: string;
+  name: string;
+  tick: bigint;
+  isCall: boolean;
+  prmTokenId: bigint;
+  oPrmTokenId: bigint;
+  expiry: bigint;
+  lastPrice: bigint | null;
+  bestBid: bigint | null;
+  bestAsk: bigint | null;
+  totalCollateral: bigint;
+  totalPrmSupply: bigint;
+  totalOprmSupply: bigint;
+}
+
+export interface BigIntMarket {
+  name: string;
+  description: string;
+  specification: string;
+  minOrderAmount: bigint;
+  createdAt: bigint;
+  creator: string;
+  priceIncrement: bigint;
+  minPrice: bigint;
+  maxPrice: bigint;
+  instruments: BigIntMarketInstrument[];
+  collateral: string;
+  underlying: string;
+  delivery: string;
+  owner: string;
+  tickSize: bigint;
+  tickSpacing: bigint;
+  tokensPerTickSize: bigint;
+  expiry: bigint;
+  depositFeeBps: bigint;
+  redeemFeeBps: bigint;
+  makerFeeBps: bigint;
+  takerFeeBps: bigint;
+  rolloverFeeBps: bigint;
+  totalCollateral: bigint;
+  marketType: "ERC20xERC20" | "ERC20xERC6909";
+  isCollateralScaled: boolean;
+  nonRollable: boolean;
+}
+
+function parseOptionalBigInt(value: string | null): bigint | null {
+  return value == null ? null : BigInt(value);
+}
+
+function parseIsCall(value: MarketInstrument["isCall"]): boolean {
+  return value === true || value === 1;
+}
+
+/**
+ * Convert string market instrument fields to BigInt.
+ */
+export function marketInstrumentToBigInt(
+  instrument: MarketInstrument
+): BigIntMarketInstrument {
+  return {
+    id: instrument.id,
+    name: instrument.name,
+    tick: BigInt(instrument.tick),
+    isCall: parseIsCall(instrument.isCall),
+    prmTokenId: BigInt(instrument.prmTokenId),
+    oPrmTokenId: BigInt(instrument.oPrmTokenId),
+    expiry: BigInt(instrument.expiry),
+    lastPrice: parseOptionalBigInt(instrument.lastPrice),
+    bestBid: parseOptionalBigInt(instrument.bestBid),
+    bestAsk: parseOptionalBigInt(instrument.bestAsk),
+    totalCollateral: BigInt(instrument.totalCollateral),
+    totalPrmSupply: BigInt(instrument.totalPrmSupply),
+    totalOprmSupply: BigInt(instrument.totalOprmSupply),
+  };
+}
+
+/**
+ * Convert string market fields to BigInt while preserving addresses and labels.
+ */
+export function marketToBigInt(market: Market): BigIntMarket {
+  return {
+    name: market.name,
+    description: market.description,
+    specification: market.specification,
+    minOrderAmount: BigInt(market.minOrderAmount),
+    createdAt: BigInt(market.createdAt),
+    creator: market.creator,
+    priceIncrement: BigInt(market.priceIncrement),
+    minPrice: BigInt(market.minPrice),
+    maxPrice: BigInt(market.maxPrice),
+    instruments: market.instruments.map(marketInstrumentToBigInt),
+    collateral: market.collateral,
+    underlying: market.underlying,
+    delivery: market.delivery,
+    owner: market.owner,
+    tickSize: BigInt(market.tickSize),
+    tickSpacing: BigInt(market.tickSpacing),
+    tokensPerTickSize: BigInt(market.tokensPerTickSize),
+    expiry: BigInt(market.expiry),
+    depositFeeBps: BigInt(market.depositFeeBps),
+    redeemFeeBps: BigInt(market.redeemFeeBps),
+    makerFeeBps: BigInt(market.makerFeeBps),
+    takerFeeBps: BigInt(market.takerFeeBps),
+    rolloverFeeBps: BigInt(market.rolloverFeeBps),
+    totalCollateral: BigInt(market.totalCollateral),
+    marketType: market.marketType,
+    isCollateralScaled: market.isCollateralScaled,
+    nonRollable: market.nonRollable,
+  };
+}
+
+/**
+ * Convert a market list response payload to BigInt.
+ */
+export function marketsToBigInt(data: {
+  markets: Market[];
+  total: number;
+}): {
+  markets: BigIntMarket[];
+  total: number;
+} {
+  return {
+    markets: data.markets.map(marketToBigInt),
+    total: data.total,
+  };
+}
 
 /**
  * Convert string amounts to BigInt for a position
@@ -65,58 +194,6 @@ export function tradingPnLToBigInt(trading: TradingPnL): {
     totalReceived: BigInt(trading.totalReceived),
     realizedPnL: BigInt(trading.realizedPnL),
     updatedAt: BigInt(trading.updatedAt),
-  };
-}
-
-/**
- * Convert string amounts to BigInt for ERC6909 market data
- * Returns null if market has no onchain optionMarketVault
- */
-export function marketToBigInt(market: Erc6909Market): {
-  id: string;
-  marketId: bigint;
-  underlying: `0x${string}`;
-  collateral: `0x${string}`;
-  delivery: `0x${string}`;
-  owner: `0x${string}`;
-  creator: `0x${string}`;
-  tickSize: bigint;
-  tickSpacing: bigint;
-  tokensPerTickSize: bigint;
-  expiry: bigint;
-  depositFeeBps: bigint;
-  redeemFeeBps: bigint;
-  isCollateralScaled: boolean;
-  totalPrmMinted: bigint;
-  totalCollateralDeposited: bigint;
-  totalFeesCollected: bigint;
-  createdAt: bigint;
-  updatedAt: bigint;
-} | null {
-  if (!market.marketId || !market.optionMarketVault) {
-    return null;
-  }
-  const vault = market.optionMarketVault;
-  return {
-    id: market.id,
-    marketId: BigInt(market.marketId),
-    underlying: vault.underlying,
-    collateral: vault.collateral,
-    delivery: vault.delivery,
-    owner: vault.owner,
-    creator: vault.creator,
-    tickSize: BigInt(vault.tickSize),
-    tickSpacing: BigInt(vault.tickSpacing),
-    tokensPerTickSize: BigInt(vault.tokensPerTickSize),
-    expiry: BigInt(vault.expiry),
-    depositFeeBps: BigInt(vault.depositFeeBps),
-    redeemFeeBps: BigInt(vault.redeemFeeBps),
-    isCollateralScaled: vault.isCollateralScaled,
-    totalPrmMinted: BigInt(vault.totalPrmMinted),
-    totalCollateralDeposited: BigInt(vault.totalCollateralDeposited),
-    totalFeesCollected: BigInt(vault.totalFeesCollected),
-    createdAt: BigInt(vault.createdAt),
-    updatedAt: BigInt(vault.updatedAt),
   };
 }
 

@@ -1,73 +1,115 @@
-# Orderbook integration (Exchange-based)
+# Orderbook Integration (Exchange Native)
 
-This guide reflects the current SDK and core contracts:
+This guide reflects the current `@stryke-xyz/premarket-sdk` integration model.
 
-- `Exchange`
-- `MarketsRegistry`
-- `OptionMarketVault`
-
-## Build order
+## Build and sign an order
 
 ```ts
-import { OrderHelper, TradeType } from "@premarket/sdk";
+import { OrderHelper, SignatureType, TradeType } from "@stryke-xyz/premarket-sdk";
 
 const helper = new OrderHelper({
   chainId: 4326,
-  exchangeAddress: "0x...",
+  exchangeAddress: "0xCf24f40D2dd88084e9C28FE34Ba9E24AFDACb7C2",
 });
 
 const order = helper.buildOrder({
-  maker: "0xmaker...",
-  nonce: 10n,
+  salt: 1n,
+  nonce: 0n,
   marketId: 1n,
-  makingAmount: 1000n,
-  takingAmount: 900n,
+  makingAmount: 1_000_000n,
+  takingAmount: 500_000n,
   deadline: 1_900_000_000n,
-  tradeType: TradeType.BUY,
+  maker: "0x1111111111111111111111111111111111111111",
+  receiver: "0x1111111111111111111111111111111111111111",
+  tradeType: TradeType.SELL,
+  signatureType: SignatureType.EIP712,
   tokenId: 42n,
 });
 
-const signature = await helper.signOrder(order, walletClient);
+const signature = await helper.signEip712Order(order, walletClient);
 const payloadOrder = helper.serializeOrder(order);
 ```
 
-## Submit order
+`signEip712Order` is only for `SignatureType.EIP712` orders. For smart-account /
+`ERC1271` orders, build/hash/serialize the order with the SDK and obtain the signature
+bytes from the smart-account signing flow without rewriting `signatureType`.
+
+## Build and sign a SimpleAccount ERC1271 order
 
 ```ts
-import { OrderbookApi } from "@premarket/sdk";
+import { OrderHelper, SignatureType, TradeType } from "@stryke-xyz/premarket-sdk";
 
-const api = new OrderbookApi({ baseUrl: "https://..." });
+const helper = new OrderHelper({
+  chainId: 4326,
+  exchangeAddress: "0xCf24f40D2dd88084e9C28FE34Ba9E24AFDACb7C2",
+});
+
+const order = helper.buildOrder({
+  salt: 2n,
+  nonce: 1n,
+  marketId: 1n,
+  makingAmount: 1_000_000n,
+  takingAmount: 500_000n,
+  deadline: 1_900_000_000n,
+  maker: "0xSimpleAccount",
+  receiver: "0xSimpleAccount",
+  tradeType: TradeType.SELL,
+  signatureType: SignatureType.ERC1271,
+  tokenId: 42n,
+});
+
+const signature = await helper.signSimpleAccountOrder(order, ownerWalletClient);
+const payloadOrder = helper.serializeOrder(order);
+```
+
+`signSimpleAccountOrder` assumes the maker contract is `SimpleAccount`-compatible:
+- `Exchange` passes the raw native `Exchange` order hash into `isValidSignature(hash, signature)`
+- the maker account validates plain `r || s || v` ECDSA bytes from its owner
+- the returned signature bytes are submitted unchanged to the backend or `Exchange`
+
+## Submit order to backend
+
+```ts
+import { OrderbookApi } from "@stryke-xyz/premarket-sdk";
+
+const api = new OrderbookApi({ baseUrl: "http://127.0.0.1:3000" });
+
 await api.createOrder(
   {
     marketId: payloadOrder.marketId,
     order: payloadOrder,
     signature,
     timeInForce: "GTC",
+    postOnly: false,
   },
   bearerToken,
 );
 ```
 
-## Fill and match
+## Query orders correctly (required params)
 
 ```ts
-import { ExchangeContract } from "@premarket/sdk";
+// /orderbook/api/orders requires marketId.
+const snapshot = await api.queryOrders({ marketId: "1" });
 
-const exchange = new ExchangeContract("0xexchange...");
-const tx = exchange.buildFillOrderTx(payloadOrder, 500n, signature);
+// /orderbook/api/orders/user/:maker also requires marketId.
+const mine = await api.getUserOrders(
+  "0x1111111111111111111111111111111111111111",
+  "1",
+);
 ```
 
-## Vault helpers
+## Build on-chain fill tx
 
-Use `buildMintTransaction`, `buildWithdrawTransaction`, `buildRedeemTransaction`,
-`buildDelegateRedeemTransaction`, `buildDelegateWithdrawTransaction`, and
-`buildFillMarketDeliveryTransaction` for settlement lifecycle operations.
+```ts
+import { ExchangeContract } from "@stryke-xyz/premarket-sdk";
 
-## Registry helpers
+const exchange = new ExchangeContract("0xCf24f40D2dd88084e9C28FE34Ba9E24AFDACb7C2");
+const tx = exchange.buildFillOrderTx(payloadOrder, 500_000n, signature);
+```
 
-Use `MarketsRegistryContract` only for the live `MarketsRegistry` callable
-surface such as `addMarket`, `updateToken`, `setWhitelisted`, and
-`updateMarketExpiry`.
+## Vault and registry notes
 
-Delivery-filled state is tracked on `OptionMarketVault.marketDeliveryFilled`,
-not on `MarketsRegistry`.
+- Use vault tx helpers for lifecycle (`mint`, `redeem`, `withdraw`, delivery flows).
+- Use `MarketsRegistryContract` for market config and token approval operations.
+- Delivery-filled state is on `OptionMarketVault.marketDeliveryFilled`, not on registry.

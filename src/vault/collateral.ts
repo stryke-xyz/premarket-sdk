@@ -13,6 +13,7 @@
  * - isCollateralScaled: if true, collateral scales with tick (strike price)
  */
 
+import { mulDiv, Rounding } from "../utils/mul-div.js";
 import { VAULT_TOKEN_PRECISION } from "./constants.js";
 
 /**
@@ -102,8 +103,13 @@ export function calculateCollateralAmount(
     collateralPerPosition = (instrument.tick * collateralPerPosition) / market.tickSize;
   }
   
-  // Scale by position size
-  return (collateralPerPosition * prmAmount) / VAULT_TOKEN_PRECISION;
+  // Vault collateral accounting rounds up when the division is not exact.
+  return mulDiv(
+    collateralPerPosition,
+    prmAmount,
+    VAULT_TOKEN_PRECISION,
+    Rounding.Ceil
+  );
 }
 
 /**

@@ -6,9 +6,7 @@ import type {
   StoredOrder,
   CreateOrderParams,
   MarketsResponse,
-  Erc6909Market,
-  Erc20Market,
-  ApiMarket,
+  MarketResponse,
   UserPosition,
   TradingPnL,
   UserPnL,
@@ -99,11 +97,18 @@ export class OrderbookApi {
   }
 
   /**
-   * Get orders snapshot for a market
+   * Get user orders for a market.
+   * `marketId` is required by backend route contract.
    */
-  async getUserOrders(maker: string): Promise<StoredOrder[]> {
+  async getUserOrders(maker: string, marketId?: string): Promise<StoredOrder[]> {
+    if (!marketId) {
+      throw new Error("marketId is required to fetch user orders");
+    }
+
     const response = await fetch(
-      `${this.config.baseUrl}/orderbook/api/orders/user/${maker}`
+      `${this.config.baseUrl}/orderbook/api/orders/user/${maker}?marketId=${encodeURIComponent(
+        marketId
+      )}`
     );
 
     const data = await response.json();
@@ -135,13 +140,13 @@ export class OrderbookApi {
   // ============================================================================
 
   /**
-   * Get all markets (ERC6909 options + ERC20 pre-TGE)
+   * Get all markets.
    */
-  async getMarkets(): Promise<MarketsResponse> {
+  async getMarkets(): Promise<MarketsResponse["data"]> {
     const response = await fetch(
       `${this.config.baseUrl}/premarket/api/markets`
     );
-    const data = await response.json();
+    const data: MarketsResponse | { success: false; error?: string } = await response.json();
     if (!data.success) {
       throw new Error(data.error || "Failed to fetch markets");
     }
@@ -165,13 +170,12 @@ export class OrderbookApi {
 
   /**
    * Get a single market by ID
-   * Returns ERC6909 market with PRM tokens and final ticks, or ERC20 market with submarkets
    */
-  async getMarket(marketId: string): Promise<ApiMarket | null> {
+  async getMarket(marketId: string): Promise<MarketResponse["data"] | null> {
     const response = await fetch(
       `${this.config.baseUrl}/premarket/api/markets/${marketId}`
     );
-    const data = await response.json();
+    const data: MarketResponse | { success: false; error?: string } = await response.json();
     if (!data.success) {
       if (response.status === 404) {
         return null;
@@ -179,22 +183,6 @@ export class OrderbookApi {
       throw new Error(data.error || "Failed to fetch market");
     }
     return data.data;
-  }
-
-  /**
-   * Get ERC6909 markets only (options markets)
-   */
-  async getErc6909Markets(): Promise<Erc6909Market[]> {
-    const markets = await this.getMarkets();
-    return markets.erc6909;
-  }
-
-  /**
-   * Get ERC20 markets only (pre-TGE markets)
-   */
-  async getErc20Markets(): Promise<Erc20Market[]> {
-    const markets = await this.getMarkets();
-    return markets.erc20;
   }
 
   // ============================================================================

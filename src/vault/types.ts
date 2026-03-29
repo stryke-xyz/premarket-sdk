@@ -29,11 +29,6 @@ export interface VaultMarket {
     nonRollable: boolean;
 }
 
-/** @deprecated Use VaultInstrument instead */
-export type Instrument = VaultInstrument;
-/** @deprecated Use VaultMarket instead */
-export type Market = VaultMarket;
-
 export interface PrmInfo {
     marketId: bigint;
     expiry: bigint;

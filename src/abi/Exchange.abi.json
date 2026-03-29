@@ -8,14 +8,9 @@
         "internalType": "address"
       },
       {
-        "name": "_registry",
+        "name": "_REGISTRY",
         "type": "address",
         "internalType": "contract IMarketsRegistry"
-      },
-      {
-        "name": "_vault",
-        "type": "address",
-        "internalType": "contract IOptionMarketVault"
       },
       {
         "name": "_feeReceiver",
@@ -24,6 +19,19 @@
       }
     ],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "FEE_BPS_PRECISION",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -40,82 +48,180 @@
   },
   {
     "type": "function",
-    "name": "VAULT",
+    "name": "VAULT_TOKEN_PRECISION",
     "inputs": [],
     "outputs": [
       {
         "name": "",
-        "type": "address",
-        "internalType": "contract IOptionMarketVault"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
   },
   {
     "type": "function",
-    "name": "cancelOrder",
+    "name": "allowance",
     "inputs": [
       {
-        "name": "order",
-        "type": "tuple",
-        "internalType": "struct IExchange.Order",
-        "components": [
-          {
-            "name": "salt",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "nonce",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "marketId",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "makingAmount",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "takingAmount",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "deadline",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "maker",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "receiver",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "tradeType",
-            "type": "uint8",
-            "internalType": "enum IExchange.TradeType"
-          },
-          {
-            "name": "signatureType",
-            "type": "uint8",
-            "internalType": "enum IExchange.SignatureType"
-          },
-          {
-            "name": "tokenId",
-            "type": "uint256",
-            "internalType": "uint256"
-          }
-        ]
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "approve",
+    "inputs": [
+      {
+        "name": "spender",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "balanceOf",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "delegateRedeem",
+    "inputs": [
+      {
+        "name": "oPrmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "rec",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "profit",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "delegateRollover",
+    "inputs": [
+      {
+        "name": "oldPrmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "holder",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "newPrmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "newOPrmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "newAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "delegateWithdraw",
+    "inputs": [
+      {
+        "name": "prmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "rec",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -123,135 +229,22 @@
   },
   {
     "type": "function",
-    "name": "eip712Domain",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "fields",
-        "type": "bytes1",
-        "internalType": "bytes1"
-      },
-      {
-        "name": "name",
-        "type": "string",
-        "internalType": "string"
-      },
-      {
-        "name": "version",
-        "type": "string",
-        "internalType": "string"
-      },
-      {
-        "name": "chainId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "verifyingContract",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "salt",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "extensions",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "feeReceiver",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "fillOrder",
+    "name": "emergencyWithdraw",
     "inputs": [
       {
-        "name": "order",
-        "type": "tuple",
-        "internalType": "struct IExchange.Order",
-        "components": [
-          {
-            "name": "salt",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "nonce",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "marketId",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "makingAmount",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "takingAmount",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "deadline",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "maker",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "receiver",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "tradeType",
-            "type": "uint8",
-            "internalType": "enum IExchange.TradeType"
-          },
-          {
-            "name": "signatureType",
-            "type": "uint8",
-            "internalType": "enum IExchange.SignatureType"
-          },
-          {
-            "name": "tokenId",
-            "type": "uint256",
-            "internalType": "uint256"
-          }
-        ]
+        "name": "token",
+        "type": "address",
+        "internalType": "contract IERC20"
       },
       {
-        "name": "fillAmount",
+        "name": "to",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
         "type": "uint256",
         "internalType": "uint256"
-      },
-      {
-        "name": "signature",
-        "type": "bytes",
-        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -259,136 +252,228 @@
   },
   {
     "type": "function",
-    "name": "getOrderStatus",
+    "name": "fillMarketDelivery",
     "inputs": [
       {
-        "name": "maker",
-        "type": "address",
-        "internalType": "address"
+        "name": "marketId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        "name": "orderHash",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "finalTicks",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "expiry",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [
       {
-        "name": "",
+        "name": "finalTick",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCollateralAmount",
+    "inputs": [
+      {
+        "name": "ins",
         "type": "tuple",
-        "internalType": "struct IExchange.OrderStatus",
+        "internalType": "struct IOptionMarketVault.Instrument",
         "components": [
           {
-            "name": "isFilledOrCancelled",
+            "name": "marketId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "tick",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "isCall",
             "type": "bool",
             "internalType": "bool"
-          },
-          {
-            "name": "remaining",
-            "type": "uint256",
-            "internalType": "uint256"
           }
         ]
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "collateralAmt",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
   },
   {
     "type": "function",
-    "name": "hashOrder",
+    "name": "getOptionPrmTokenId",
     "inputs": [
       {
-        "name": "order",
+        "name": "ins",
         "type": "tuple",
-        "internalType": "struct IExchange.Order",
+        "internalType": "struct IOptionMarketVault.Instrument",
         "components": [
-          {
-            "name": "salt",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "nonce",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
           {
             "name": "marketId",
             "type": "uint256",
             "internalType": "uint256"
           },
           {
-            "name": "makingAmount",
+            "name": "tick",
             "type": "uint256",
             "internalType": "uint256"
           },
           {
-            "name": "takingAmount",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "deadline",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "maker",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "receiver",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "tradeType",
-            "type": "uint8",
-            "internalType": "enum IExchange.TradeType"
-          },
-          {
-            "name": "signatureType",
-            "type": "uint8",
-            "internalType": "enum IExchange.SignatureType"
-          },
-          {
-            "name": "tokenId",
-            "type": "uint256",
-            "internalType": "uint256"
+            "name": "isCall",
+            "type": "bool",
+            "internalType": "bool"
           }
         ]
+      },
+      {
+        "name": "expiry",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [
       {
         "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
   },
   {
     "type": "function",
-    "name": "incrementNonce",
-    "inputs": [],
-    "outputs": [],
-    "stateMutability": "nonpayable"
+    "name": "getPrmInfo",
+    "inputs": [
+      {
+        "name": "prmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "prm",
+        "type": "tuple",
+        "internalType": "struct IOptionMarketVault.PrmInfo",
+        "components": [
+          {
+            "name": "marketId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "expiry",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "tick",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalRedeemProfit",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "isCall",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
-    "name": "isValidNonce",
+    "name": "getPrmTokenId",
     "inputs": [
       {
-        "name": "usr",
+        "name": "ins",
+        "type": "tuple",
+        "internalType": "struct IOptionMarketVault.Instrument",
+        "components": [
+          {
+            "name": "marketId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "tick",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "isCall",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      },
+      {
+        "name": "expiry",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "isOperator",
+    "inputs": [
+      {
+        "name": "",
         "type": "address",
         "internalType": "address"
       },
       {
-        "name": "nonce",
-        "type": "uint256",
-        "internalType": "uint256"
+        "name": "",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
@@ -402,154 +487,72 @@
   },
   {
     "type": "function",
-    "name": "matchOrder",
+    "name": "marketDeliveryFilled",
     "inputs": [
       {
-        "name": "takerOrder",
-        "type": "tuple",
-        "internalType": "struct IExchange.Order",
-        "components": [
-          {
-            "name": "salt",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "nonce",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "marketId",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "makingAmount",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "takingAmount",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "deadline",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "maker",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "receiver",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "tradeType",
-            "type": "uint8",
-            "internalType": "enum IExchange.TradeType"
-          },
-          {
-            "name": "signatureType",
-            "type": "uint8",
-            "internalType": "enum IExchange.SignatureType"
-          },
-          {
-            "name": "tokenId",
-            "type": "uint256",
-            "internalType": "uint256"
-          }
-        ]
-      },
-      {
-        "name": "takerSignature",
-        "type": "bytes",
-        "internalType": "bytes"
-      },
-      {
-        "name": "makerOrder",
-        "type": "tuple",
-        "internalType": "struct IExchange.Order",
-        "components": [
-          {
-            "name": "salt",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "nonce",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "marketId",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "makingAmount",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "takingAmount",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "deadline",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "maker",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "receiver",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "tradeType",
-            "type": "uint8",
-            "internalType": "enum IExchange.TradeType"
-          },
-          {
-            "name": "signatureType",
-            "type": "uint8",
-            "internalType": "enum IExchange.SignatureType"
-          },
-          {
-            "name": "tokenId",
-            "type": "uint256",
-            "internalType": "uint256"
-          }
-        ]
-      },
-      {
-        "name": "makerSignature",
-        "type": "bytes",
-        "internalType": "bytes"
-      },
-      {
-        "name": "takerFillAmount",
+        "name": "marketId",
         "type": "uint256",
         "internalType": "uint256"
       },
       {
-        "name": "makerFillAmount",
+        "name": "expiry",
         "type": "uint256",
         "internalType": "uint256"
       }
     ],
-    "outputs": [],
+    "outputs": [
+      {
+        "name": "isFilled",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "mint",
+    "inputs": [
+      {
+        "name": "ins",
+        "type": "tuple",
+        "internalType": "struct IOptionMarketVault.Instrument",
+        "components": [
+          {
+            "name": "marketId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "tick",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "isCall",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      },
+      {
+        "name": "amt",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "prmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "oPrmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
     "stateMutability": "nonpayable"
   },
   {
@@ -560,52 +563,35 @@
         "name": "data",
         "type": "bytes[]",
         "internalType": "bytes[]"
-      },
-      {
-        "name": "allowFailure",
-        "type": "bool",
-        "internalType": "bool"
       }
     ],
     "outputs": [
       {
         "name": "results",
-        "type": "tuple[]",
-        "internalType": "struct ExchangeStorage.MulticallResult[]",
-        "components": [
-          {
-            "name": "success",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "returnData",
-            "type": "bytes",
-            "internalType": "bytes"
-          }
-        ]
+        "type": "bytes[]",
+        "internalType": "bytes[]"
       }
     ],
     "stateMutability": "nonpayable"
   },
   {
     "type": "function",
-    "name": "nonces",
+    "name": "optionPrmToPrm",
     "inputs": [
       {
-        "name": "account",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "nonce",
+        "name": "tokenId",
         "type": "uint256",
         "internalType": "uint256"
       }
     ],
-    "stateMutability": "view"
+    "outputs": [
+      {
+        "name": "prmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "pure"
   },
   {
     "type": "function",
@@ -642,6 +628,88 @@
   },
   {
     "type": "function",
+    "name": "prmInfos",
+    "inputs": [
+      {
+        "name": "prmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "expiry",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "tick",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalRedeemProfit",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "isCall",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "prmToOptionTokenId",
+    "inputs": [
+      {
+        "name": "prmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "redeem",
+    "inputs": [
+      {
+        "name": "oPrmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "rec",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "profit",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "renounceOwnership",
     "inputs": [],
     "outputs": [],
@@ -649,12 +717,94 @@
   },
   {
     "type": "function",
-    "name": "setFeeReceiver",
+    "name": "rollover",
     "inputs": [
       {
-        "name": "newFeeReceiver",
+        "name": "oldPrmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "newPrmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "newOPrmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "newAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "rolloverEnabled",
+    "inputs": [
+      {
+        "name": "account",
         "type": "address",
         "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "enabled",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "setOperator",
+    "inputs": [
+      {
+        "name": "operator",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "approved",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setRole",
+    "inputs": [
+      {
+        "name": "addr",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "role",
+        "type": "uint8",
+        "internalType": "enum IOptionMarketVault.Role"
+      },
+      {
+        "name": "enabled",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "outputs": [],
@@ -662,20 +812,121 @@
   },
   {
     "type": "function",
-    "name": "setResolverWhitelist",
+    "name": "setRolloverEnabled",
     "inputs": [
       {
-        "name": "resolver",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "isWhitelisted",
+        "name": "enabled",
         "type": "bool",
         "internalType": "bool"
       }
     ],
     "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "supportsInterface",
+    "inputs": [
+      {
+        "name": "interfaceId",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "totalCollateralByMarketExpiry",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "expiry",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "totalCollateral",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "transfer",
+    "inputs": [
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "transferFrom",
+    "inputs": [
+      {
+        "name": "sender",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
     "stateMutability": "nonpayable"
   },
   {
@@ -700,47 +951,99 @@
   },
   {
     "type": "function",
-    "name": "whitelistedResolvers",
+    "name": "updateFinalTick",
     "inputs": [
       {
-        "name": "resolver",
+        "name": "marketId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "tick",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "updateMarketExpiry",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "expiry",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "updateMarketExpiryFromMarket",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "expiry",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "withdraw",
+    "inputs": [
+      {
+        "name": "prmTokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "rec",
         "type": "address",
         "internalType": "address"
       }
     ],
-    "outputs": [
-      {
-        "name": "isWhitelisted",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "event",
-    "name": "EIP712DomainChanged",
-    "inputs": [],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "FeeCharged",
+    "name": "Approval",
     "inputs": [
       {
-        "name": "receiver",
+        "name": "owner",
         "type": "address",
         "indexed": true,
         "internalType": "address"
       },
       {
-        "name": "isTokenAsset",
-        "type": "bool",
+        "name": "spender",
+        "type": "address",
         "indexed": true,
-        "internalType": "bool"
+        "internalType": "address"
       },
       {
-        "name": "tokenId",
+        "name": "id",
         "type": "uint256",
         "indexed": true,
         "internalType": "uint256"
@@ -750,36 +1053,79 @@
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "EmergencyWithdrawn",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": false,
+        "internalType": "contract IERC20"
       },
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FinalTickUpdated",
+    "inputs": [
       {
         "name": "marketId",
         "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "previousExpiry",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "expiry",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "previousFinalTick",
+        "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
       },
       {
-        "name": "orderHash",
-        "type": "bytes32",
+        "name": "finalTick",
+        "type": "uint256",
         "indexed": false,
-        "internalType": "bytes32"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "FeeReceiverUpdated",
-    "inputs": [
-      {
-        "name": "previousFeeReceiver",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        "internalType": "uint256"
       },
       {
-        "name": "newFeeReceiver",
+        "name": "updater",
         "type": "address",
-        "indexed": true,
+        "indexed": false,
         "internalType": "address"
       }
     ],
@@ -787,7 +1133,7 @@
   },
   {
     "type": "event",
-    "name": "MatchExecuted",
+    "name": "MarketDeliveryFilled",
     "inputs": [
       {
         "name": "marketId",
@@ -796,124 +1142,21 @@
         "internalType": "uint256"
       },
       {
-        "name": "takerOrderHash",
-        "type": "bytes32",
+        "name": "expiry",
+        "type": "uint256",
         "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "makerOrderHash",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "takerMaker",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      },
-      {
-        "name": "makerMaker",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      },
-      {
-        "name": "takerReceiver",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      },
-      {
-        "name": "makerReceiver",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      },
-      {
-        "name": "tokenId",
-        "type": "uint256",
-        "indexed": false,
         "internalType": "uint256"
       },
       {
-        "name": "tradeType",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "uint8"
-      },
-      {
-        "name": "matchClass",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "uint8"
-      },
-      {
-        "name": "takerFillAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "takerTakingAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "makerFillAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "makerTakingAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "makerFee",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "takerFee",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "feeReceiver",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      },
-      {
-        "name": "resolver",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "NonceInvalidatedForMaker",
-    "inputs": [
-      {
-        "name": "maker",
+        "name": "sender",
         "type": "address",
         "indexed": true,
         "internalType": "address"
       },
       {
-        "name": "nextNonce",
+        "name": "amount",
         "type": "uint256",
-        "indexed": true,
+        "indexed": false,
         "internalType": "uint256"
       }
     ],
@@ -921,229 +1164,141 @@
   },
   {
     "type": "event",
-    "name": "OrderCancelled",
+    "name": "MarketExpiryUpdated",
     "inputs": [
-      {
-        "name": "maker",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "orderHash",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "nonce",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
       {
         "name": "marketId",
         "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "previousExpiry",
+        "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
       },
       {
-        "name": "tokenId",
+        "name": "newExpiry",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
+      },
+      {
+        "name": "updater",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       }
     ],
     "anonymous": false
   },
   {
     "type": "event",
-    "name": "OrderFilled",
+    "name": "Minted",
     "inputs": [
-      {
-        "name": "orderHash",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "orderStatus",
-        "type": "tuple",
-        "indexed": false,
-        "internalType": "struct IExchange.OrderStatus",
-        "components": [
-          {
-            "name": "isFilledOrCancelled",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "remaining",
-            "type": "uint256",
-            "internalType": "uint256"
-          }
-        ]
-      },
-      {
-        "name": "order",
-        "type": "tuple",
-        "indexed": false,
-        "internalType": "struct IExchange.Order",
-        "components": [
-          {
-            "name": "salt",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "nonce",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "marketId",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "makingAmount",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "takingAmount",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "deadline",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "maker",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "receiver",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "tradeType",
-            "type": "uint8",
-            "internalType": "enum IExchange.TradeType"
-          },
-          {
-            "name": "signatureType",
-            "type": "uint8",
-            "internalType": "enum IExchange.SignatureType"
-          },
-          {
-            "name": "tokenId",
-            "type": "uint256",
-            "internalType": "uint256"
-          }
-        ]
-      },
-      {
-        "name": "maker",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "taker",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
       {
         "name": "marketId",
         "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "makingAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "takingAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "OrderStatusUpdated",
-    "inputs": [
-      {
-        "name": "orderHash",
-        "type": "bytes32",
         "indexed": true,
-        "internalType": "bytes32"
+        "internalType": "uint256"
       },
       {
-        "name": "maker",
+        "name": "sender",
         "type": "address",
         "indexed": true,
         "internalType": "address"
       },
       {
-        "name": "remainingMakingAmount",
+        "name": "prmTokenId",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
       },
       {
-        "name": "isFilledOrCancelled",
+        "name": "oPrmTokenId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "collateralAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "fees",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "expiry",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "tick",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "isCall",
         "type": "bool",
         "indexed": false,
         "internalType": "bool"
       },
       {
-        "name": "nonce",
-        "type": "uint256",
+        "name": "underlying",
+        "type": "address",
         "indexed": false,
-        "internalType": "uint256"
+        "internalType": "address"
+      },
+      {
+        "name": "collateral",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "delivery",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
       }
     ],
     "anonymous": false
   },
   {
     "type": "event",
-    "name": "OrdersMatched",
+    "name": "OperatorSet",
     "inputs": [
       {
-        "name": "takerOrderHash",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "takerMaker",
+        "name": "owner",
         "type": "address",
         "indexed": true,
         "internalType": "address"
       },
       {
-        "name": "takerFillAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        "name": "operator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        "name": "takerTakingAmount",
-        "type": "uint256",
+        "name": "approved",
+        "type": "bool",
         "indexed": false,
-        "internalType": "uint256"
+        "internalType": "bool"
       }
     ],
     "anonymous": false
@@ -1182,19 +1337,221 @@
   },
   {
     "type": "event",
-    "name": "ResolverWhitelistUpdated",
+    "name": "Redeemed",
     "inputs": [
       {
-        "name": "resolver",
+        "name": "oPrmTokenId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "from",
         "type": "address",
         "indexed": true,
         "internalType": "address"
       },
       {
-        "name": "isWhitelisted",
-        "type": "bool",
+        "name": "receiver",
+        "type": "address",
         "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "fees",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "profit",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "balance",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "finalTick",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RoleUpdated",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "role",
+        "type": "uint8",
+        "indexed": true,
+        "internalType": "enum IOptionMarketVault.Role"
+      },
+      {
+        "name": "enabled",
+        "type": "bool",
+        "indexed": false,
         "internalType": "bool"
+      },
+      {
+        "name": "sender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RolledOver",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "oldPrmTokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "newPrmTokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "holder",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "caller",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "oldExpiry",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "newExpiry",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "oldAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "residualCollateral",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "rolloverFee",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "netRolloverCollateral",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "newAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RolloverPreferenceUpdated",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "enabled",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      },
+      {
+        "name": "sender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Transfer",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "from",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "id",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -1213,6 +1570,202 @@
     "anonymous": false
   },
   {
+    "type": "event",
+    "name": "Unwound",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "prmTokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "oPrmTokenId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "prmBalance",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "oPrmBalance",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "collateralReturned",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "expiry",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "tick",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "isCall",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      },
+      {
+        "name": "collateralToken",
+        "type": "address",
+        "indexed": false,
+        "internalType": "contract IERC20"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Withdrawn",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "prmTokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "collateral",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "loss",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "finalTick",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "expiry",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "tick",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "isCall",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      },
+      {
+        "name": "collateralToken",
+        "type": "address",
+        "indexed": false,
+        "internalType": "contract IERC20"
+      },
+      {
+        "name": "delegated",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "AddressEmptyCode",
+    "inputs": [
+      {
+        "name": "target",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "DeliveryNotFilled",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "DeliveryUnderfunded",
+    "inputs": [
+      {
+        "name": "required",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "provided",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
     "type": "error",
     "name": "EnforcedPause",
     "inputs": []
@@ -1224,28 +1777,34 @@
   },
   {
     "type": "error",
-    "name": "FillAmountExceedsRemaining",
+    "name": "Expired",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "InvalidComplement",
+    "name": "FailedCall",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "InvalidFeeRate",
+    "name": "FinalTickNotSet",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "InvalidFeeReceiver",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidFillAmount",
-    "inputs": []
+    "name": "Forbidden",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum IOptionMarketVault.Role"
+      }
+    ]
   },
   {
     "type": "error",
@@ -1254,68 +1813,47 @@
   },
   {
     "type": "error",
-    "name": "InvalidNonce",
+    "name": "InvalidPrm",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "InvalidOrder",
+    "name": "InvalidRollover",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "InvalidShortString",
+    "name": "InvalidTick",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "InvalidSignature",
+    "name": "InvalidToken",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "InvalidSignatureType",
+    "name": "IsCallNotAllowed",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "LengthMismatch",
+    "name": "IsPutNotAllowed",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MismatchedTokenIds",
+    "name": "NoCollateral",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MulticallSubcallFailed",
-    "inputs": [
-      {
-        "name": "index",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "NotCrossing",
+    "name": "NotExpired",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "NotOrderMaker",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "OrderExpired",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "OrderFilledOrCancelled",
+    "name": "NotMarketOwner",
     "inputs": []
   },
   {
@@ -1347,10 +1885,21 @@
   },
   {
     "type": "error",
-    "name": "ResolverNotWhitelisted",
+    "name": "RolloverEnabled",
     "inputs": [
       {
-        "name": "resolver",
+        "name": "holder",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "RolloverNotEnabled",
+    "inputs": [
+      {
+        "name": "holder",
         "type": "address",
         "internalType": "address"
       }
@@ -1369,18 +1918,17 @@
   },
   {
     "type": "error",
-    "name": "StringTooLong",
-    "inputs": [
-      {
-        "name": "str",
-        "type": "string",
-        "internalType": "string"
-      }
-    ]
+    "name": "UnwindInsufficientBalance",
+    "inputs": []
   },
   {
     "type": "error",
-    "name": "TooLittleTokensReceived",
+    "name": "ZeroAddress",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZeroAmount",
     "inputs": []
   }
 ]

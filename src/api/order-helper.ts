@@ -54,7 +54,22 @@ export class OrderHelper {
     );
   }
 
-  async signOrder(order: ExchangeOrder, walletClient: WalletClient): Promise<Hex> {
+  getTypedData(order: ExchangeOrder) {
+    return getExchangeTypedData(
+      order,
+      this.config.chainId,
+      this.config.exchangeAddress
+    );
+  }
+
+  async signEip712Order(
+    order: ExchangeOrder,
+    walletClient: WalletClient
+  ): Promise<Hex> {
+    if (order.signatureType !== SignatureType.EIP712) {
+      throw new Error("signEip712Order only supports EIP712 orders");
+    }
+
     const account = walletClient.account;
     if (!account) {
       throw new Error("No account connected");
@@ -62,15 +77,31 @@ export class OrderHelper {
 
     return walletClient.signTypedData({
       account,
-      ...getExchangeTypedData(
-        {
-          ...order,
-          signatureType: SignatureType.EIP712,
-        },
-        this.config.chainId,
-        this.config.exchangeAddress
-      ),
+      ...this.getTypedData(order),
     });
+  }
+
+  async signSimpleAccountOrder(
+    order: ExchangeOrder,
+    ownerWalletClient: WalletClient
+  ): Promise<Hex> {
+    if (order.signatureType !== SignatureType.ERC1271) {
+      throw new Error("signSimpleAccountOrder only supports ERC1271 orders");
+    }
+
+    const account = ownerWalletClient.account;
+    if (!account) {
+      throw new Error("No account connected");
+    }
+
+    return ownerWalletClient.signTypedData({
+      account,
+      ...this.getTypedData(order),
+    });
+  }
+
+  async signOrder(order: ExchangeOrder, walletClient: WalletClient): Promise<Hex> {
+    return this.signEip712Order(order, walletClient);
   }
 
   async recoverOrderSigner(

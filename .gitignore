@@ -6,4 +6,6 @@ node_modules/
 
 .env
 
-docs/
+docs/*
+!docs/orderbook-integration.md
+!docs/CROSS_REPO_INTEGRATION.md

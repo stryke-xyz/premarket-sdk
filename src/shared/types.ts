@@ -101,18 +101,6 @@ export interface MatchResult {
   error?: string;
 }
 
-export interface MatchAndUpdateParams {
-  marketId: string;
-  tokenId: string;
-  makerSide: "bid" | "ask";
-  takerPrice: number;
-  takerAmount: string;
-  createOrderForRemainder: boolean;
-  requireFullFill?: boolean;
-  orderData?: MatchableOrder;
-  /** If true, takerAmount is in maker's makingAmount units. If false, takerAmount is in maker's takingAmount units. */
-  isMakingAmount?: boolean;
-}
 
 export interface CreateOrderResult {
   order: MatchableOrder;
@@ -151,113 +139,69 @@ export interface QueryOrdersResponse {
 }
 
 // ============================================================================
-// MARKET TYPES (New Schema)
+// MARKET TYPES
 // ============================================================================
 
-/** Market state with best bid/ask and last trade price */
-export interface MarketState {
+export interface MarketInstrument {
+  id: string;
+  name: string;
+  tick: string;
+  isSpread: boolean;
+  isCall: boolean | 0 | 1;
+  prmTokenId: string;
+  oPrmTokenId: string;
+  expiry: string;
   lastPrice: string | null;
   bestBid: string | null;
   bestAsk: string | null;
+  totalCollateral: string;
+  totalPrmSupply: string;
+  totalOprmSupply: string;
 }
 
-/** Onchain OptionMarketVault data */
-export interface OptionMarketVault {
-  underlying: `0x${string}`;
-  collateral: `0x${string}`;
-  delivery: `0x${string}`;
-  owner: `0x${string}`;
-  creator: `0x${string}`;
+export interface Market {
+  id: string,
+  name: string;
+  description: string;
+  specification: string;
+  minOrderAmount: string;
+  createdAt: string;
+  creator: string;
+  priceIncrement: string;
+  minPrice: string;
+  maxPrice: string;
+  isSpread: boolean;
+  instruments: MarketInstrument[];
+  collateral: string;
+  underlying: string;
+  delivery: string;
+  owner: string;
   tickSize: string;
   tickSpacing: string;
   tokensPerTickSize: string;
   expiry: string;
   depositFeeBps: string;
   redeemFeeBps: string;
+  makerFeeBps: string;
+  takerFeeBps: string;
+  rolloverFeeBps: string;
+  totalCollateral: string;
+  marketType: "ERC20xERC20" | "ERC20xERC6909";
   isCollateralScaled: boolean;
-  totalPrmMinted: string;
-  totalCollateralDeposited: string;
-  totalFeesCollected: string;
-  createdAt: string;
-  updatedAt: string;
+  nonRollable: boolean;
 }
 
-/** Instrument for ERC6909 markets (options) - API response type */
-export interface ApiInstrument extends MarketState {
-  id: string;
-  name: string;
-  tick: string;
-  isCall: boolean;
-  prmTokenId: string;
-  oPrmTokenId: string;
-  expiry: string;
+export interface MarketResponse {
+  success: true;
+  data: Market;
 }
 
-/** Submarket for ERC20 markets (pre-TGE tokens) */
-export interface Submarket extends MarketState {
-  id: string;
-  name: string;
-  tokenAddress: string;
-  tokenDecimals: number;
-}
-
-/** Base market fields shared by all market types */
-export interface BaseMarket {
-  id: string;
-  name: string;
-  specification: string;
-  collateralToken: string;
-  collateralDecimals: number;
-}
-
-/** ERC6909 market (options with instruments) */
-export interface Erc6909Market extends BaseMarket {
-  type: "erc6909";
-  marketId: string | null;
-  optionMarketVault: OptionMarketVault | null;
-  instruments: ApiInstrument[];
-  // Only returned on single market query
-  prmTokens?: PrmToken[];
-  finalTicks?: FinalTickInfo[];
-}
-
-/** ERC20 market (pre-TGE with submarkets) */
-export interface Erc20Market extends BaseMarket {
-  type: "erc20";
-  createdAt: string;
-  submarkets: Submarket[];
-}
-
-/** Union type for all markets - API response type */
-export type ApiMarket = Erc6909Market | Erc20Market;
-
-/** Response from getMarkets() */
 export interface MarketsResponse {
-  erc6909: Erc6909Market[];
-  erc20: Erc20Market[];
-  total: number;
-}
-
-/** @deprecated Use Market instead */
-export type OptionMarket = Erc6909Market;
-
-export interface PrmToken {
-  id: string;
-  prmTokenId: string;
-  oPrmTokenId: string;
-  tick: string;
-  isCall: boolean;
-  expiry: string;
-  totalMinted: string;
-  totalRedeemed: string;
-  totalUnwound: string;
-}
-
-export interface FinalTickInfo {
-  expiry: string;
-  finalTick: string;
-  updater: `0x${string}`;
-  updatedAt: string;
+  success: true;
+  data: {
+    markets: Market[];
+    total: number;
+  };
 }
 
 // ============================================================================
