@@ -161,6 +161,7 @@ export interface MarketInstrument {
 
 export interface Market {
   id: string,
+  groupId: string;
   name: string;
   description: string;
   specification: string;

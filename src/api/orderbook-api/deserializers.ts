@@ -36,6 +36,7 @@ export interface BigIntMarketInstrument {
 }
 
 export interface BigIntMarket {
+  groupId: string;
   name: string;
   description: string;
   specification: string;
@@ -101,6 +102,7 @@ export function marketInstrumentToBigInt(
  */
 export function marketToBigInt(market: Market): BigIntMarket {
   return {
+    groupId: market.groupId,
     name: market.name,
     description: market.description,
     specification: market.specification,
