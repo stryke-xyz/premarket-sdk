@@ -6,6 +6,10 @@ import { SignatureType } from "./types.js";
 
 const DEFAULT_SALT_MAX = (1n << 96n) - 1n;
 
+/**
+ * Input accepted by {@link buildExchangeOrder}.
+ * Omits fields that the helper can safely default for SDK consumers.
+ */
 export type BuildExchangeOrderParams = Omit<
   ExchangeOrder,
   "salt" | "receiver" | "signatureType"
@@ -15,6 +19,7 @@ export type BuildExchangeOrderParams = Omit<
   signatureType?: SignatureType;
 };
 
+/** Builds and validates a normalized exchange order ready for hashing or signing. */
 export function buildExchangeOrder(params: BuildExchangeOrderParams): ExchangeOrder {
   const order: ExchangeOrder = {
     salt: params.salt ?? randBigInt(DEFAULT_SALT_MAX),
@@ -35,6 +40,7 @@ export function buildExchangeOrder(params: BuildExchangeOrderParams): ExchangeOr
   return order;
 }
 
+/** Guards the minimal numeric invariants required by the exchange contract. */
 export function validateExchangeOrder(order: ExchangeOrder): void {
   if (order.makingAmount <= 0n) {
     throw new Error("makingAmount must be greater than zero");
@@ -47,6 +53,7 @@ export function validateExchangeOrder(order: ExchangeOrder): void {
   }
 }
 
+/** Returns true when the order deadline is already behind the supplied timestamp. */
 export function isOrderExpired(
   order: ExchangeOrder,
   nowSec: bigint = BigInt(Math.floor(Date.now() / 1000))
@@ -54,6 +61,7 @@ export function isOrderExpired(
   return order.deadline < nowSec;
 }
 
+/** Returns the remaining maker amount that can still be executed against the order. */
 export function getExecutableMakingAmount(
   order: ExchangeOrder,
   status: ExchangeOrderStatus
@@ -70,6 +78,7 @@ export function getExecutableMakingAmount(
   return status.remaining;
 }
 
+/** Computes the EIP-712 hash used by the Stryke exchange contract for this order. */
 export function getExchangeOrderHash(
   order: ExchangeOrder,
   chainId: number,

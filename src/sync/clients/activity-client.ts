@@ -78,6 +78,7 @@ export class ActivitySyncClient {
     };
   }
 
+  /** Connects to the activity websocket and subscribes to market and/or user channels. */
   async connect(): Promise<void> {
     this.clearReconnectTimeout();
     this.removeVisibilityChangeHandler();
@@ -336,15 +337,18 @@ export class ActivitySyncClient {
     return this.status;
   }
 
+  /** Returns true once the websocket has an active subscription. */
   isSynced(): boolean {
     return this.status === "synced";
   }
 
+  /** Registers a listener for connection lifecycle updates. */
   onStatus(callback: (status: SyncStatus) => void): () => void {
     this.statusListeners.add(callback);
     return () => this.statusListeners.delete(callback);
   }
 
+  /** Subscribes to all normalized fill events regardless of source channel. */
   onOrderFill(callback: (event: OrderFillEvent) => void): () => void {
     this.fillListeners.add(callback);
     return () => this.fillListeners.delete(callback);
@@ -362,6 +366,7 @@ export class ActivitySyncClient {
     return () => this.marketFillListeners.delete(callback);
   }
 
+  /** Closes the websocket, unsubscribes active channels, and stops reconnects. */
   async disconnect(): Promise<void> {
     this.shouldBeConnected = false;
     this.clearReconnectTimeout();

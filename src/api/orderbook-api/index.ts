@@ -25,7 +25,7 @@ import type {
 // ============================================================================
 
 /**
- * Unified API client for orderbook and options market operations
+ * Unified HTTP client for orderbook, market, position, and history endpoints.
  */
 export class OrderbookApi {
   constructor(private readonly config: OrderbookApiConfig) { }
@@ -35,7 +35,7 @@ export class OrderbookApi {
   // ============================================================================
 
   /**
-   * Create a new order
+   * Creates a new order in the orderbook service using a bearer-authenticated request.
    */
   async createOrder(
     params: CreateOrderParams,
@@ -62,7 +62,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Get order by hash
+   * Fetches a single stored order by its order hash.
    */
   async getOrder(orderHash: string): Promise<StoredOrder | null> {
     const response = await fetch(
@@ -74,7 +74,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Query orders with filters
+   * Queries orders using optional market, maker, status, and pagination filters.
    */
   async queryOrders(params: OrderQueryParams): Promise<QueryOrdersResponse> {
     const queryParams = new URLSearchParams();
@@ -120,7 +120,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Get depth snapshot for a market+token
+   * Fetches the current depth snapshot for one market and token pair.
    */
   async getDepthSnapshot(marketId: string, tokenId: string): Promise<DepthSnapshot> {
     const response = await fetch(
@@ -140,7 +140,7 @@ export class OrderbookApi {
   // ============================================================================
 
   /**
-   * Get all markets.
+   * Returns the paginated market catalog from the premarket API.
    */
   async getMarkets(): Promise<MarketsResponse["data"]> {
     const response = await fetch(
@@ -154,7 +154,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Get recent trades (order fills) for a market
+   * Returns recent trade activity for a market, ordered by newest first.
    */
   async getMarketRecentTrades(marketId: string, limit?: number): Promise<MarketTradeItem[]> {
     const queryParams = limit != null ? `?limit=${limit}` : "";
@@ -169,7 +169,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Get a single market by ID
+   * Fetches one market by id, returning `null` on a 404 response.
    */
   async getMarket(marketId: string): Promise<MarketResponse["data"] | null> {
     const response = await fetch(
@@ -190,7 +190,7 @@ export class OrderbookApi {
   // ============================================================================
 
   /**
-   * Get user positions (vault operations: mint/redeem/unwind)
+   * Returns current user positions derived from vault activity.
    */
   async getUserPositions(userAddress: string): Promise<UserPosition[]> {
     const response = await fetch(
@@ -204,7 +204,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Get user trading PnL (limit orders)
+   * Returns realized trading PnL for limit-order activity.
    */
   async getUserTradingPnL(userAddress: string): Promise<TradingPnL[]> {
     const response = await fetch(
@@ -218,7 +218,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Get user total PnL (positions + trading combined)
+   * Returns aggregated user PnL across positions and orderbook trading.
    */
   async getUserPnL(userAddress: string): Promise<UserPnL> {
     const response = await fetch(
@@ -232,7 +232,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Get PnL for a specific ERC6909 token
+   * Returns PnL for a single ERC-6909 token id.
    */
   async getTokenPnL(userAddress: string, tokenId: string): Promise<TokenPnL> {
     const response = await fetch(
@@ -246,7 +246,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Get PnL for a specific ERC20 token
+   * Returns trading PnL for a single ERC-20 token address.
    */
   async getErc20PnL(userAddress: string, tokenAddress: string): Promise<Erc20PnL> {
     const response = await fetch(
@@ -264,7 +264,7 @@ export class OrderbookApi {
   // ============================================================================
 
   /**
-   * Get all user histories (mints, redeems, unwinds, transfers, fills)
+   * Returns grouped user history across mint, redeem, unwind, transfer, and fill events.
    */
   async getUserHistories(userAddress: string, limit?: number): Promise<UserHistories> {
     const queryParams = limit ? `?limit=${limit}` : "";
@@ -279,7 +279,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Get user mint history
+   * Returns the user's mint history feed.
    */
   async getMintHistory(userAddress: string, limit?: number): Promise<UserHistories["mints"]> {
     const queryParams = limit ? `?limit=${limit}` : "";
@@ -294,7 +294,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Get user redeem history
+   * Returns the user's redeem history feed.
    */
   async getRedeemHistory(userAddress: string, limit?: number): Promise<UserHistories["redeems"]> {
     const queryParams = limit ? `?limit=${limit}` : "";
@@ -309,7 +309,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Get user unwind history
+   * Returns the user's unwind history feed.
    */
   async getUnwindHistory(userAddress: string, limit?: number): Promise<UserHistories["unwinds"]> {
     const queryParams = limit ? `?limit=${limit}` : "";
@@ -324,7 +324,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Get user transfer history
+   * Returns the user's transfer history feed.
    */
   async getTransferHistory(userAddress: string, limit?: number): Promise<UserHistories["transfers"]> {
     const queryParams = limit ? `?limit=${limit}` : "";
@@ -339,7 +339,7 @@ export class OrderbookApi {
   }
 
   /**
-   * Get user order fill history
+   * Returns the user's order fill history feed.
    */
   async getFillHistory(userAddress: string, limit?: number): Promise<UserHistories["fills"]> {
     const queryParams = limit ? `?limit=${limit}` : "";

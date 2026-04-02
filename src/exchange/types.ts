@@ -1,15 +1,18 @@
 import type { Address, Hex } from "viem";
 
+/** Direction of the maker order in the exchange. */
 export enum TradeType {
   BUY = 0,
   SELL = 1,
 }
 
+/** Signature validation mode expected by the exchange contract. */
 export enum SignatureType {
   EIP712 = 0,
   ERC1271 = 1,
 }
 
+/** Canonical in-memory exchange order shape using bigint fields. */
 export interface ExchangeOrder {
   salt: bigint;
   nonce: bigint;
@@ -24,6 +27,7 @@ export interface ExchangeOrder {
   tokenId: bigint;
 }
 
+/** JSON-safe exchange order shape used by APIs and persistence layers. */
 export interface SerializedExchangeOrder {
   salt: string;
   nonce: string;
@@ -38,21 +42,25 @@ export interface SerializedExchangeOrder {
   tokenId: string;
 }
 
+/** Onchain fill state returned by exchange status lookups. */
 export interface ExchangeOrderStatus {
   isFilledOrCancelled: boolean;
   remaining: bigint;
 }
 
+/** Serialized variant of {@link ExchangeOrderStatus}. */
 export interface SerializedExchangeOrderStatus {
   isFilledOrCancelled: boolean;
   remaining: string;
 }
 
+/** Result item returned by exchange multicall helpers. */
 export interface MulticallResult {
   success: boolean;
   returnData: Hex;
 }
 
+/** Converts an in-memory order into the stringified API shape. */
 export function serializeExchangeOrder(
   order: ExchangeOrder
 ): SerializedExchangeOrder {
@@ -71,6 +79,7 @@ export function serializeExchangeOrder(
   };
 }
 
+/** Restores bigint enum fields from a serialized exchange order payload. */
 export function deserializeExchangeOrder(
   order: SerializedExchangeOrder
 ): ExchangeOrder {
@@ -89,6 +98,7 @@ export function deserializeExchangeOrder(
   };
 }
 
+/** Converts bigint status fields into a transport-safe string payload. */
 export function serializeOrderStatus(
   status: ExchangeOrderStatus
 ): SerializedExchangeOrderStatus {
@@ -98,6 +108,7 @@ export function serializeOrderStatus(
   };
 }
 
+/** Restores bigint fields from a serialized exchange order status payload. */
 export function deserializeOrderStatus(
   status: SerializedExchangeOrderStatus
 ): ExchangeOrderStatus {

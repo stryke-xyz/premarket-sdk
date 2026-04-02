@@ -6,9 +6,12 @@ import {
 } from "viem";
 import type { ExchangeOrder } from "./types.js";
 
+/** EIP-712 domain name used by the exchange contract. */
 export const EXCHANGE_EIP712_NAME = "Exchange";
+/** EIP-712 domain version used by the exchange contract. */
 export const EXCHANGE_EIP712_VERSION = "1";
 
+/** Typed-data schema for exchange order signing and signature recovery. */
 export const EXCHANGE_ORDER_TYPES = {
   Order: [
     { name: "salt", type: "uint256" },
@@ -25,6 +28,7 @@ export const EXCHANGE_ORDER_TYPES = {
   ],
 } as const;
 
+/** Builds the EIP-712 domain object for a specific chain and exchange address. */
 export function getExchangeDomain(chainId: number, verifyingContract: Address) {
   return {
     name: EXCHANGE_EIP712_NAME,
@@ -34,6 +38,7 @@ export function getExchangeDomain(chainId: number, verifyingContract: Address) {
   } as const;
 }
 
+/** Returns the full typed-data payload expected by wallet signers. */
 export function getExchangeTypedData(
   order: ExchangeOrder,
   chainId: number,
@@ -47,6 +52,7 @@ export function getExchangeTypedData(
   };
 }
 
+/** Hashes an order exactly as the exchange contract expects for signature checks. */
 export function hashExchangeOrder(
   order: ExchangeOrder,
   chainId: number,
@@ -55,6 +61,7 @@ export function hashExchangeOrder(
   return hashTypedData(getExchangeTypedData(order, chainId, verifyingContract));
 }
 
+/** Recovers the signer address from an exchange order signature. */
 export async function recoverExchangeOrderSigner(
   order: ExchangeOrder,
   signature: Hex,

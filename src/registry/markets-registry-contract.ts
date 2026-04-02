@@ -3,6 +3,7 @@ import MarketsRegistryAbi from "../abi/MarketsRegistry.abi.json" with { type: "j
 import type { RegistryMarket, SerializedRegistryMarket } from "./types.js";
 const marketsRegistryAbi = MarketsRegistryAbi as readonly unknown[];
 
+/** Minimal transaction envelope returned by registry calldata builders. */
 export interface RegistryTransactionCall {
   to: Address;
   value?: bigint;
@@ -32,9 +33,11 @@ function normalizeMarket(market: MarketLike) {
   };
 }
 
+/** Calldata and transaction helpers for the markets registry contract. */
 export class MarketsRegistryContract {
   constructor(public readonly address: Address) {}
 
+  /** Encodes `addMarket` calldata for a new registry market definition. */
   getAddMarketCalldata(market: MarketLike): Hex {
     return encodeFunctionData({
       abi: marketsRegistryAbi,
@@ -43,6 +46,7 @@ export class MarketsRegistryContract {
     });
   }
 
+  /** Builds a transaction request for `addMarket`. */
   buildAddMarketTx(market: MarketLike): RegistryTransactionCall {
     return {
       to: this.address,
@@ -51,6 +55,7 @@ export class MarketsRegistryContract {
     };
   }
 
+  /** Encodes `updateToken` calldata for stable-token metadata changes. */
   getUpdateTokenCalldata(
     token: Address,
     isStable: boolean,
@@ -63,6 +68,7 @@ export class MarketsRegistryContract {
     });
   }
 
+  /** Encodes `setWhitelisted` calldata for registry access control. */
   getSetWhitelistedCalldata(account: Address, allowed: boolean): Hex {
     return encodeFunctionData({
       abi: marketsRegistryAbi,
@@ -71,6 +77,7 @@ export class MarketsRegistryContract {
     });
   }
 
+  /** Encodes `updateMarketExpiry` calldata for an existing market. */
   getUpdateMarketExpiryCalldata(marketId: bigint, expiry: bigint): Hex {
     return encodeFunctionData({
       abi: marketsRegistryAbi,
@@ -79,6 +86,7 @@ export class MarketsRegistryContract {
     });
   }
 
+  /** Encodes `multicall` calldata for batching registry mutations. */
   getMulticallCalldata(data: Hex[]): Hex {
     return encodeFunctionData({
       abi: marketsRegistryAbi,

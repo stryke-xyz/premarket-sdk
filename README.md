@@ -19,6 +19,7 @@ TypeScript SDK for Stryke premarket integrations across:
 
 - Cross-repo guide: `docs/CROSS_REPO_INTEGRATION.md`
 - Orderbook integration quick reference: `docs/orderbook-integration.md`
+- SDK API reference: `docs/API_REFERENCE.md`
 
 ## Install
 

@@ -1,10 +1,12 @@
 import type { Address } from "viem";
 
+/** Supported market storage formats in the registry contract. */
 export enum MarketType {
   ERC20xERC20 = 0,
   ERC20xERC6909 = 1,
 }
 
+/** In-memory registry market configuration using bigint fee and sizing fields. */
 export interface RegistryMarket {
   underlying: Address;
   collateral: Address;
@@ -24,6 +26,7 @@ export interface RegistryMarket {
   nonRollable: boolean;
 }
 
+/** JSON-safe registry market payload used in APIs or config files. */
 export interface SerializedRegistryMarket {
   underlying: Address;
   collateral: Address;
@@ -43,6 +46,7 @@ export interface SerializedRegistryMarket {
   nonRollable: boolean;
 }
 
+/** Converts a registry market into its stringified transport-safe shape. */
 export function serializeRegistryMarket(
   market: RegistryMarket
 ): SerializedRegistryMarket {
@@ -66,6 +70,7 @@ export function serializeRegistryMarket(
   };
 }
 
+/** Restores bigint fee and sizing fields from a serialized market payload. */
 export function deserializeRegistryMarket(
   market: SerializedRegistryMarket
 ): RegistryMarket {

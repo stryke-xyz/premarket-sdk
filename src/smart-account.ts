@@ -16,6 +16,7 @@ export interface SmartAccountConfig {
   factoryAddress: `0x${string}`;
 }
 
+/** Resolved smart-account address, salt, and deployment status for a user pair. */
 export interface SmartAccountResult {
   address: `0x${string}`;
   salt: bigint;
@@ -100,15 +101,17 @@ export async function getCurrentSmartAccount(
 }
 
 /**
- * Helper class that holds config and exposes the same methods.
+ * Convenience wrapper around the smart-account helper functions with shared factory config.
  */
 export class SmartAccountHelper {
   constructor(public config: SmartAccountConfig) { }
 
+  /** Returns the configured smart-account factory address. */
   get factoryAddress(): `0x${string}` {
     return this.config.factoryAddress;
   }
 
+  /** Computes the deterministic account address for owner, depositor, and salt. */
   async getAddress(
     client: PublicClient,
     owner: `0x${string}`,
@@ -124,6 +127,7 @@ export class SmartAccountHelper {
     );
   }
 
+  /** Reads how many accounts have been created for an owner. */
   async getAccountCount(
     client: PublicClient,
     owner: `0x${string}`
@@ -131,6 +135,7 @@ export class SmartAccountHelper {
     return getAccountCount(client, this.factoryAddress, owner);
   }
 
+  /** Resolves the most recently used account for an owner and depositor pair. */
   async getCurrent(
     client: PublicClient,
     owner: `0x${string}`,
@@ -144,6 +149,7 @@ export class SmartAccountHelper {
     );
   }
 
+  /** Checks whether code is already deployed at the supplied account address. */
   async isDeployed(
     client: PublicClient,
     address: `0x${string}`

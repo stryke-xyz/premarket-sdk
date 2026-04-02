@@ -3,6 +3,7 @@ import type { ExchangeOrder, SerializedExchangeOrder } from "./types.js";
 import ExchangeAbi from "../abi/Exchange.abi.json" with { type: "json" };
 const exchangeAbi = ExchangeAbi as readonly unknown[];
 
+/** Minimal transaction envelope returned by exchange calldata builders. */
 export interface ExchangeTransactionCall {
   to: Address;
   value?: bigint;
@@ -27,9 +28,11 @@ function normalizeOrder(order: OrderLike) {
   };
 }
 
+/** Calldata and transaction helpers for the Stryke exchange contract. */
 export class ExchangeContract {
   constructor(public readonly address: Address) {}
 
+  /** Encodes `fillOrder` calldata for a maker order and fill amount. */
   getFillOrderCalldata(
     order: OrderLike,
     fillAmount: bigint,
@@ -42,6 +45,7 @@ export class ExchangeContract {
     });
   }
 
+  /** Builds a transaction request for `fillOrder`. */
   buildFillOrderTx(
     order: OrderLike,
     fillAmount: bigint,
@@ -54,6 +58,7 @@ export class ExchangeContract {
     };
   }
 
+  /** Encodes `matchOrder` calldata for a taker-maker match. */
   getMatchOrderCalldata(
     takerOrder: OrderLike,
     takerSignature: Hex,
@@ -76,6 +81,7 @@ export class ExchangeContract {
     });
   }
 
+  /** Builds a transaction request for `matchOrder`. */
   buildMatchOrderTx(
     takerOrder: OrderLike,
     takerSignature: Hex,
@@ -98,6 +104,7 @@ export class ExchangeContract {
     };
   }
 
+  /** Encodes `cancelOrder` calldata for a previously signed order. */
   getCancelOrderCalldata(order: OrderLike): Hex {
     return encodeFunctionData({
       abi: exchangeAbi,
@@ -106,6 +113,7 @@ export class ExchangeContract {
     });
   }
 
+  /** Encodes `incrementNonce` calldata for invalidating older orders by maker nonce. */
   getIncrementNonceCalldata(): Hex {
     return encodeFunctionData({
       abi: exchangeAbi,
@@ -113,6 +121,7 @@ export class ExchangeContract {
     });
   }
 
+  /** Encodes `setResolverWhitelist` calldata for resolver access management. */
   getSetResolverWhitelistCalldata(
     resolver: Address,
     isWhitelisted: boolean
@@ -124,6 +133,7 @@ export class ExchangeContract {
     });
   }
 
+  /** Encodes `setFeeReceiver` calldata for protocol fee destination updates. */
   getSetFeeReceiverCalldata(newFeeReceiver: Address): Hex {
     return encodeFunctionData({
       abi: exchangeAbi,
@@ -132,6 +142,7 @@ export class ExchangeContract {
     });
   }
 
+  /** Encodes `pause` calldata for admin pause flows. */
   getPauseCalldata(): Hex {
     return encodeFunctionData({
       abi: exchangeAbi,
@@ -139,6 +150,7 @@ export class ExchangeContract {
     });
   }
 
+  /** Encodes `unpause` calldata for admin resume flows. */
   getUnpauseCalldata(): Hex {
     return encodeFunctionData({
       abi: exchangeAbi,
@@ -146,6 +158,7 @@ export class ExchangeContract {
     });
   }
 
+  /** Encodes `multicall` calldata for batching exchange method calls. */
   getMulticallCalldata(data: Hex[], allowFailure = false): Hex {
     return encodeFunctionData({
       abi: exchangeAbi,

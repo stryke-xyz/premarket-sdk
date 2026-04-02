@@ -3,6 +3,7 @@ import { SUPPORTED_CHAINS } from "./chains";
 import { megaETH, megaETHTestnet } from "./chains";
 import { zeroAddress } from "viem";
 
+/** Canonical token metadata used by SDK chain configuration maps. */
 export interface Token {
   name: string;
   symbol: string;
@@ -11,6 +12,7 @@ export interface Token {
   logoURI?: string;
 }
 
+/** Maps supported chain ids to their matching viem chain objects. */
 export const CHAIN_ID_TO_CHAIN: Record<number, Chain> = {
   31337: anvil,
   6343: megaETHTestnet,
@@ -18,7 +20,7 @@ export const CHAIN_ID_TO_CHAIN: Record<number, Chain> = {
   4326: megaETH,
 };
 
-
+/** Permit2 deployment addresses used by Stryke integrations per chain. */
 export const PERMIT2_ADDRESS: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
   [megaETHTestnet.id]: "0xd1739f41B25869c7457E502Db4E0eaad663535B7",
@@ -26,6 +28,7 @@ export const PERMIT2_ADDRESS: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [arbitrum.id]: "0xd1739f41B25869c7457E502Db4E0eaad663535B7",
 };
 
+/** Wrapped native asset metadata per supported chain. */
 export const WETH: Record<SUPPORTED_CHAINS, Token> = {
   [anvil.id]: {
     name: "Wrapped Ether",
@@ -53,6 +56,7 @@ export const WETH: Record<SUPPORTED_CHAINS, Token> = {
   },
 };
 
+/** Primary quote or stable token metadata used in market configs. */
 export const TOKEN1: Record<SUPPORTED_CHAINS, Token> = {
   [hardhat.id]: {
     name: "Token 1",
@@ -80,6 +84,7 @@ export const TOKEN1: Record<SUPPORTED_CHAINS, Token> = {
   },
 };
 
+/** Secondary quote or stable token metadata used in market configs. */
 export const TOKEN2: Record<SUPPORTED_CHAINS, Token> = {
   [hardhat.id]: {
     name: "Token 2",
@@ -107,6 +112,7 @@ export const TOKEN2: Record<SUPPORTED_CHAINS, Token> = {
   },
 };
 
+/** Canonical USDC metadata per supported chain. */
 export const USDC: Record<SUPPORTED_CHAINS, Token> = {
   [anvil.id]: {
     name: "USD Coin",
@@ -134,6 +140,7 @@ export const USDC: Record<SUPPORTED_CHAINS, Token> = {
   },
 };
 
+/** USDm metadata on chains where the asset is available. */
 export const USDM: Partial<Record<SUPPORTED_CHAINS, Token>> = {
   [anvil.id]: {
     name: "USDm",
@@ -149,6 +156,7 @@ export const USDM: Partial<Record<SUPPORTED_CHAINS, Token>> = {
   },
 };
 
+/** USDT0 metadata on chains where the asset is available. */
 export const USDT0: Partial<Record<SUPPORTED_CHAINS, Token>> = {
   [megaETH.id]: {
     name: "USDT0",
@@ -158,6 +166,7 @@ export const USDT0: Partial<Record<SUPPORTED_CHAINS, Token>> = {
   },
 };
 
+/** OptionMarketVault contract addresses by supported chain. */
 export const OPTION_MARKET_VAULT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
   [megaETHTestnet.id]: "0xB583C8d8218BfFE30bd45DB9F0E19a944Cb1deBd",
@@ -165,6 +174,7 @@ export const OPTION_MARKET_VAULT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [megaETH.id]: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
 };
 
+/** Exchange contract addresses by supported chain. */
 export const EXCHANGE: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
   [megaETHTestnet.id]: "0xa0b7722c3F6c64010eEF97F045e1aA9126cC3e62",
@@ -172,12 +182,14 @@ export const EXCHANGE: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [megaETH.id]: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
 };
 
+/** MarketsRegistry contract addresses on chains where the registry is deployed. */
 export const MARKETS_REGISTRY: Partial<Record<SUPPORTED_CHAINS, `0x${string}`>> =
 {
   [anvil.id]: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
   [megaETH.id]: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
 };
 
+/** ERC-4337 EntryPoint addresses used by Stryke smart accounts. */
 export const ENTRY_POINT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0x09635F643e140090A9A8Dcd712eD6285858ceBef",
   [megaETHTestnet.id]: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
@@ -185,6 +197,7 @@ export const ENTRY_POINT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [megaETH.id]: "0x09635F643e140090A9A8Dcd712eD6285858ceBef",
 };
 
+/** Mock paymaster addresses used by local or test deployments. */
 export const MOCK_PAYMASTER: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
   [megaETHTestnet.id]: zeroAddress,
@@ -192,6 +205,7 @@ export const MOCK_PAYMASTER: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [megaETH.id]: zeroAddress,
 };
 
+/** Simple account factory addresses by supported chain. */
 export const SIMPLE_ACCOUNT_FACTORY: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0xc5a5C42992dECbae36851359345FE25997F5C42d",
   [megaETHTestnet.id]: "0xca98DA1cB523DBff9234145ecA1158110dDd40dC",
@@ -200,10 +214,12 @@ export const SIMPLE_ACCOUNT_FACTORY: Record<SUPPORTED_CHAINS, `0x${string}`> = {
 };
 
 
+/** Fee registry addresses on chains where fee routing is deployed. */
 export const FEE_REGISTRY: Partial<Record<SUPPORTED_CHAINS, `0x${string}`>> = {
   [megaETH.id]: "0x7767047E9d7591d4F611Cdb36D35e885bDac30be",
 };
 
+/** Restriction module addresses for ERC token controls where available. */
 export const ERC_TOKENS_RESTRICTION_MODULE: Partial<Record<
   SUPPORTED_CHAINS,
   `0x${string}`

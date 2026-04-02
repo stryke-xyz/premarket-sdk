@@ -1,5 +1,6 @@
 import { defineChain as defineChainViem } from "viem";
 import { hardhat, arbitrum } from "viem/chains";
+/** Viem chain definition for MegaETH testnet. */
 export const megaETHTestnet = defineChainViem({
   id: 6343,
   name: "MegaETH Testnet",
@@ -21,6 +22,7 @@ export const megaETHTestnet = defineChainViem({
   },
 });
 
+/** Viem chain definition for MegaETH mainnet. */
 export const megaETH = defineChainViem({
   id: 4326,
   name: "MegaETH",

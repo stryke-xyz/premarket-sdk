@@ -15,6 +15,7 @@ export interface DepthLevel {
   depth: string;
 }
 
+/** Current depth state for a token within a market subscription. */
 export interface TokenDepthSnapshot {
   tokenId: string;
   bids: DepthLevel[];
@@ -25,13 +26,14 @@ export interface TokenDepthSnapshot {
   seq: number;
 }
 
+/** One bid or ask level change in the normalized SDK format. */
 export interface DepthLevelUpdate {
   side: "bid" | "ask";
   price: string;
   depth: string;
 }
 
-// Single depth level change from server
+/** One raw depth update event as published by the websocket service. */
 export interface DepthChangeEvent {
   tokenId: string;
   side: "bid" | "ask";
@@ -40,6 +42,7 @@ export interface DepthChangeEvent {
   seq: string;
 }
 
+/** Consolidated depth update emitted to SDK listeners after normalization. */
 export interface DepthUpdate {
   tokenId: string;
   levels: DepthLevelUpdate[];
@@ -49,6 +52,7 @@ export interface DepthUpdate {
   seq: number;
 }
 
+/** Configuration for the market depth websocket client. */
 export interface MarketDepthClientConfig {
   wsUrl: string;
   marketId: string;
@@ -123,6 +127,7 @@ export class MarketDepthSyncClient {
     };
   }
 
+  /** Connects to the market depth websocket and hydrates token snapshots. */
   async connect(): Promise<void> {
     // Clean up any existing connection first
     this.stopHeartbeat();
@@ -630,22 +635,27 @@ export class MarketDepthSyncClient {
   }
 
   // Public API
+  /** Returns the current connection lifecycle state. */
   getStatus(): SyncStatus {
     return this.status;
   }
 
+  /** Returns true once initial depth snapshots have been received. */
   isSynced(): boolean {
     return this.status === "synced";
   }
 
+  /** Returns all token ids currently tracked by the client. */
   getTokenIds(): string[] {
     return Array.from(this.tokenStates.keys());
   }
 
+  /** Returns raw internal token state for advanced integrations. */
   getTokenState(tokenId: string): TokenDepthState | undefined {
     return this.tokenStates.get(tokenId);
   }
 
+  /** Returns the current bid ladder for a token, sorted from highest to lowest price. */
   getBids(tokenId: string): DepthLevel[] {
     const state = this.tokenStates.get(tokenId);
     if (!state) return [];
@@ -655,6 +665,7 @@ export class MarketDepthSyncClient {
       .sort((a, b) => parseFloat(b.price) - parseFloat(a.price)); // Highest first
   }
 
+  /** Returns the current ask ladder for a token, sorted from lowest to highest price. */
   getAsks(tokenId: string): DepthLevel[] {
     const state = this.tokenStates.get(tokenId);
     if (!state) return [];
@@ -664,28 +675,34 @@ export class MarketDepthSyncClient {
       .sort((a, b) => parseFloat(a.price) - parseFloat(b.price)); // Lowest first
   }
 
+  /** Returns the best bid price for a token, if known. */
   getBestBid(tokenId: string): string | null {
     return this.tokenStates.get(tokenId)?.bestBid ?? null;
   }
 
+  /** Returns the best ask price for a token, if known. */
   getBestAsk(tokenId: string): string | null {
     return this.tokenStates.get(tokenId)?.bestAsk ?? null;
   }
 
+  /** Returns the latest trade price tracked for a token, if any. */
   getLastPrice(tokenId: string): string | null {
     return this.tokenStates.get(tokenId)?.lastPrice ?? null;
   }
 
+  /** Returns the latest applied sequence id for a token. */
   getSeq(tokenId: string): number {
     return this.tokenStates.get(tokenId)?.seq ?? 0;
   }
 
+  /** Returns the current bid-ask spread for a token when both sides are available. */
   getSpread(tokenId: string): number | null {
     const state = this.tokenStates.get(tokenId);
     if (!state || !state.bestBid || !state.bestAsk) return null;
     return parseFloat(state.bestAsk) - parseFloat(state.bestBid);
   }
 
+  /** Returns the depth resting at one exact price level on a given side. */
   getDepthAtPrice(
     tokenId: string,
     side: "bid" | "ask",
@@ -698,16 +715,19 @@ export class MarketDepthSyncClient {
   }
 
   // Event listeners
+  /** Registers a listener for connection lifecycle updates. */
   onStatus(callback: (status: SyncStatus) => void): () => void {
     this.statusListeners.add(callback);
     return () => this.statusListeners.delete(callback);
   }
 
+  /** Registers a listener that receives full snapshots for all subscribed tokens. */
   onSnapshot(callback: (snapshots: TokenDepthSnapshot[]) => void): () => void {
     this.snapshotListeners.add(callback);
     return () => this.snapshotListeners.delete(callback);
   }
 
+  /** Registers a listener for normalized incremental depth updates. */
   onDelta(
     callback: (marketId: string, update: DepthUpdate) => void
   ): () => void {
@@ -715,6 +735,7 @@ export class MarketDepthSyncClient {
     return () => this.deltaListeners.delete(callback);
   }
 
+  /** Closes the websocket and stops automatic reconnection attempts. */
   async disconnect(): Promise<void> {
     // Mark that we intentionally want to disconnect
     this.shouldBeConnected = false;

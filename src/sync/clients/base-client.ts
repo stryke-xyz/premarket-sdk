@@ -29,6 +29,7 @@ export abstract class BaseSyncClient<
     this.config = config;
   }
 
+  /** Opens the websocket subscription, fetches a fresh snapshot, and starts replaying queued messages. */
   async connect(): Promise<void> {
     // Disconnect existing connection if any (for restarts)
     await this.disconnect();
@@ -146,32 +147,39 @@ export abstract class BaseSyncClient<
     });
   }
 
+  /** Returns the current connection lifecycle state. */
   getStatus(): SyncStatus {
     return this.status;
   }
 
+  /** Returns true once the client has finished its initial snapshot sync. */
   isSynced(): boolean {
     return this.status === "synced";
   }
 
+  /** Returns the most recent successfully applied sequence id. */
   getLastSequence(): number {
     return this.lastSeq;
   }
 
+  /** Returns the number of queued messages waiting to be processed. */
   getBufferedCount(): number {
     return this.incomingQueue.length;
   }
 
+  /** Registers a listener for connection status changes. */
   onStatus(callback: (status: SyncStatus) => void): () => void {
     this.statusListeners.add(callback);
     return () => this.statusListeners.delete(callback);
   }
 
+  /** Registers a listener for individual applied change events. */
   onChange(callback: (change: TChange) => void): () => void {
     this.changeListeners.add(callback);
     return () => this.changeListeners.delete(callback);
   }
 
+  /** Registers a listener for full snapshot updates. */
   onSnapshot(callback: (data: TData[]) => void): () => void {
     this.snapshotListeners.add(callback);
     return () => this.snapshotListeners.delete(callback);
@@ -187,6 +195,7 @@ export abstract class BaseSyncClient<
     });
   }
 
+  /** Closes the websocket connection and clears queued messages. */
   async disconnect(): Promise<void> {
     // Stop processing
     this.isProcessing = true;

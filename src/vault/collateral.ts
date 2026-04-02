@@ -1,11 +1,11 @@
 /**
  * Collateral calculation utilities for OptionMarketVault
- * 
+ *
  * These functions replicate the Solidity contract logic for:
  * - Collateral amount calculations
  * - Spread bounds and width
  * - Profit/loss calculations
- * 
+ *
  * Key concepts:
  * - tickSize: price precision unit
  * - tickSpacing: spread width in tick units
@@ -30,6 +30,7 @@ export interface MarketParams {
  * Instrument parameters for collateral calculations
  */
 export interface InstrumentParams {
+  marketId: bigint;
   tick: bigint; // strike/lower bound tick
   isCall: boolean;
 }
@@ -46,19 +47,19 @@ export interface SpreadBounds {
 /**
  * Calculate the number of ticks in a spread
  * width = tickSpacing / tickSize (min 1)
- * 
+ *
  * From contract: uint256 ticks = mkt.tickSpacing > mkt.tickSize ? (mkt.tickSpacing / mkt.tickSize) : 1;
  */
 export function getSpreadWidth(market: MarketParams): bigint {
   if (market.tickSize === 0n) return 1n;
-  return market.tickSpacing > market.tickSize 
-    ? market.tickSpacing / market.tickSize 
+  return market.tickSpacing > market.tickSize
+    ? market.tickSpacing / market.tickSize
     : 1n;
 }
 
 /**
  * Get the upper and lower bounds of a spread
- * 
+ *
  * From contract _getSpreadBounds:
  * - lower = prm.tick
  * - upper = prm.tick + (width * mkt.tickSize)
@@ -66,18 +67,18 @@ export function getSpreadWidth(market: MarketParams): bigint {
  */
 export function getSpreadBounds(
   instrument: InstrumentParams,
-  market: MarketParams
+  market: MarketParams,
 ): SpreadBounds {
   const width = getSpreadWidth(market);
   const isSpread = width > 1n;
   const lower = instrument.tick;
-  const upper = instrument.tick + (width * market.tickSize);
+  const upper = instrument.tick + width * market.tickSize;
   return { lower, upper, isSpread };
 }
 
 /**
  * Calculate collateral amount for a given position size
- * 
+ *
  * From contract _getCollateralAmt:
  * ```
  * uint256 ticks = mkt.tickSpacing > mkt.tickSize ? (mkt.tickSpacing / mkt.tickSize) : 1;
@@ -91,24 +92,25 @@ export function getSpreadBounds(
 export function calculateCollateralAmount(
   prmAmount: bigint,
   instrument: InstrumentParams,
-  market: MarketParams
+  market: MarketParams,
 ): bigint {
   if (market.tickSize === 0n) return 0n;
-  
+
   const ticks = getSpreadWidth(market);
   let collateralPerPosition = ticks * market.tokensPerTickSize;
-  
+
   // Optional scaling by strike price
   if (market.isCollateralScaled) {
-    collateralPerPosition = (instrument.tick * collateralPerPosition) / market.tickSize;
+    collateralPerPosition =
+      (instrument.tick * collateralPerPosition) / market.tickSize;
   }
-  
+
   // Vault collateral accounting rounds up when the division is not exact.
   return mulDiv(
     collateralPerPosition,
     prmAmount,
     VAULT_TOKEN_PRECISION,
-    Rounding.Ceil
+    Rounding.Ceil,
   );
 }
 
@@ -118,25 +120,26 @@ export function calculateCollateralAmount(
 export function calculatePrmAmount(
   collateralAmount: bigint,
   instrument: InstrumentParams,
-  market: MarketParams
+  market: MarketParams,
 ): bigint {
   if (market.tickSize === 0n) return 0n;
-  
+
   const ticks = getSpreadWidth(market);
   let collateralPerPosition = ticks * market.tokensPerTickSize;
-  
+
   if (market.isCollateralScaled) {
-    collateralPerPosition = (instrument.tick * collateralPerPosition) / market.tickSize;
+    collateralPerPosition =
+      (instrument.tick * collateralPerPosition) / market.tickSize;
   }
-  
+
   if (collateralPerPosition === 0n) return 0n;
-  
+
   return (collateralAmount * VAULT_TOKEN_PRECISION) / collateralPerPosition;
 }
 
 /**
  * Calculate profit for a spread position given final tick
- * 
+ *
  * From contract _getProfit:
  * ```
  * if (isSpread) {
@@ -153,7 +156,7 @@ export function calculatePrmAmount(
  *     }
  * }
  * ```
- * 
+ *
  * Note: This returns profit per VAULT_TOKEN_PRECISION (1e18) of position.
  * To get actual profit, multiply by position size and divide by VAULT_TOKEN_PRECISION.
  */
@@ -161,28 +164,33 @@ export function calculateSpreadProfit(
   instrument: InstrumentParams,
   market: MarketParams,
   finalTick: bigint,
-  positionSize: bigint
+  positionSize: bigint,
 ): bigint {
   const { lower, upper, isSpread } = getSpreadBounds(instrument, market);
-  
+
   if (finalTick === 0n) return 0n;
-  
+
   if (isSpread) {
     // Only profit if within bounds
     if (finalTick > lower && finalTick < upper) {
-      const moneyness = instrument.isCall 
-        ? finalTick - lower 
+      const moneyness = instrument.isCall
+        ? finalTick - lower
         : upper - finalTick;
-      const profitPerPosition = (market.tokensPerTickSize * moneyness) / market.tickSize;
+      const profitPerPosition =
+        (market.tokensPerTickSize * moneyness) / market.tickSize;
       return (profitPerPosition * positionSize) / VAULT_TOKEN_PRECISION;
     }
     return 0n;
   } else {
     // Vanilla option payoff
     if (instrument.isCall && finalTick > instrument.tick) {
-      return ((finalTick - instrument.tick) * positionSize) / VAULT_TOKEN_PRECISION;
+      return (
+        ((finalTick - instrument.tick) * positionSize) / VAULT_TOKEN_PRECISION
+      );
     } else if (!instrument.isCall && finalTick < instrument.tick) {
-      return ((instrument.tick - finalTick) * positionSize) / VAULT_TOKEN_PRECISION;
+      return (
+        ((instrument.tick - finalTick) * positionSize) / VAULT_TOKEN_PRECISION
+      );
     }
     return 0n;
   }
@@ -196,7 +204,7 @@ export function calculateSpreadLoss(
   instrument: InstrumentParams,
   market: MarketParams,
   finalTick: bigint,
-  positionSize: bigint
+  positionSize: bigint,
 ): bigint {
   // Loss to collateral provider = profit to option holder
   return calculateSpreadProfit(instrument, market, finalTick, positionSize);
@@ -210,9 +218,13 @@ export function calculateWithdrawableCollateral(
   instrument: InstrumentParams,
   market: MarketParams,
   finalTick: bigint,
-  positionSize: bigint
+  positionSize: bigint,
 ): bigint {
-  const totalCollateral = calculateCollateralAmount(positionSize, instrument, market);
+  const totalCollateral = calculateCollateralAmount(
+    positionSize,
+    instrument,
+    market,
+  );
   const loss = calculateSpreadLoss(instrument, market, finalTick, positionSize);
   return totalCollateral > loss ? totalCollateral - loss : 0n;
 }
@@ -223,42 +235,42 @@ export function calculateWithdrawableCollateral(
  */
 export function getCollateralPerPosition(
   instrument: InstrumentParams,
-  market: MarketParams
+  market: MarketParams,
 ): bigint {
   const ticks = getSpreadWidth(market);
   let collateral = ticks * market.tokensPerTickSize;
-  
+
   if (market.isCollateralScaled) {
     collateral = (instrument.tick * collateral) / market.tickSize;
   }
-  
+
   return collateral;
 }
 
 /**
  * Calculate deposit fees
- * 
+ *
  * From contract _getDepositFees:
  * return (amt * mkt.depositFeeBps) / FEE_BPS_PRECISION;
  */
 export function calculateDepositFees(
   collateralAmount: bigint,
   depositFeeBps: bigint,
-  feeBpsPrecision: bigint = 1000000n
+  feeBpsPrecision: bigint = 1000000n,
 ): bigint {
   return (collateralAmount * depositFeeBps) / feeBpsPrecision;
 }
 
 /**
  * Calculate redeem fees
- * 
+ *
  * From contract _getRedeemFees:
  * return (amt * mkt.redeemFeeBps) / FEE_BPS_PRECISION;
  */
 export function calculateRedeemFees(
   profitAmount: bigint,
   redeemFeeBps: bigint,
-  feeBpsPrecision: bigint = 1000000n
+  feeBpsPrecision: bigint = 1000000n,
 ): bigint {
   return (profitAmount * redeemFeeBps) / feeBpsPrecision;
 }
@@ -269,10 +281,10 @@ export function calculateRedeemFees(
 export function isInTheMoney(
   instrument: InstrumentParams,
   market: MarketParams,
-  finalTick: bigint
+  finalTick: bigint,
 ): boolean {
   const { lower, upper, isSpread } = getSpreadBounds(instrument, market);
-  
+
   if (isSpread) {
     // Spread is ITM if finalTick is within bounds
     return finalTick > lower && finalTick < upper;
@@ -293,18 +305,16 @@ export function isInTheMoney(
 export function calculateMoneyness(
   instrument: InstrumentParams,
   market: MarketParams,
-  finalTick: bigint
+  finalTick: bigint,
 ): number {
   const { lower, upper, isSpread } = getSpreadBounds(instrument, market);
-  
+
   if (!isSpread) return 0;
   if (finalTick <= lower) return 0;
   if (finalTick >= upper) return 100;
-  
+
   const width = upper - lower;
-  const moneyness = instrument.isCall 
-    ? finalTick - lower 
-    : upper - finalTick;
-  
+  const moneyness = instrument.isCall ? finalTick - lower : upper - finalTick;
+
   return Number((moneyness * 100n) / width);
 }
