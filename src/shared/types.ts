@@ -2,6 +2,8 @@
 // ORDER TYPES
 // ============================================================================
 
+import { Hex } from "viem";
+
 export interface Order {
   salt: string;
   nonce: string;
@@ -101,7 +103,6 @@ export interface MatchResult {
   error?: string;
 }
 
-
 export interface CreateOrderResult {
   order: MatchableOrder;
   matchResult: MatchResult;
@@ -160,7 +161,7 @@ export interface MarketInstrument {
 }
 
 export interface Market {
-  id: string,
+  id: string;
   groupId: string;
   name: string;
   description: string;
@@ -381,3 +382,22 @@ export interface DepthSnapshot {
   lastPrice: string | null;
   seq: string;
 }
+
+export type AuthChallenge = {
+  readonly domain: {
+    name: string;
+    version: string;
+    chainId: number;
+    verifyingContract: `0x${string}`;
+  };
+  readonly types: {
+    Login: Array<{
+      name: string;
+      type: string;
+    }>;
+  };
+  message: {
+    nonce: Hex;
+    expiresAt: number;
+  };
+};
