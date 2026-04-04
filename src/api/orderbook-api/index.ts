@@ -15,6 +15,7 @@ import type {
   Erc20PnL,
   UserHistories,
   OrderbookApiConfig,
+  OrdersSnapshot,
   OrderQueryParams,
   QueryOrdersResponse,
   DepthSnapshot,
@@ -30,7 +31,129 @@ import type {
  * Unified HTTP client for orderbook, market, position, and history endpoints.
  */
 export class OrderbookApi {
-  constructor(private readonly config: OrderbookApiConfig) { }
+  private readonly baseUrl: string;
+  private readonly fetchFn: typeof fetch;
+
+  constructor(private readonly config: OrderbookApiConfig) {
+    this.baseUrl = config.baseUrl.replace(/\/+$/, "");
+    this.fetchFn = config.fetchFn ?? fetch;
+  }
+
+  private buildUrl(
+    path: string,
+    query?: Record<string, string | number | undefined>,
+  ): string {
+    const url = new URL(path, `${this.baseUrl}/`);
+
+    if (!query) {
+      return url.toString();
+    }
+
+    for (const [key, value] of Object.entries(query)) {
+      if (value == null) continue;
+      url.searchParams.set(key, String(value));
+    }
+
+    return url.toString();
+  }
+
+  private async parseJsonBody(
+    response: Response,
+    defaultError: string,
+  ): Promise<unknown> {
+    const text = await response.text();
+    if (!text) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error(
+        `${defaultError}: expected a JSON response (status ${response.status})`,
+      );
+    }
+  }
+
+  private getErrorMessage(
+    response: Response,
+    payload: unknown,
+    defaultError: string,
+  ): string {
+    if (
+      payload &&
+      typeof payload === "object" &&
+      "error" in payload &&
+      typeof payload.error === "string" &&
+      payload.error.length > 0
+    ) {
+      return payload.error;
+    }
+
+    if (response.statusText) {
+      return `${defaultError} (${response.status} ${response.statusText})`;
+    }
+
+    return `${defaultError} (status ${response.status})`;
+  }
+
+  private isEnvelope<T>(
+    payload: unknown,
+  ): payload is { success: boolean; data?: T; error?: string } {
+    return Boolean(
+      payload &&
+      typeof payload === "object" &&
+      "success" in payload &&
+      typeof payload.success === "boolean",
+    );
+  }
+
+  private async requestEnvelope<T>(
+    path: string,
+    init: RequestInit | undefined,
+    defaultError: string,
+    options?: { allowNotFound?: boolean },
+  ): Promise<T | null> {
+    const response = await this.fetchFn(this.buildUrl(path), init);
+    if (options?.allowNotFound && response.status === 404) {
+      return null;
+    }
+
+    const payload = await this.parseJsonBody(response, defaultError);
+
+    if (!response.ok) {
+      throw new Error(this.getErrorMessage(response, payload, defaultError));
+    }
+
+    if (!this.isEnvelope<T>(payload)) {
+      throw new Error(`${defaultError}: malformed response body`);
+    }
+
+    if (!payload.success) {
+      throw new Error(payload.error || defaultError);
+    }
+
+    return (payload.data ?? null) as T | null;
+  }
+
+  private async requestJson<T>(
+    path: string,
+    init: RequestInit | undefined,
+    defaultError: string,
+  ): Promise<T> {
+    const response = await this.fetchFn(this.buildUrl(path), init);
+    const payload = await this.parseJsonBody(response, defaultError);
+
+    if (!response.ok) {
+      throw new Error(this.getErrorMessage(response, payload, defaultError));
+    }
+
+    if (payload == null) {
+      throw new Error(`${defaultError}: empty response body`);
+    }
+
+    return payload as T;
+  }
 
   // ============================================================================
   // ORDERBOOK METHODS
@@ -43,8 +166,8 @@ export class OrderbookApi {
     params: CreateOrderParams,
     bearerToken: string,
   ): Promise<StoredOrder> {
-    const response = await fetch(
-      `${this.config.baseUrl}/orderbook/api/orders`,
+    return (await this.requestEnvelope<StoredOrder>(
+      "/orderbook/api/orders",
       {
         method: "POST",
         headers: {
@@ -53,50 +176,39 @@ export class OrderbookApi {
         },
         body: JSON.stringify(params),
       },
-    );
-
-    const data = await response.json();
-
-    if (!data.success) {
-      throw new Error(data.error || "Failed to create order");
-    }
-
-    return data.data;
+      "Failed to create order",
+    )) as StoredOrder;
   }
 
   /**
    * Fetches a single stored order by its order hash.
    */
   async getOrder(orderHash: string): Promise<StoredOrder | null> {
-    const response = await fetch(
-      `${this.config.baseUrl}/orderbook/api/orders/${orderHash}`,
+    return this.requestEnvelope<StoredOrder>(
+      `/orderbook/api/orders/${encodeURIComponent(orderHash)}`,
+      undefined,
+      "Failed to fetch order",
+      { allowNotFound: true },
     );
-
-    const data = await response.json();
-    return data.success ? data.data : null;
   }
 
   /**
    * Queries orders using optional market, maker, status, and pagination filters.
    */
   async queryOrders(params: OrderQueryParams): Promise<QueryOrdersResponse> {
-    const queryParams = new URLSearchParams();
-    if (params.marketId) queryParams.append("marketId", params.marketId);
-    if (params.maker) queryParams.append("maker", params.maker);
-    if (params.status) queryParams.append("status", params.status);
-    if (params.limit) queryParams.append("limit", params.limit.toString());
-    if (params.offset) queryParams.append("offset", params.offset.toString());
+    const url = this.buildUrl("/orderbook/api/orders", {
+      marketId: params.marketId,
+      maker: params.maker,
+      status: params.status,
+      limit: params.limit,
+      offset: params.offset,
+    });
 
-    const response = await fetch(
-      `${this.config.baseUrl}/orderbook/api/orders?${queryParams.toString()}`,
-    );
-
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to query orders");
-    }
-
-    return data.data;
+    return (await this.requestEnvelope<QueryOrdersResponse>(
+      url,
+      undefined,
+      "Failed to query orders",
+    )) as QueryOrdersResponse;
   }
 
   /**
@@ -111,18 +223,15 @@ export class OrderbookApi {
       throw new Error("marketId is required to fetch user orders");
     }
 
-    const response = await fetch(
-      `${this.config.baseUrl}/orderbook/api/orders/user/${maker}?marketId=${encodeURIComponent(
+    const data = await this.requestEnvelope<OrdersSnapshot>(
+      this.buildUrl(`/orderbook/api/orders/user/${encodeURIComponent(maker)}`, {
         marketId,
-      )}`,
+      }),
+      undefined,
+      "Failed to get orders snapshot",
     );
 
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to get orders snapshot");
-    }
-
-    return data.data.orders || [];
+    return data?.orders || [];
   }
 
   /**
@@ -132,16 +241,14 @@ export class OrderbookApi {
     marketId: string,
     tokenId: string,
   ): Promise<DepthSnapshot> {
-    const response = await fetch(
-      `${this.config.baseUrl}/orderbook/api/depth?marketId=${marketId}&tokenId=${tokenId}`,
-    );
-
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to get depth snapshot");
-    }
-
-    return data.data;
+    return (await this.requestEnvelope<DepthSnapshot>(
+      this.buildUrl("/orderbook/api/depth", {
+        marketId,
+        tokenId,
+      }),
+      undefined,
+      "Failed to get depth snapshot",
+    )) as DepthSnapshot;
   }
 
   // ============================================================================
@@ -152,15 +259,11 @@ export class OrderbookApi {
    * Returns the paginated market catalog from the premarket API.
    */
   async getMarkets(): Promise<MarketsResponse["data"]> {
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/markets`,
-    );
-    const data: MarketsResponse | { success: false; error?: string } =
-      await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch markets");
-    }
-    return data.data;
+    return (await this.requestEnvelope<MarketsResponse["data"]>(
+      "/premarket/api/markets",
+      undefined,
+      "Failed to fetch markets",
+    )) as MarketsResponse["data"];
   }
 
   /**
@@ -170,33 +273,28 @@ export class OrderbookApi {
     marketId: string,
     limit?: number,
   ): Promise<MarketTradeItem[]> {
-    const queryParams = limit != null ? `?limit=${limit}` : "";
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/markets/${marketId}/trades${queryParams}`,
-    );
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch market trades");
-    }
-    return data.data;
+    return (await this.requestEnvelope<MarketTradeItem[]>(
+      this.buildUrl(
+        `/premarket/api/markets/${encodeURIComponent(marketId)}/trades`,
+        {
+          limit,
+        },
+      ),
+      undefined,
+      "Failed to fetch market trades",
+    )) as MarketTradeItem[];
   }
 
   /**
    * Fetches one market by id, returning `null` on a 404 response.
    */
   async getMarket(marketId: string): Promise<MarketResponse["data"] | null> {
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/markets/${marketId}`,
+    return this.requestEnvelope<MarketResponse["data"]>(
+      `/premarket/api/markets/${encodeURIComponent(marketId)}`,
+      undefined,
+      "Failed to fetch market",
+      { allowNotFound: true },
     );
-    const data: MarketResponse | { success: false; error?: string } =
-      await response.json();
-    if (!data.success) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error(data.error || "Failed to fetch market");
-    }
-    return data.data;
   }
 
   // ============================================================================
@@ -207,56 +305,44 @@ export class OrderbookApi {
    * Returns current user positions derived from vault activity.
    */
   async getUserPositions(userAddress: string): Promise<UserPosition[]> {
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/users/${userAddress}/positions`,
-    );
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch positions");
-    }
-    return data.data;
+    return (await this.requestEnvelope<UserPosition[]>(
+      `/premarket/api/users/${encodeURIComponent(userAddress)}/positions`,
+      undefined,
+      "Failed to fetch positions",
+    )) as UserPosition[];
   }
 
   /**
    * Returns realized trading PnL for limit-order activity.
    */
   async getUserTradingPnL(userAddress: string): Promise<TradingPnL[]> {
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/users/${userAddress}/trading`,
-    );
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch trading PnL");
-    }
-    return data.data;
+    return (await this.requestEnvelope<TradingPnL[]>(
+      `/premarket/api/users/${encodeURIComponent(userAddress)}/trading`,
+      undefined,
+      "Failed to fetch trading PnL",
+    )) as TradingPnL[];
   }
 
   /**
    * Returns aggregated user PnL across positions and orderbook trading.
    */
   async getUserPnL(userAddress: string): Promise<UserPnL> {
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/users/${userAddress}/pnl`,
-    );
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch PnL");
-    }
-    return data.data;
+    return (await this.requestEnvelope<UserPnL>(
+      `/premarket/api/users/${encodeURIComponent(userAddress)}/pnl`,
+      undefined,
+      "Failed to fetch PnL",
+    )) as UserPnL;
   }
 
   /**
    * Returns PnL for a single ERC-6909 token id.
    */
   async getTokenPnL(userAddress: string, tokenId: string): Promise<TokenPnL> {
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/users/${userAddress}/pnl/${tokenId}`,
-    );
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch token PnL");
-    }
-    return data.data;
+    return (await this.requestEnvelope<TokenPnL>(
+      `/premarket/api/users/${encodeURIComponent(userAddress)}/pnl/${encodeURIComponent(tokenId)}`,
+      undefined,
+      "Failed to fetch token PnL",
+    )) as TokenPnL;
   }
 
   /**
@@ -266,14 +352,11 @@ export class OrderbookApi {
     userAddress: string,
     tokenAddress: string,
   ): Promise<Erc20PnL> {
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/users/${userAddress}/pnl/erc20/${tokenAddress}`,
-    );
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch ERC20 PnL");
-    }
-    return data.data;
+    return (await this.requestEnvelope<Erc20PnL>(
+      `/premarket/api/users/${encodeURIComponent(userAddress)}/pnl/erc20/${encodeURIComponent(tokenAddress)}`,
+      undefined,
+      "Failed to fetch ERC20 PnL",
+    )) as Erc20PnL;
   }
 
   // ============================================================================
@@ -287,15 +370,16 @@ export class OrderbookApi {
     userAddress: string,
     limit?: number,
   ): Promise<UserHistories> {
-    const queryParams = limit ? `?limit=${limit}` : "";
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/users/${userAddress}/history${queryParams}`,
-    );
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch history");
-    }
-    return data.data;
+    return (await this.requestEnvelope<UserHistories>(
+      this.buildUrl(
+        `/premarket/api/users/${encodeURIComponent(userAddress)}/history`,
+        {
+          limit,
+        },
+      ),
+      undefined,
+      "Failed to fetch history",
+    )) as UserHistories;
   }
 
   /**
@@ -305,15 +389,16 @@ export class OrderbookApi {
     userAddress: string,
     limit?: number,
   ): Promise<UserHistories["mints"]> {
-    const queryParams = limit ? `?limit=${limit}` : "";
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/users/${userAddress}/history/mints${queryParams}`,
-    );
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch mint history");
-    }
-    return data.data;
+    return (await this.requestEnvelope<UserHistories["mints"]>(
+      this.buildUrl(
+        `/premarket/api/users/${encodeURIComponent(userAddress)}/history/mints`,
+        {
+          limit,
+        },
+      ),
+      undefined,
+      "Failed to fetch mint history",
+    )) as UserHistories["mints"];
   }
 
   /**
@@ -323,15 +408,16 @@ export class OrderbookApi {
     userAddress: string,
     limit?: number,
   ): Promise<UserHistories["redeems"]> {
-    const queryParams = limit ? `?limit=${limit}` : "";
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/users/${userAddress}/history/redeems${queryParams}`,
-    );
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch redeem history");
-    }
-    return data.data;
+    return (await this.requestEnvelope<UserHistories["redeems"]>(
+      this.buildUrl(
+        `/premarket/api/users/${encodeURIComponent(userAddress)}/history/redeems`,
+        {
+          limit,
+        },
+      ),
+      undefined,
+      "Failed to fetch redeem history",
+    )) as UserHistories["redeems"];
   }
 
   /**
@@ -341,15 +427,16 @@ export class OrderbookApi {
     userAddress: string,
     limit?: number,
   ): Promise<UserHistories["unwinds"]> {
-    const queryParams = limit ? `?limit=${limit}` : "";
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/users/${userAddress}/history/unwinds${queryParams}`,
-    );
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch unwind history");
-    }
-    return data.data;
+    return (await this.requestEnvelope<UserHistories["unwinds"]>(
+      this.buildUrl(
+        `/premarket/api/users/${encodeURIComponent(userAddress)}/history/unwinds`,
+        {
+          limit,
+        },
+      ),
+      undefined,
+      "Failed to fetch unwind history",
+    )) as UserHistories["unwinds"];
   }
 
   /**
@@ -359,15 +446,16 @@ export class OrderbookApi {
     userAddress: string,
     limit?: number,
   ): Promise<UserHistories["transfers"]> {
-    const queryParams = limit ? `?limit=${limit}` : "";
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/users/${userAddress}/history/transfers${queryParams}`,
-    );
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch transfer history");
-    }
-    return data.data;
+    return (await this.requestEnvelope<UserHistories["transfers"]>(
+      this.buildUrl(
+        `/premarket/api/users/${encodeURIComponent(userAddress)}/history/transfers`,
+        {
+          limit,
+        },
+      ),
+      undefined,
+      "Failed to fetch transfer history",
+    )) as UserHistories["transfers"];
   }
 
   /**
@@ -377,15 +465,16 @@ export class OrderbookApi {
     userAddress: string,
     limit?: number,
   ): Promise<UserHistories["fills"]> {
-    const queryParams = limit ? `?limit=${limit}` : "";
-    const response = await fetch(
-      `${this.config.baseUrl}/premarket/api/users/${userAddress}/history/fills${queryParams}`,
-    );
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || "Failed to fetch fill history");
-    }
-    return data.data;
+    return (await this.requestEnvelope<UserHistories["fills"]>(
+      this.buildUrl(
+        `/premarket/api/users/${encodeURIComponent(userAddress)}/history/fills`,
+        {
+          limit,
+        },
+      ),
+      undefined,
+      "Failed to fetch fill history",
+    )) as UserHistories["fills"];
   }
 
   async getChallenge({
@@ -395,22 +484,18 @@ export class OrderbookApi {
     address: Address;
     chainId: number;
   }): Promise<AuthChallenge> {
-    const response = await fetch(`${this.config.baseUrl}/auth/challenge`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chainId: chainId.toString(),
-        address,
-      }),
-    });
-
-    if (!response.ok) {
-      throw Error("Failed to fetch challenge");
-    }
-
-    const challenge = (await response.json()) as AuthChallenge;
-
-    return challenge;
+    return this.requestJson<AuthChallenge>(
+      "/auth/challenge",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chainId: chainId.toString(),
+          address,
+        }),
+      },
+      "Failed to fetch challenge",
+    );
   }
 
   async verifyAuth({
@@ -426,24 +511,20 @@ export class OrderbookApi {
     chainId: number;
     expiresAt: number;
   }): Promise<{ access: string }> {
-    const response = await fetch(`${this.config.baseUrl}/auth/verify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        account,
-        nonce,
-        signature,
-        chainId: chainId.toString(),
-        expiresAt,
-      }),
-    });
-
-    if (!response.ok) {
-      throw Error("Failed to verify");
-    }
-
-    const verification = (await response.json()) as { access: string };
-
-    return verification;
+    return this.requestJson<{ access: string }>(
+      "/auth/verify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          account,
+          nonce,
+          signature,
+          chainId: chainId.toString(),
+          expiresAt,
+        }),
+      },
+      "Failed to verify",
+    );
   }
 }

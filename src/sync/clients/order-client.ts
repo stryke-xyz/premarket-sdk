@@ -1,5 +1,14 @@
 import type { SyncStatus } from "../types.js";
 
+function scheduleDeferred(callback: () => void): void {
+  if (typeof queueMicrotask === "function") {
+    queueMicrotask(callback);
+    return;
+  }
+
+  setTimeout(callback, 0);
+}
+
 /**
  * Normalize a price string to a canonical form for consistent map key lookups.
  * Converts "1.000000" and "1" both to "1" (removes trailing zeros after decimal).
@@ -99,9 +108,8 @@ export class MarketDepthSyncClient {
   private statusListeners: Set<(status: SyncStatus) => void> = new Set();
   private snapshotListeners: Set<(snapshots: TokenDepthSnapshot[]) => void> =
     new Set();
-  private deltaListeners: Set<
-    (marketId: string, update: DepthUpdate) => void
-  > = new Set();
+  private deltaListeners: Set<(marketId: string, update: DepthUpdate) => void> =
+    new Set();
 
   // Reconnection state
   private shouldBeConnected: boolean = false;
@@ -154,6 +162,18 @@ export class MarketDepthSyncClient {
     this.setupVisibilityChangeHandler();
 
     return new Promise((resolve, reject) => {
+      let settled = false;
+      const resolveOnce = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      const rejectOnce = (error: unknown) => {
+        if (settled) return;
+        settled = true;
+        reject(error);
+      };
+
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
@@ -167,7 +187,7 @@ export class MarketDepthSyncClient {
             type: "subscribe_market",
             marketId: this.config.marketId,
             tokenIds: this.config.tokenIds,
-          })
+          }),
         );
 
         // Start heartbeat
@@ -190,8 +210,8 @@ export class MarketDepthSyncClient {
             this.handleSubscribedMarket(msg);
             this.isProcessing = false;
             this.setStatus("synced");
-            this.processChangeQueue();
-            resolve();
+            void this.processChangeQueue();
+            resolveOnce();
           } else if (msg.type === "depth_update") {
             // Received depth update
             this.handleDepthUpdate(msg);
@@ -203,7 +223,7 @@ export class MarketDepthSyncClient {
             this.handleLastPriceUpdate(msg);
           } else if (msg.type === "error") {
             console.error("WebSocket error:", msg.message);
-            reject(new Error(msg.message));
+            rejectOnce(new Error(msg.message));
           }
         } catch (error) {
           console.error("Error parsing message:", error);
@@ -214,13 +234,19 @@ export class MarketDepthSyncClient {
         console.error("WebSocket error:", error);
         // Only reject if this is the initial connection
         if (this.status === "connecting") {
-          reject(error);
+          rejectOnce(error);
         }
       };
 
       this.ws.onclose = () => {
         this.stopHeartbeat();
         this.setStatus("disconnected");
+
+        if (!settled) {
+          rejectOnce(
+            new Error("WebSocket closed before initial depth snapshot"),
+          );
+        }
 
         // Attempt to reconnect if we should still be connected
         if (this.shouldBeConnected) {
@@ -251,7 +277,10 @@ export class MarketDepthSyncClient {
     if (typeof document === "undefined") return;
 
     if (this.visibilityChangeHandler) {
-      document.removeEventListener("visibilitychange", this.visibilityChangeHandler);
+      document.removeEventListener(
+        "visibilitychange",
+        this.visibilityChangeHandler,
+      );
       this.visibilityChangeHandler = null;
     }
   }
@@ -340,7 +369,9 @@ export class MarketDepthSyncClient {
 
     const maxAttempts = this.config.maxReconnectAttempts!;
     if (this.reconnectAttempts >= maxAttempts) {
-      console.error(`Max reconnection attempts (${maxAttempts}) reached, giving up`);
+      console.error(
+        `Max reconnection attempts (${maxAttempts}) reached, giving up`,
+      );
       return;
     }
 
@@ -349,13 +380,15 @@ export class MarketDepthSyncClient {
     const maxDelay = this.config.maxReconnectDelayMs!;
     const delay = Math.min(
       baseDelay * Math.pow(2, this.reconnectAttempts) + Math.random() * 1000,
-      maxDelay
+      maxDelay,
     );
 
     this.reconnectAttempts++;
     this.setStatus("recovering");
 
-    console.log(`Scheduling reconnect attempt ${this.reconnectAttempts} in ${Math.round(delay)}ms`);
+    console.log(
+      `Scheduling reconnect attempt ${this.reconnectAttempts} in ${Math.round(delay)}ms`,
+    );
 
     this.clearReconnectTimeout();
     this.reconnectTimeoutId = setTimeout(() => {
@@ -547,7 +580,7 @@ export class MarketDepthSyncClient {
         // The depth data is still correct (absolute values, not deltas).
         if (newSeq > state.seq + 1) {
           console.warn(
-            `[MarketDepth] Gap detected tokenId=${change.tokenId} expected=${state.seq + 1} got=${newSeq}. Accepting anyway (depth is absolute).`
+            `[MarketDepth] Gap detected tokenId=${change.tokenId} expected=${state.seq + 1} got=${newSeq}. Accepting anyway (depth is absolute).`,
           );
           // Continue processing - depth values are absolute, so missing an update
           // just means we might have a stale value until the next update for that price.
@@ -562,7 +595,9 @@ export class MarketDepthSyncClient {
           try {
             const update: DepthUpdate = {
               tokenId: change.tokenId,
-              levels: [{ side: change.side, price: change.price, depth: change.depth }],
+              levels: [
+                { side: change.side, price: change.price, depth: change.depth },
+              ],
               bestBid: state.bestBid,
               bestAsk: state.bestAsk,
               lastPrice: state.lastPrice,
@@ -578,7 +613,9 @@ export class MarketDepthSyncClient {
       this.isProcessing = false;
 
       if (this.changeQueue.length > 0) {
-        setImmediate(() => this.processChangeQueue());
+        scheduleDeferred(() => {
+          void this.processChangeQueue();
+        });
       }
     }
   }
@@ -612,14 +649,15 @@ export class MarketDepthSyncClient {
     // Best bid = highest price with depth
     // Best ask = lowest price with depth
     if (change.side === "bid") {
-      const bidPrices = Array.from(state.bids.keys()).map(p => parseFloat(p));
-      state.bestBid = bidPrices.length > 0 ? Math.max(...bidPrices).toString() : null;
+      const bidPrices = Array.from(state.bids.keys()).map((p) => parseFloat(p));
+      state.bestBid =
+        bidPrices.length > 0 ? Math.max(...bidPrices).toString() : null;
     } else {
-      const askPrices = Array.from(state.asks.keys()).map(p => parseFloat(p));
-      state.bestAsk = askPrices.length > 0 ? Math.min(...askPrices).toString() : null;
+      const askPrices = Array.from(state.asks.keys()).map((p) => parseFloat(p));
+      state.bestAsk =
+        askPrices.length > 0 ? Math.min(...askPrices).toString() : null;
     }
   }
-
 
   private setStatus(status: SyncStatus): void {
     if (this.status === status) return;
@@ -706,12 +744,12 @@ export class MarketDepthSyncClient {
   getDepthAtPrice(
     tokenId: string,
     side: "bid" | "ask",
-    price: string
+    price: string,
   ): string | null {
     const state = this.tokenStates.get(tokenId);
     if (!state) return null;
     const map = side === "bid" ? state.bids : state.asks;
-    return map.get((price)) || null;
+    return map.get(normalizePrice(price)) || null;
   }
 
   // Event listeners
@@ -729,7 +767,7 @@ export class MarketDepthSyncClient {
 
   /** Registers a listener for normalized incremental depth updates. */
   onDelta(
-    callback: (marketId: string, update: DepthUpdate) => void
+    callback: (marketId: string, update: DepthUpdate) => void,
   ): () => void {
     this.deltaListeners.add(callback);
     return () => this.deltaListeners.delete(callback);
@@ -758,7 +796,7 @@ export class MarketDepthSyncClient {
             JSON.stringify({
               type: "unsubscribe_market",
               marketId: this.config.marketId,
-            })
+            }),
           );
         } catch {
           // Ignore send errors during disconnect

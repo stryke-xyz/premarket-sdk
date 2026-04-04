@@ -2,8 +2,15 @@
  * OptionMarketVault transaction builders: mint (deposit), withdraw, redeem, unwind.
  * Use these to build calldata for sponsored txs or direct sends.
  */
-import { encodeFunctionData, erc20Abi, maxUint256, parseAbi, type Address, type Hex } from "viem";
-import { VaultInstrument } from "./types";
+import {
+  encodeFunctionData,
+  erc20Abi,
+  maxUint256,
+  parseAbi,
+  type Address,
+  type Hex,
+} from "viem";
+import type { VaultInstrument } from "./types.js";
 
 const optionMarketVaultAbi = parseAbi([
   "function mint((uint256 marketId, uint256 tick, bool isCall) ins, uint256 amt) external returns (uint256 prmTokenId, uint256 oPrmTokenId)",
@@ -36,7 +43,7 @@ export interface TransactionCall {
 export function buildMintTransaction(
   vaultAddress: `0x${string}`,
   instrument: VaultInstrument,
-  amount: bigint
+  amount: bigint,
 ): TransactionCall {
   return {
     to: vaultAddress,
@@ -69,7 +76,7 @@ export function buildWithdrawTransaction(
   vaultAddress: `0x${string}`,
   prmTokenId: bigint,
   amount: bigint,
-  receiver: Address
+  receiver: Address,
 ): TransactionCall {
   return {
     to: vaultAddress,
@@ -91,7 +98,7 @@ export function buildWithdrawTransaction(
 export function buildRedeemTransaction(
   vaultAddress: `0x${string}`,
   oPrmTokenId: bigint,
-  receiver: Address
+  receiver: Address,
 ): TransactionCall {
   return {
     to: vaultAddress,
@@ -109,7 +116,7 @@ export function buildRedeemTransaction(
 export function buildDelegateRedeemTransaction(
   vaultAddress: `0x${string}`,
   oPrmTokenId: bigint,
-  receiver: Address
+  receiver: Address,
 ): TransactionCall {
   return {
     to: vaultAddress,
@@ -127,7 +134,7 @@ export function buildDelegateRedeemTransaction(
 export function buildDelegateRolloverTransaction(
   vaultAddress: `0x${string}`,
   oldPrmTokenId: bigint,
-  holder: Address
+  holder: Address,
 ): TransactionCall {
   return {
     to: vaultAddress,
@@ -152,7 +159,7 @@ export function buildUnwindTransaction(
   vaultAddress: `0x${string}`,
   prmTokenId: bigint,
   amount: bigint,
-  receiver: Address
+  receiver: Address,
 ): TransactionCall {
   return buildWithdrawTransaction(vaultAddress, prmTokenId, amount, receiver);
 }
@@ -165,7 +172,7 @@ export function buildDelegateWithdrawTransaction(
   prmTokenId: bigint,
   amount: bigint,
   owner: Address,
-  receiver: Address
+  receiver: Address,
 ): TransactionCall {
   return {
     to: vaultAddress,
@@ -183,7 +190,7 @@ export function buildDelegateWithdrawTransaction(
 export function buildFillMarketDeliveryTransaction(
   vaultAddress: `0x${string}`,
   marketId: bigint,
-  amount: bigint
+  amount: bigint,
 ): TransactionCall {
   return {
     to: vaultAddress,
@@ -200,7 +207,7 @@ export function buildFillMarketDeliveryTransaction(
  */
 export function buildSetRolloverEnabledTransaction(
   vaultAddress: `0x${string}`,
-  enabled: boolean
+  enabled: boolean,
 ): TransactionCall {
   return {
     to: vaultAddress,
@@ -218,7 +225,7 @@ export function buildSetRolloverEnabledTransaction(
 export function buildSetOperatorTransaction(
   vaultAddress: `0x${string}`,
   operator: Address,
-  approved: boolean
+  approved: boolean,
 ): TransactionCall {
   return {
     to: vaultAddress,
@@ -237,7 +244,7 @@ export function buildSetRoleTransaction(
   vaultAddress: `0x${string}`,
   account: Address,
   role: number,
-  enabled: boolean
+  enabled: boolean,
 ): TransactionCall {
   return {
     to: vaultAddress,
@@ -255,7 +262,7 @@ export function buildSetRoleTransaction(
 export function buildUpdateFinalTickTransaction(
   vaultAddress: `0x${string}`,
   marketId: bigint,
-  tick: bigint
+  tick: bigint,
 ): TransactionCall {
   return {
     to: vaultAddress,
@@ -273,7 +280,7 @@ export function buildUpdateFinalTickTransaction(
 export function buildUpdateMarketExpiryTransaction(
   vaultAddress: `0x${string}`,
   marketId: bigint,
-  expiry: bigint
+  expiry: bigint,
 ): TransactionCall {
   return {
     to: vaultAddress,
@@ -291,7 +298,7 @@ export function buildUpdateMarketExpiryTransaction(
 export function buildUpdateMarketExpiryFromMarketTransaction(
   vaultAddress: `0x${string}`,
   marketId: bigint,
-  expiry: bigint
+  expiry: bigint,
 ): TransactionCall {
   return {
     to: vaultAddress,
@@ -308,7 +315,7 @@ export function buildUpdateMarketExpiryFromMarketTransaction(
  */
 export function buildRolloverTransaction(
   vaultAddress: `0x${string}`,
-  oldPrmTokenId: bigint
+  oldPrmTokenId: bigint,
 ): TransactionCall {
   return {
     to: vaultAddress,
@@ -330,7 +337,7 @@ export function buildRolloverTransaction(
 export function buildApproveTransaction(
   tokenAddress: `0x${string}`,
   spender: `0x${string}`,
-  amount: bigint = maxUint256
+  amount: bigint = maxUint256,
 ): TransactionCall {
   return {
     to: tokenAddress,
@@ -356,13 +363,13 @@ export function buildBatchedMintTransactions(
   vaultAddress: `0x${string}`,
   instrument: VaultInstrument,
   collateralAmount: bigint,
-  prmAmount: bigint
+  prmAmount: bigint,
 ): TransactionCall[] {
   return [
     buildApproveTransaction(
       collateralTokenAddress,
       vaultAddress,
-      collateralAmount
+      collateralAmount,
     ),
     buildMintTransaction(vaultAddress, instrument, prmAmount),
   ];

@@ -125,6 +125,7 @@ export interface OrderResponse {
 
 export interface OrderbookApiConfig {
   baseUrl: string;
+  fetchFn?: typeof fetch;
 }
 
 export interface OrdersSnapshot {

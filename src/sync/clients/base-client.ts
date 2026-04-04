@@ -1,6 +1,15 @@
 import type { SyncStatus } from "../types.js";
 import { RedisWsClient } from "../redis-ws-client.js";
 
+function scheduleDeferred(callback: () => void): void {
+  if (typeof queueMicrotask === "function") {
+    queueMicrotask(callback);
+    return;
+  }
+
+  setTimeout(callback, 0);
+}
+
 /**
  * Base abstract class for sync clients
  * @template TMessage - The message type (e.g., SequencedMessage, BalanceUpdateMessage)
@@ -40,7 +49,7 @@ export abstract class BaseSyncClient<
     const wsUrl = this.config.redisUrl;
     if (!wsUrl.startsWith("ws://") && !wsUrl.startsWith("wss://")) {
       throw new Error(
-        `Invalid WebSocket URL: ${wsUrl}. Only ws:// and wss:// URLs are supported.`
+        `Invalid WebSocket URL: ${wsUrl}. Only ws:// and wss:// URLs are supported.`,
       );
     }
 
@@ -103,14 +112,14 @@ export abstract class BaseSyncClient<
           // This message is out of order (previousSeq is behind us)
           // This shouldn't happen in normal operation, but skip it
           console.warn(
-            `Out of order message: previousSeq=${message.previousSeq}, lastSeq=${this.lastSeq}, seq=${message.seq}`
+            `Out of order message: previousSeq=${message.previousSeq}, lastSeq=${this.lastSeq}, seq=${message.seq}`,
           );
           continue;
         } else {
           // Gap detected: previousSeq > lastSeq
           // Trigger full resync instead of gap recovery
           console.warn(
-            `Gap detected: previousSeq=${message.previousSeq}, lastSeq=${this.lastSeq}, seq=${message.seq}. Triggering full resync.`
+            `Gap detected: previousSeq=${message.previousSeq}, lastSeq=${this.lastSeq}, seq=${message.seq}. Triggering full resync.`,
           );
           // Clear the queue - full resync will reconnect and start fresh
           this.incomingQueue = [];
@@ -122,7 +131,9 @@ export abstract class BaseSyncClient<
       this.isProcessing = false;
 
       if (this.incomingQueue.length > 0) {
-        setImmediate(() => this.processQueue());
+        scheduleDeferred(() => {
+          void this.processQueue();
+        });
       }
     }
   }

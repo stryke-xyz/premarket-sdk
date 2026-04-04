@@ -14,24 +14,33 @@ const BASE_MARKET: MarketParams = {
 const BASE_INSTRUMENT: InstrumentParams = {
   tick: 500n,
   isCall: true,
+  marketId: 1n,
 };
 
 describe("vault collateral math", () => {
   it("rounds collateral up when the division is not exact", () => {
     expect(
-      calculateCollateralAmount(100000000000000000n, BASE_INSTRUMENT, BASE_MARKET)
+      calculateCollateralAmount(
+        100000000000000000n,
+        BASE_INSTRUMENT,
+        BASE_MARKET,
+      ),
     ).toBe(3n);
   });
 
   it("preserves exact collateral results when division is exact", () => {
     expect(
-      calculateCollateralAmount(500000000000000000n, BASE_INSTRUMENT, BASE_MARKET)
+      calculateCollateralAmount(
+        500000000000000000n,
+        BASE_INSTRUMENT,
+        BASE_MARKET,
+      ),
     ).toBe(15n);
   });
 
   it("keeps prm conversion as floor division for inverse previews", () => {
     expect(calculatePrmAmount(1n, BASE_INSTRUMENT, BASE_MARKET)).toBe(
-      33333333333333333n
+      33333333333333333n,
     );
   });
 
@@ -42,7 +51,11 @@ describe("vault collateral math", () => {
     };
 
     expect(
-      calculateCollateralAmount(100000000000000000n, BASE_INSTRUMENT, scaledMarket)
+      calculateCollateralAmount(
+        100000000000000000n,
+        BASE_INSTRUMENT,
+        scaledMarket,
+      ),
     ).toBe(15n);
   });
 });

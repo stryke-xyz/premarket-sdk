@@ -2,7 +2,7 @@ import type { SyncStatus } from "../types.js";
 
 /**
  * Order fill event from activity stream (published via PG logical replication from Ponder).
- * 
+ *
  * Two sources:
  * - orders_matched:{marketId} channel: includes maker, taker, transactionHash, blockNumber
  * - user:{address} channel: does not include maker/taker (user already knows their address)
@@ -66,7 +66,9 @@ export class ActivitySyncClient {
 
   constructor(config: ActivityClientConfig) {
     if (!config.marketId && !config.userAddress) {
-      throw new Error("ActivitySyncClient requires at least one of marketId or userAddress");
+      throw new Error(
+        "ActivitySyncClient requires at least one of marketId or userAddress",
+      );
     }
     this.config = {
       heartbeatIntervalMs: 30000,
@@ -99,6 +101,22 @@ export class ActivitySyncClient {
     }
 
     return new Promise((resolve, reject) => {
+      let settled = false;
+      const expectedSubscriptions = new Set<string>();
+      if (this.config.marketId) expectedSubscriptions.add("orders_matched");
+      if (this.config.userAddress) expectedSubscriptions.add("user_info");
+
+      const resolveOnce = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      const rejectOnce = (error: unknown) => {
+        if (settled) return;
+        settled = true;
+        reject(error);
+      };
+
       this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
@@ -111,7 +129,7 @@ export class ActivitySyncClient {
               type: "subscribe",
               channel: "orders_matched",
               marketId: this.config.marketId,
-            })
+            }),
           );
         }
         if (this.config.userAddress) {
@@ -120,13 +138,11 @@ export class ActivitySyncClient {
               type: "subscribe",
               channel: "user_info",
               userAddress: this.config.userAddress,
-            })
+            }),
           );
         }
 
         this.startHeartbeat();
-        this.setStatus("synced");
-        resolve();
       };
 
       this.ws.onmessage = (event) => {
@@ -139,12 +155,32 @@ export class ActivitySyncClient {
             return;
           }
 
-          if (msg.type === "subscribed" || msg.type === "unsubscribed") {
+          if (msg.type === "subscribed") {
+            if (typeof msg.channel === "string") {
+              expectedSubscriptions.delete(msg.channel);
+            }
+            if (expectedSubscriptions.size === 0) {
+              this.setStatus("synced");
+              resolveOnce();
+            }
+            return;
+          }
+
+          if (msg.type === "unsubscribed") {
             return;
           }
 
           if (msg.type === "error") {
+            const error = new Error(
+              typeof msg.message === "string"
+                ? msg.message
+                : "Activity websocket subscription failed",
+            );
             console.error("[ActivitySyncClient] error:", msg.message);
+            if (!settled) {
+              rejectOnce(error);
+              this.handleConnectionLost();
+            }
             return;
           }
 
@@ -154,7 +190,7 @@ export class ActivitySyncClient {
           if (msg.type === "order_fill" || msg.type === "fill") {
             const isFromUserChannel = msg.type === "fill";
             const isFromMarketChannel = msg.type === "order_fill";
-            
+
             const fill: OrderFillEvent = {
               type: "order_fill",
               marketId: msg.marketId ?? null,
@@ -170,7 +206,7 @@ export class ActivitySyncClient {
               blockNumber: msg.blockNumber ?? null,
               timestamp: msg.timestamp ?? null,
             };
-            
+
             // Notify generic fill listeners (all events)
             this.fillListeners.forEach((listener) => {
               try {
@@ -179,7 +215,7 @@ export class ActivitySyncClient {
                 console.error("Error in fill listener:", e);
               }
             });
-            
+
             // Notify user-specific listeners (only events from user_info channel)
             if (isFromUserChannel) {
               this.userFillListeners.forEach((listener) => {
@@ -190,7 +226,7 @@ export class ActivitySyncClient {
                 }
               });
             }
-            
+
             // Notify market-specific listeners (only events from orders_matched channel)
             if (isFromMarketChannel) {
               this.marketFillListeners.forEach((listener) => {
@@ -208,12 +244,19 @@ export class ActivitySyncClient {
       };
 
       this.ws.onerror = (err) => {
-        if (this.status === "connecting") reject(err);
+        if (this.status === "connecting") rejectOnce(err);
       };
 
       this.ws.onclose = () => {
         this.stopHeartbeat();
         this.setStatus("disconnected");
+        if (!settled) {
+          rejectOnce(
+            new Error(
+              "WebSocket closed before subscriptions were acknowledged",
+            ),
+          );
+        }
         if (this.shouldBeConnected) this.scheduleReconnect();
       };
     });
@@ -271,7 +314,10 @@ export class ActivitySyncClient {
   private removeVisibilityChangeHandler(): void {
     if (typeof document === "undefined") return;
     if (this.visibilityChangeHandler) {
-      document.removeEventListener("visibilitychange", this.visibilityChangeHandler);
+      document.removeEventListener(
+        "visibilitychange",
+        this.visibilityChangeHandler,
+      );
       this.visibilityChangeHandler = null;
     }
   }
@@ -307,17 +353,24 @@ export class ActivitySyncClient {
     if (!this.shouldBeConnected) return;
     const max = this.config.maxReconnectAttempts!;
     if (this.reconnectAttempts >= max) {
-      console.error(`[ActivitySyncClient] Max reconnect attempts (${max}) reached`);
+      console.error(
+        `[ActivitySyncClient] Max reconnect attempts (${max}) reached`,
+      );
       return;
     }
     const base = this.config.initialReconnectDelayMs!;
     const cap = this.config.maxReconnectDelayMs!;
-    const delay = Math.min(base * Math.pow(2, this.reconnectAttempts) + Math.random() * 1000, cap);
+    const delay = Math.min(
+      base * Math.pow(2, this.reconnectAttempts) + Math.random() * 1000,
+      cap,
+    );
     this.reconnectAttempts++;
     this.setStatus("recovering");
     this.clearReconnectTimeout();
     this.reconnectTimeoutId = setTimeout(() => {
-      this.connect().catch((e) => console.error("[ActivitySyncClient] Reconnect failed:", e));
+      this.connect().catch((e) =>
+        console.error("[ActivitySyncClient] Reconnect failed:", e),
+      );
     }, delay);
   }
 
@@ -382,7 +435,7 @@ export class ActivitySyncClient {
               type: "unsubscribe",
               channel: "orders_matched",
               marketId: this.config.marketId,
-            })
+            }),
           );
         } catch {
           /* ignore */
@@ -395,7 +448,7 @@ export class ActivitySyncClient {
               type: "unsubscribe",
               channel: "user_info",
               userAddress: this.config.userAddress,
-            })
+            }),
           );
         } catch {
           /* ignore */

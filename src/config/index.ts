@@ -1,6 +1,6 @@
 import { hardhat, Chain, arbitrum, anvil } from "viem/chains";
-import { SUPPORTED_CHAINS } from "./chains";
-import { megaETH, megaETHTestnet } from "./chains";
+import { SUPPORTED_CHAINS } from "./chains.js";
+import { megaETH, megaETHTestnet } from "./chains.js";
 import { zeroAddress } from "viem";
 
 /** Canonical token metadata used by SDK chain configuration maps. */
@@ -183,8 +183,9 @@ export const EXCHANGE: Record<SUPPORTED_CHAINS, `0x${string}`> = {
 };
 
 /** MarketsRegistry contract addresses on chains where the registry is deployed. */
-export const MARKETS_REGISTRY: Partial<Record<SUPPORTED_CHAINS, `0x${string}`>> =
-{
+export const MARKETS_REGISTRY: Partial<
+  Record<SUPPORTED_CHAINS, `0x${string}`>
+> = {
   [anvil.id]: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
   [megaETH.id]: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
 };
@@ -210,9 +211,8 @@ export const SIMPLE_ACCOUNT_FACTORY: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0xc5a5C42992dECbae36851359345FE25997F5C42d",
   [megaETHTestnet.id]: "0xca98DA1cB523DBff9234145ecA1158110dDd40dC",
   [arbitrum.id]: "0x70c5b7D839f85a1D84c8E77BF0E6104617Da4f34",
-  [megaETH.id]: "0xc5a5C42992dECbae36851359345FE25997F5C42d"
+  [megaETH.id]: "0xc5a5C42992dECbae36851359345FE25997F5C42d",
 };
-
 
 /** Fee registry addresses on chains where fee routing is deployed. */
 export const FEE_REGISTRY: Partial<Record<SUPPORTED_CHAINS, `0x${string}`>> = {
@@ -220,10 +220,9 @@ export const FEE_REGISTRY: Partial<Record<SUPPORTED_CHAINS, `0x${string}`>> = {
 };
 
 /** Restriction module addresses for ERC token controls where available. */
-export const ERC_TOKENS_RESTRICTION_MODULE: Partial<Record<
-  SUPPORTED_CHAINS,
-  `0x${string}`
->> = {
+export const ERC_TOKENS_RESTRICTION_MODULE: Partial<
+  Record<SUPPORTED_CHAINS, `0x${string}`>
+> = {
   [anvil.id]: "0x67d269191c92Caf3cD7723F116c85e6E9bf55933",
   [megaETH.id]: "0xa4f0c83Ddc6b86513ab9Fd7115F20498AeD24FC0",
 };

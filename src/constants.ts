@@ -1,5 +1,5 @@
-import { EXCHANGE, MARKETS_REGISTRY } from "./config";
-import { SUPPORTED_CHAINS } from "./config/chains";
+import { EXCHANGE, MARKETS_REGISTRY } from "./config/index.js";
+import { SUPPORTED_CHAINS } from "./config/chains.js";
 
 export const ZX = "0x";
 
@@ -19,7 +19,9 @@ export const getLimitOrderContract = getExchangeContract;
 export const getMarketsRegistryContract = (chainId: number): string => {
   const address = MARKETS_REGISTRY[chainId as SUPPORTED_CHAINS];
   if (!address) {
-    throw new Error(`MARKETS_REGISTRY is not configured for chainId=${chainId}`);
+    throw new Error(
+      `MARKETS_REGISTRY is not configured for chainId=${chainId}`,
+    );
   }
 
   return address;

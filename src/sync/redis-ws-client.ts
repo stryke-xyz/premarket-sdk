@@ -1,15 +1,23 @@
 type Handler<T = any> = (data: T) => void;
 
+function scheduleDeferred(callback: () => void): ReturnType<typeof setTimeout> {
+  return setTimeout(callback, 1000);
+}
+
 export class RedisWsClient {
   private ws!: WebSocket;
   private handlers = new Map<string, Set<Handler>>();
   private heartbeat?: number;
+  private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+  private shouldReconnect = true;
 
   constructor(private url: string) {
     this.connect();
   }
 
   private connect() {
+    if (!this.shouldReconnect) return;
+
     this.ws = new WebSocket(this.url);
 
     this.ws.onopen = () => {
@@ -35,8 +43,14 @@ export class RedisWsClient {
   }
 
   private reconnect() {
+    if (!this.shouldReconnect) return;
+
     this.stopHeartbeat();
-    setTimeout(() => this.connect(), 1000);
+    this.clearReconnectTimeout();
+    this.reconnectTimeout = scheduleDeferred(() => {
+      this.reconnectTimeout = null;
+      this.connect();
+    });
   }
 
   private startHeartbeat() {
@@ -49,6 +63,13 @@ export class RedisWsClient {
 
   private stopHeartbeat() {
     if (this.heartbeat) clearInterval(this.heartbeat);
+  }
+
+  private clearReconnectTimeout() {
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
   }
 
   subscribe<T>(channel: string, handler: Handler<T>) {
@@ -81,7 +102,7 @@ export class RedisWsClient {
         JSON.stringify({
           type: "subscribe",
           channel,
-        })
+        }),
       );
     }
   }
@@ -92,13 +113,18 @@ export class RedisWsClient {
         JSON.stringify({
           type: "unsubscribe",
           channel,
-        })
+        }),
       );
     }
   }
 
   close() {
+    this.shouldReconnect = false;
     this.stopHeartbeat();
+    this.clearReconnectTimeout();
+    if (this.ws) {
+      this.ws.onclose = null;
+    }
     if (this.ws) {
       this.ws.close();
     }
