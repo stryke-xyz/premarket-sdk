@@ -98,6 +98,16 @@
 						"name": "nonRollable",
 						"type": "bool",
 						"internalType": "bool"
+					},
+					{
+						"name": "isSpread",
+						"type": "bool",
+						"internalType": "bool"
+					},
+					{
+						"name": "useAbsoluteSpreadCollateral",
+						"type": "bool",
+						"internalType": "bool"
 					}
 				]
 			}
@@ -317,6 +327,16 @@
 					},
 					{
 						"name": "nonRollable",
+						"type": "bool",
+						"internalType": "bool"
+					},
+					{
+						"name": "isSpread",
+						"type": "bool",
+						"internalType": "bool"
+					},
+					{
+						"name": "useAbsoluteSpreadCollateral",
 						"type": "bool",
 						"internalType": "bool"
 					}
@@ -770,6 +790,16 @@
 					},
 					{
 						"name": "nonRollable",
+						"type": "bool",
+						"internalType": "bool"
+					},
+					{
+						"name": "isSpread",
+						"type": "bool",
+						"internalType": "bool"
+					},
+					{
+						"name": "useAbsoluteSpreadCollateral",
 						"type": "bool",
 						"internalType": "bool"
 					}
