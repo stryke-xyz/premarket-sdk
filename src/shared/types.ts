@@ -144,12 +144,33 @@ export interface QueryOrdersResponse {
 // MARKET TYPES
 // ============================================================================
 
-export interface MarketInstrument {
+export type SpreadType = "vanilla" | "standard" | "absolute";
+
+export interface BaseMarket {
+  id: string;
+  groupId: string | null;
+  type: "erc6909" | "erc20";
+  name: string;
+  description: string;
+  specification: string;
+  minOrderAmount: string;
+  createdAt: string;
+  priceIncrement: string;
+  minPrice: string;
+  maxPrice: string;
+  collateralToken: string;
+  collateralDecimals: number;
+  maxDecimals: string | null;
+  marketType: "ERC20xERC20" | "ERC20xERC6909";
+}
+
+export interface BaseMarketInstrument {
   id: string;
   name: string;
   tick: string;
+  isCall: boolean;
   isSpread: boolean;
-  isCall: boolean | 0 | 1;
+  spreadType: SpreadType;
   prmTokenId: string;
   oPrmTokenId: string;
   expiry: string;
@@ -161,23 +182,43 @@ export interface MarketInstrument {
   totalOprmSupply: string;
 }
 
-export interface Market {
+export interface VanillaMarketInstrument extends BaseMarketInstrument {
+  isSpread: false;
+  spreadType: "vanilla";
+}
+
+export interface SpreadMarketInstrument extends BaseMarketInstrument {
+  isSpread: true;
+  spreadType: "standard" | "absolute";
+  lower: string;
+  upper: string;
+}
+
+export type MarketInstrument =
+  | VanillaMarketInstrument
+  | SpreadMarketInstrument;
+
+export interface Erc20Submarket {
   id: string;
-  groupId: string;
   name: string;
-  description: string;
-  specification: string;
-  minOrderAmount: string;
-  createdAt: string;
+  tokenAddress: string;
+  tokenDecimals: number;
+  lastPrice: string | null;
+  bestBid: string | null;
+  bestAsk: string | null;
+}
+
+export interface Erc6909Market extends BaseMarket {
+  type: "erc6909";
+  name: string;
   creator: string;
-  priceIncrement: string;
-  minPrice: string;
-  maxPrice: string;
-  isSpread: boolean;
   instruments: MarketInstrument[];
   collateral: string;
   underlying: string;
   delivery: string;
+  isSpread: boolean;
+  spreadType: SpreadType;
+  useAbsoluteSpreadCollateral: boolean;
   owner: string;
   tickSize: string;
   tickSpacing: string;
@@ -189,20 +230,29 @@ export interface Market {
   takerFeeBps: string;
   rolloverFeeBps: string;
   totalCollateral: string;
-  marketType: "ERC20xERC20" | "ERC20xERC6909";
   isCollateralScaled: boolean;
   nonRollable: boolean;
 }
 
+export interface Erc20Market extends BaseMarket {
+  type: "erc20";
+  underlying: string | null;
+  underlyingDecimals: number | null;
+  submarkets: Erc20Submarket[];
+}
+
+export type ApiMarket = Erc6909Market | Erc20Market;
+export type Market = ApiMarket;
+
 export interface MarketResponse {
   success: true;
-  data: Market;
+  data: ApiMarket;
 }
 
 export interface MarketsResponse {
   success: true;
   data: {
-    markets: Market[];
+    markets: ApiMarket[];
     total: number;
   };
 }

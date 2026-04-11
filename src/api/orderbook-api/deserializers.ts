@@ -7,8 +7,10 @@
  */
 
 import type {
+  Erc20Submarket,
   Market,
   MarketInstrument,
+  SpreadType,
   UserPosition,
   TradingPnL,
   UserHistories,
@@ -19,11 +21,13 @@ import type {
   OrderFillHistoryItem,
 } from "../../shared/types.js";
 
-export interface BigIntMarketInstrument {
+export interface BigIntBaseMarketInstrument {
   id: string;
   name: string;
   tick: bigint;
   isCall: boolean;
+  isSpread: boolean;
+  spreadType: SpreadType;
   prmTokenId: bigint;
   oPrmTokenId: bigint;
   expiry: bigint;
@@ -35,21 +39,52 @@ export interface BigIntMarketInstrument {
   totalOprmSupply: bigint;
 }
 
-export interface BigIntMarket {
-  groupId: string;
+export interface BigIntVanillaMarketInstrument
+  extends BigIntBaseMarketInstrument {
+  isSpread: false;
+  spreadType: "vanilla";
+}
+
+export interface BigIntSpreadMarketInstrument
+  extends BigIntBaseMarketInstrument {
+  isSpread: true;
+  spreadType: "standard" | "absolute";
+  lower: bigint;
+  upper: bigint;
+}
+
+export type BigIntMarketInstrument =
+  | BigIntVanillaMarketInstrument
+  | BigIntSpreadMarketInstrument;
+
+export interface BigIntBaseMarket {
+  id: string;
+  groupId: string | null;
+  type: "erc6909" | "erc20";
   name: string;
   description: string;
   specification: string;
   minOrderAmount: bigint;
   createdAt: bigint;
-  creator: string;
   priceIncrement: bigint;
   minPrice: bigint;
   maxPrice: bigint;
+  collateralToken: string;
+  collateralDecimals: number;
+  maxDecimals: bigint | null;
+  marketType: "ERC20xERC20" | "ERC20xERC6909";
+}
+
+export interface BigIntErc6909Market extends BigIntBaseMarket {
+  type: "erc6909";
+  creator: string;
   instruments: BigIntMarketInstrument[];
   collateral: string;
   underlying: string;
   delivery: string;
+  isSpread: boolean;
+  spreadType: SpreadType;
+  useAbsoluteSpreadCollateral: boolean;
   owner: string;
   tickSize: bigint;
   tickSpacing: bigint;
@@ -61,17 +96,47 @@ export interface BigIntMarket {
   takerFeeBps: bigint;
   rolloverFeeBps: bigint;
   totalCollateral: bigint;
-  marketType: "ERC20xERC20" | "ERC20xERC6909";
   isCollateralScaled: boolean;
   nonRollable: boolean;
 }
+
+export interface BigIntErc20Submarket {
+  id: string;
+  name: string;
+  tokenAddress: string;
+  tokenDecimals: number;
+  lastPrice: bigint | null;
+  bestBid: bigint | null;
+  bestAsk: bigint | null;
+}
+
+export interface BigIntErc20Market extends BigIntBaseMarket {
+  type: "erc20";
+  underlying: string | null;
+  underlyingDecimals: number | null;
+  submarkets: BigIntErc20Submarket[];
+}
+
+export type BigIntMarket = BigIntErc6909Market | BigIntErc20Market;
 
 function parseOptionalBigInt(value: string | null): bigint | null {
   return value == null ? null : BigInt(value);
 }
 
-function parseIsCall(value: MarketInstrument["isCall"]): boolean {
+function parseIsCall(value: boolean | 0 | 1): boolean {
   return value === true || value === 1;
+}
+
+function submarketToBigInt(submarket: Erc20Submarket): BigIntErc20Submarket {
+  return {
+    id: submarket.id,
+    name: submarket.name,
+    tokenAddress: submarket.tokenAddress,
+    tokenDecimals: submarket.tokenDecimals,
+    lastPrice: parseOptionalBigInt(submarket.lastPrice),
+    bestBid: parseOptionalBigInt(submarket.bestBid),
+    bestAsk: parseOptionalBigInt(submarket.bestAsk),
+  };
 }
 
 /**
@@ -80,11 +145,13 @@ function parseIsCall(value: MarketInstrument["isCall"]): boolean {
 export function marketInstrumentToBigInt(
   instrument: MarketInstrument
 ): BigIntMarketInstrument {
-  return {
+  const baseInstrument: BigIntBaseMarketInstrument = {
     id: instrument.id,
     name: instrument.name,
     tick: BigInt(instrument.tick),
     isCall: parseIsCall(instrument.isCall),
+    isSpread: instrument.isSpread,
+    spreadType: instrument.spreadType,
     prmTokenId: BigInt(instrument.prmTokenId),
     oPrmTokenId: BigInt(instrument.oPrmTokenId),
     expiry: BigInt(instrument.expiry),
@@ -95,27 +162,63 @@ export function marketInstrumentToBigInt(
     totalPrmSupply: BigInt(instrument.totalPrmSupply),
     totalOprmSupply: BigInt(instrument.totalOprmSupply),
   };
+
+  if (!instrument.isSpread) {
+    return baseInstrument as BigIntVanillaMarketInstrument;
+  }
+
+  return {
+    ...baseInstrument,
+    isSpread: true,
+    spreadType: instrument.spreadType,
+    lower: BigInt(instrument.lower),
+    upper: BigInt(instrument.upper),
+  };
 }
 
 /**
  * Convert string market fields to BigInt while preserving addresses and labels.
  */
 export function marketToBigInt(market: Market): BigIntMarket {
-  return {
+  const baseMarket: BigIntBaseMarket = {
+    id: market.id,
     groupId: market.groupId,
+    type: market.type,
     name: market.name,
     description: market.description,
     specification: market.specification,
     minOrderAmount: BigInt(market.minOrderAmount),
     createdAt: BigInt(market.createdAt),
-    creator: market.creator,
     priceIncrement: BigInt(market.priceIncrement),
     minPrice: BigInt(market.minPrice),
     maxPrice: BigInt(market.maxPrice),
+    collateralToken: market.collateralToken,
+    collateralDecimals: market.collateralDecimals,
+    maxDecimals: parseOptionalBigInt(market.maxDecimals),
+    marketType: market.marketType,
+  };
+
+  if (market.type === "erc20") {
+    return {
+      ...baseMarket,
+      type: "erc20",
+      underlying: market.underlying,
+      underlyingDecimals: market.underlyingDecimals,
+      submarkets: market.submarkets.map(submarketToBigInt),
+    };
+  }
+
+  return {
+    ...baseMarket,
+    type: "erc6909",
+    creator: market.creator,
     instruments: market.instruments.map(marketInstrumentToBigInt),
     collateral: market.collateral,
     underlying: market.underlying,
     delivery: market.delivery,
+    isSpread: market.isSpread,
+    spreadType: market.spreadType,
+    useAbsoluteSpreadCollateral: market.useAbsoluteSpreadCollateral,
     owner: market.owner,
     tickSize: BigInt(market.tickSize),
     tickSpacing: BigInt(market.tickSpacing),
@@ -127,7 +230,6 @@ export function marketToBigInt(market: Market): BigIntMarket {
     takerFeeBps: BigInt(market.takerFeeBps),
     rolloverFeeBps: BigInt(market.rolloverFeeBps),
     totalCollateral: BigInt(market.totalCollateral),
-    marketType: market.marketType,
     isCollateralScaled: market.isCollateralScaled,
     nonRollable: market.nonRollable,
   };
