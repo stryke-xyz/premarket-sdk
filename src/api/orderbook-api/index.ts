@@ -6,6 +6,7 @@ import { Address, Hex } from "viem";
 import type {
   StoredOrder,
   CreateOrderParams,
+  CreateOrderResult,
   MarketsResponse,
   MarketResponse,
   UserPosition,
@@ -16,12 +17,63 @@ import type {
   UserHistories,
   OrderbookApiConfig,
   OrdersSnapshot,
-  OrderQueryParams,
-  QueryOrdersResponse,
-  DepthSnapshot,
   MarketTradeItem,
   AuthChallenge,
 } from "../../shared/types.js";
+
+// ============================================================================
+// SIGNATURE NORMALIZATION
+// ============================================================================
+
+/**
+ * Wire shape expected by orderbook-pg: split EIP-2098 compact signature.
+ * `r` is the standard r component (32 bytes hex). `vs` packs s + recovery bit
+ * (v-27) into the most-significant bit, per EIP-2098.
+ */
+interface SplitOrderSignature {
+  r: string;
+  vs: string;
+}
+
+/**
+ * Accepts either:
+ *   - a 65-byte concatenated hex signature `0x{r:32}{s:32}{v:1}` (what
+ *     `walletClient.signTypedData` and `signSimpleAccountOrder` return), or
+ *   - an already-split `{ r, vs }` payload.
+ *
+ * Returns the EIP-2098 split form the backend's signature recovery expects.
+ */
+function toCompactSignature(
+  signature: string | SplitOrderSignature,
+): SplitOrderSignature {
+  if (typeof signature === "object" && signature !== null) {
+    return { r: signature.r, vs: signature.vs };
+  }
+  const hex = signature.startsWith("0x") ? signature.slice(2) : signature;
+  if (hex.length !== 130) {
+    throw new Error(
+      `Invalid signature length: expected 65 bytes (130 hex chars), got ${hex.length}`,
+    );
+  }
+  const r = `0x${hex.slice(0, 64)}`;
+  const sHex = hex.slice(64, 128);
+  const vByte = parseInt(hex.slice(128, 130), 16);
+  if (vByte !== 27 && vByte !== 28) {
+    throw new Error(`Invalid signature v byte: expected 27 or 28, got ${vByte}`);
+  }
+  const recoveryBit = vByte - 27;
+  // Pack recoveryBit into the high bit of s to form vs.
+  const sBytes = new Uint8Array(32);
+  for (let i = 0; i < 32; i++) {
+    sBytes[i] = parseInt(sHex.slice(i * 2, i * 2 + 2), 16);
+  }
+  if (recoveryBit === 1) sBytes[0] |= 0x80;
+  let vs = "0x";
+  for (let i = 0; i < 32; i++) {
+    vs += sBytes[i].toString(16).padStart(2, "0");
+  }
+  return { r, vs };
+}
 
 // ============================================================================
 // ORDERBOOK API CLASS
@@ -160,13 +212,24 @@ export class OrderbookApi {
   // ============================================================================
 
   /**
-   * Creates a new order in the orderbook service using a bearer-authenticated request.
+   * Submits a new order and synchronously returns the engine's match outcome.
+   *
+   * The backend awaits the matching engine's reply (up to ~2s) before
+   * responding, so callers get the full `matchResult` (`matches`, totals,
+   * `createdOrder`) inline. If the engine reply does not arrive in time
+   * `matchResult.message === "awaiting match"` and `matches` is empty —
+   * clients should then poll `getOrder(orderHash)` or watch the user
+   * activity WS for the eventual fill.
    */
   async createOrder(
     params: CreateOrderParams,
     bearerToken: string,
-  ): Promise<StoredOrder> {
-    return (await this.requestEnvelope<StoredOrder>(
+  ): Promise<CreateOrderResult> {
+    const wireParams = {
+      ...params,
+      signature: toCompactSignature(params.signature),
+    };
+    return (await this.requestEnvelope<CreateOrderResult>(
       "/orderbook/api/orders",
       {
         method: "POST",
@@ -174,10 +237,10 @@ export class OrderbookApi {
           "Content-Type": "application/json",
           Authorization: `Bearer ${bearerToken}`,
         },
-        body: JSON.stringify(params),
+        body: JSON.stringify(wireParams),
       },
       "Failed to create order",
-    )) as StoredOrder;
+    )) as CreateOrderResult;
   }
 
   /**
@@ -193,62 +256,24 @@ export class OrderbookApi {
   }
 
   /**
-   * Queries orders using optional market, maker, status, and pagination filters.
+   * Returns active (non-cancelled, non-fully-filled, non-expired) orders for a market.
+   * If `maker` is provided, scopes to a single user's open orders.
    */
-  async queryOrders(params: OrderQueryParams): Promise<QueryOrdersResponse> {
-    const url = this.buildUrl("/orderbook/api/orders", {
-      marketId: params.marketId,
-      maker: params.maker,
-      status: params.status,
-      limit: params.limit,
-      offset: params.offset,
-    });
-
-    return (await this.requestEnvelope<QueryOrdersResponse>(
-      url,
-      undefined,
-      "Failed to query orders",
-    )) as QueryOrdersResponse;
-  }
-
-  /**
-   * Get user orders for a market.
-   * `marketId` is required by backend route contract.
-   */
-  async getUserOrders(
-    maker: string,
-    marketId?: string,
-  ): Promise<StoredOrder[]> {
-    if (!marketId) {
-      throw new Error("marketId is required to fetch user orders");
-    }
-
+  async getOrders(marketId: string, maker?: string): Promise<StoredOrder[]> {
     const data = await this.requestEnvelope<OrdersSnapshot>(
-      this.buildUrl(`/orderbook/api/orders/user/${encodeURIComponent(maker)}`, {
-        marketId,
-      }),
+      this.buildUrl("/orderbook/api/orders", { marketId, maker }),
       undefined,
-      "Failed to get orders snapshot",
+      "Failed to fetch orders",
     );
-
-    return data?.orders || [];
+    return data?.orders ?? [];
   }
 
   /**
-   * Fetches the current depth snapshot for one market and token pair.
+   * Returns active orders for a single user in a market.
+   * Convenience wrapper around `getOrders(marketId, maker)`.
    */
-  async getDepthSnapshot(
-    marketId: string,
-    tokenId: string,
-  ): Promise<DepthSnapshot> {
-    return (await this.requestEnvelope<DepthSnapshot>(
-      this.buildUrl("/orderbook/api/depth", {
-        marketId,
-        tokenId,
-      }),
-      undefined,
-      "Failed to get depth snapshot",
-    )) as DepthSnapshot;
+  async getUserOrders(maker: string, marketId: string): Promise<StoredOrder[]> {
+    return this.getOrders(marketId, maker);
   }
 
   // ============================================================================

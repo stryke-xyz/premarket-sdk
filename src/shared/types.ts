@@ -21,6 +21,16 @@ export interface Order {
 export type OrderSignature = `0x${string}`;
 
 /**
+ * Wire-format split signature (EIP-2098 compact pair). Used internally when
+ * posting orders to orderbook-pg, which expects { r, vs } rather than the
+ * 65-byte concatenated hex returned by viem.
+ */
+export interface SplitOrderSignature {
+  r: string;
+  vs: string;
+}
+
+/**
  * Option parameters for legacy OptionTokenFactory
  * Used for calculating option token IDs
  */
@@ -100,6 +110,10 @@ export interface MatchResult {
   totalTakingAmount: string;
   remainingAmount: string;
   createdOrder?: { orderHash: string; remainingAmount: string };
+  /** True if the user-submitted order's `amount` is in maker's makingAmount units. */
+  isMakingAmount?: boolean;
+  /** Set to "awaiting match" when the engine's match tail did not arrive within the API's wait window. */
+  message?: string;
   error?: string;
 }
 
@@ -107,14 +121,6 @@ export interface CreateOrderResult {
   order: MatchableOrder;
   matchResult: MatchResult;
   countFilled: number;
-}
-
-export interface OrderQueryParams {
-  marketId?: string;
-  maker?: string;
-  status?: string;
-  limit?: number;
-  offset?: number;
 }
 
 export interface OrderResponse {
@@ -131,13 +137,6 @@ export interface OrderbookApiConfig {
 export interface OrdersSnapshot {
   orders: StoredOrder[];
   count: number;
-}
-
-export interface QueryOrdersResponse {
-  orders: StoredOrder[];
-  count: number;
-  limit: number;
-  offset: number;
 }
 
 // ============================================================================
@@ -424,15 +423,6 @@ export interface UserHistories {
 
 // Note: DepthLevel is exported from sync/clients/order-client.ts
 // Use that type for consistency with the sync client
-
-export interface DepthSnapshot {
-  bids: { price: string; depth: string }[];
-  asks: { price: string; depth: string }[];
-  bestBid: string | null;
-  bestAsk: string | null;
-  lastPrice: string | null;
-  seq: string;
-}
 
 export type AuthChallenge = {
   readonly domain: {

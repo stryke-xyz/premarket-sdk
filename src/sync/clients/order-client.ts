@@ -42,13 +42,23 @@ export interface DepthLevelUpdate {
   depth: string;
 }
 
-/** One raw depth update event as published by the websocket service. */
-export interface DepthChangeEvent {
-  tokenId: string;
+/** Raw level shape inside the wire `depth_update.levels[]` array. */
+interface WireDepthLevel {
   side: "bid" | "ask";
   price: string;
   depth: string;
   seq: string;
+  localSeq?: number;
+}
+
+/** Raw `depth_update` frame as published by the depth projector. */
+interface WireDepthUpdate {
+  type: "depth_update";
+  marketId: string;
+  tokenId: string;
+  startSeq: string;
+  endSeq: string;
+  levels: WireDepthLevel[];
 }
 
 /** Consolidated depth update emitted to SDK listeners after normalization. */
@@ -58,7 +68,11 @@ export interface DepthUpdate {
   bestBid: string | null;
   bestAsk: string | null;
   lastPrice: string | null;
+  /** Last applied executor sequenceId for this token (== endSeq of the frame). */
   seq: number;
+  /** Range covered by this frame; clients can detect gaps via startSeq != prevSeq + 1. */
+  startSeq: number;
+  endSeq: number;
 }
 
 /** Configuration for the market depth websocket client. */
@@ -97,11 +111,11 @@ export class MarketDepthSyncClient {
   private config: MarketDepthClientConfig;
   private status: SyncStatus = "disconnected";
 
-  // Per-token depth state (each token has its own gapless seq counter)
+  // Per-token depth state (each token has its own gapless executor-seq counter)
   private tokenStates: Map<string, TokenDepthState> = new Map();
 
-  // Message queue for ordering
-  private changeQueue: DepthChangeEvent[] = [];
+  // Frame queue for ordering — frames received before initial snapshot are buffered.
+  private frameQueue: WireDepthUpdate[] = [];
   private isProcessing: boolean = false;
 
   // Listeners
@@ -210,11 +224,10 @@ export class MarketDepthSyncClient {
             this.handleSubscribedMarket(msg);
             this.isProcessing = false;
             this.setStatus("synced");
-            void this.processChangeQueue();
+            void this.processFrameQueue();
             resolveOnce();
           } else if (msg.type === "depth_update") {
-            // Received depth update
-            this.handleDepthUpdate(msg);
+            this.handleDepthUpdate(msg as WireDepthUpdate);
           } else if (msg.type === "market_state") {
             // Received market state (bestBid, bestAsk, lastPrice) - preferred over last_price
             this.handleMarketStateUpdate(msg);
@@ -409,7 +422,7 @@ export class MarketDepthSyncClient {
     try {
       // Clear state before reconnecting
       this.tokenStates.clear();
-      this.changeQueue = [];
+      this.frameQueue = [];
 
       await this.connect();
       console.log("Reconnected successfully");
@@ -423,9 +436,9 @@ export class MarketDepthSyncClient {
     marketId: string;
     tokenIds: string[];
     snapshots: TokenDepthSnapshot[];
-    bufferedUpdates?: Array<{ tokenId: string; updates: DepthChangeEvent[] }>;
   }): void {
-    // Initialize state for each token from snapshots (seq is per token)
+    // Initialize state for each token from snapshots (seq is the executor
+    // sequenceId, monotonic per token).
     for (const snapshot of msg.snapshots) {
       const state: TokenDepthState = {
         bids: new Map(),
@@ -446,24 +459,6 @@ export class MarketDepthSyncClient {
       this.tokenStates.set(String(snapshot.tokenId), state);
     }
 
-    // Apply buffered updates that came in during snapshot fetch
-    // These are updates with seq > snapshot.seq
-    if (msg.bufferedUpdates) {
-      for (const { tokenId, updates } of msg.bufferedUpdates) {
-        const state = this.tokenStates.get(tokenId);
-        if (!state) continue;
-
-        for (const update of updates) {
-          const updateSeq = parseInt(update.seq, 10);
-          if (updateSeq > state.seq) {
-            this.applyChange(update, state);
-            state.seq = updateSeq;
-          }
-        }
-      }
-    }
-
-    // Notify snapshot listeners
     this.snapshotListeners.forEach((listener) => {
       try {
         listener(msg.snapshots);
@@ -473,24 +468,9 @@ export class MarketDepthSyncClient {
     });
   }
 
-  private handleDepthUpdate(msg: {
-    marketId: string;
-    tokenId: string;
-    side: "bid" | "ask";
-    price: string;
-    depth: string;
-    seq: string;
-  }): void {
-    // Convert single-level change to DepthChangeEvent
-    const change: DepthChangeEvent = {
-      tokenId: msg.tokenId,
-      side: msg.side,
-      price: msg.price,
-      depth: msg.depth,
-      seq: msg.seq,
-    };
-    this.changeQueue.push(change);
-    this.processChangeQueue();
+  private handleDepthUpdate(msg: WireDepthUpdate): void {
+    this.frameQueue.push(msg);
+    void this.processFrameQueue();
   }
 
   private handleMarketStateUpdate(msg: {
@@ -509,21 +489,7 @@ export class MarketDepthSyncClient {
     state.bestAsk = msg.bestAsk ?? state.bestAsk;
     state.lastPrice = msg.lastPrice ?? state.lastPrice;
 
-    this.deltaListeners.forEach((listener) => {
-      try {
-        const update: DepthUpdate = {
-          tokenId: msg.tokenId,
-          levels: [],
-          bestBid: state.bestBid,
-          bestAsk: state.bestAsk,
-          lastPrice: state.lastPrice,
-          seq: state.seq,
-        };
-        listener(this.config.marketId, update);
-      } catch (error) {
-        console.error("Error in delta listener for market_state:", error);
-      }
-    });
+    this.emitOutOfBandUpdate(msg.tokenId, state);
   }
 
   private handleLastPriceUpdate(msg: {
@@ -536,72 +502,79 @@ export class MarketDepthSyncClient {
     }
 
     state.lastPrice = msg.lastPrice;
+    this.emitOutOfBandUpdate(msg.tokenId, state);
+  }
 
+  /** Emit a delta with empty levels for events that mutate side-state but no levels (market_state, last_price). */
+  private emitOutOfBandUpdate(tokenId: string, state: TokenDepthState): void {
     this.deltaListeners.forEach((listener) => {
       try {
         const update: DepthUpdate = {
-          tokenId: msg.tokenId,
+          tokenId,
           levels: [],
           bestBid: state.bestBid,
           bestAsk: state.bestAsk,
-          lastPrice: msg.lastPrice,
+          lastPrice: state.lastPrice,
           seq: state.seq,
+          startSeq: state.seq,
+          endSeq: state.seq,
         };
         listener(this.config.marketId, update);
       } catch (error) {
-        console.error("Error in delta listener for last_price:", error);
+        console.error("Error in delta listener:", error);
       }
     });
   }
 
-  private async processChangeQueue(): Promise<void> {
+  private async processFrameQueue(): Promise<void> {
     if (this.isProcessing) return;
     this.isProcessing = true;
 
     try {
-      while (this.changeQueue.length > 0) {
-        const change = this.changeQueue.shift()!;
-        const state = this.tokenStates.get(change.tokenId);
+      while (this.frameQueue.length > 0) {
+        const frame = this.frameQueue.shift()!;
+        const state = this.tokenStates.get(String(frame.tokenId));
+        if (!state) continue;
 
-        if (!state) {
-          continue;
-        }
+        const startSeq = parseInt(frame.startSeq, 10);
+        const endSeq = parseInt(frame.endSeq, 10);
 
-        const newSeq = parseInt(change.seq, 10);
+        // Whole frame already applied (e.g. reconnect after partial JetStream replay)
+        if (endSeq <= state.seq) continue;
 
-        // Duplicate or out-of-order: skip
-        if (newSeq <= state.seq) {
-          continue;
-        }
-
-        // Gap: next seq must be exactly state.seq + 1
-        // However, we tolerate gaps to avoid reconnect loops when updates arrive
-        // between snapshot fetch and subscription start on the server side.
-        // The depth data is still correct (absolute values, not deltas).
-        if (newSeq > state.seq + 1) {
+        // Gap detection: startSeq should be exactly state.seq + 1.
+        // Depth values are absolute, so a gap is a soft warning, not a hard fail.
+        if (state.seq > 0 && startSeq > state.seq + 1) {
           console.warn(
-            `[MarketDepth] Gap detected tokenId=${change.tokenId} expected=${state.seq + 1} got=${newSeq}. Accepting anyway (depth is absolute).`,
+            `[MarketDepth] Gap tokenId=${frame.tokenId} expected=${state.seq + 1} got=${startSeq} (frame ${startSeq}..${endSeq}). Continuing — depth is absolute.`,
           );
-          // Continue processing - depth values are absolute, so missing an update
-          // just means we might have a stale value until the next update for that price.
         }
 
-        // Apply the single-level change
-        this.applyChange(change, state);
-        state.seq = newSeq;
+        const emittedLevels: DepthLevelUpdate[] = [];
+        for (const lv of frame.levels) {
+          // Per-level dedup against state.seq guards against re-applying
+          // levels from a partially-applied previous frame.
+          const lvSeq = parseInt(lv.seq, 10);
+          if (lvSeq <= state.seq) continue;
+          this.applyLevel(lv, state);
+          emittedLevels.push({ side: lv.side, price: lv.price, depth: lv.depth });
+        }
 
-        // Notify delta listeners
+        state.seq = endSeq;
+
+        if (emittedLevels.length === 0) continue;
+
         this.deltaListeners.forEach((listener) => {
           try {
             const update: DepthUpdate = {
-              tokenId: change.tokenId,
-              levels: [
-                { side: change.side, price: change.price, depth: change.depth },
-              ],
+              tokenId: frame.tokenId,
+              levels: emittedLevels,
               bestBid: state.bestBid,
               bestAsk: state.bestAsk,
               lastPrice: state.lastPrice,
-              seq: newSeq,
+              seq: endSeq,
+              startSeq,
+              endSeq,
             };
             listener(this.config.marketId, update);
           } catch (error) {
@@ -612,43 +585,27 @@ export class MarketDepthSyncClient {
     } finally {
       this.isProcessing = false;
 
-      if (this.changeQueue.length > 0) {
+      if (this.frameQueue.length > 0) {
         scheduleDeferred(() => {
-          void this.processChangeQueue();
+          void this.processFrameQueue();
         });
       }
     }
   }
 
-  private handleGap(): void {
-    this.isProcessing = true;
-    this.changeQueue = [];
-    this.tokenStates.clear();
-    if (this.ws) {
-      this.ws.onclose = null;
-      this.ws.close();
-      this.ws = null;
-    }
-    this.stopHeartbeat();
-    this.setStatus("recovering");
-    this.scheduleReconnect();
-  }
-
-  private applyChange(change: DepthChangeEvent, state: TokenDepthState): void {
-    const map = change.side === "bid" ? state.bids : state.asks;
-    const depth = parseFloat(change.depth);
-    const key = normalizePrice(change.price);
+  private applyLevel(level: WireDepthLevel, state: TokenDepthState): void {
+    const map = level.side === "bid" ? state.bids : state.asks;
+    const depth = parseFloat(level.depth);
+    const key = normalizePrice(level.price);
 
     if (depth <= 0) {
       map.delete(key);
     } else {
-      map.set(key, change.depth);
+      map.set(key, level.depth);
     }
 
     // Recalculate best prices from current state
-    // Best bid = highest price with depth
-    // Best ask = lowest price with depth
-    if (change.side === "bid") {
+    if (level.side === "bid") {
       const bidPrices = Array.from(state.bids.keys()).map((p) => parseFloat(p));
       state.bestBid =
         bidPrices.length > 0 ? Math.max(...bidPrices).toString() : null;
@@ -806,7 +763,7 @@ export class MarketDepthSyncClient {
       this.ws = null;
     }
 
-    this.changeQueue = [];
+    this.frameQueue = [];
     this.tokenStates.clear();
     this.setStatus("disconnected");
   }

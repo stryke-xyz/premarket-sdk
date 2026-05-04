@@ -103,8 +103,8 @@ export class ActivitySyncClient {
     return new Promise((resolve, reject) => {
       let settled = false;
       const expectedSubscriptions = new Set<string>();
-      if (this.config.marketId) expectedSubscriptions.add("orders_matched");
-      if (this.config.userAddress) expectedSubscriptions.add("user_info");
+      if (this.config.marketId) expectedSubscriptions.add("subscribed_fills");
+      if (this.config.userAddress) expectedSubscriptions.add("subscribed_user");
 
       const resolveOnce = () => {
         if (settled) return;
@@ -126,8 +126,7 @@ export class ActivitySyncClient {
         if (this.config.marketId) {
           this.ws!.send(
             JSON.stringify({
-              type: "subscribe",
-              channel: "orders_matched",
+              type: "subscribe_fills",
               marketId: this.config.marketId,
             }),
           );
@@ -135,9 +134,8 @@ export class ActivitySyncClient {
         if (this.config.userAddress) {
           this.ws!.send(
             JSON.stringify({
-              type: "subscribe",
-              channel: "user_info",
-              userAddress: this.config.userAddress,
+              type: "subscribe_user",
+              address: this.config.userAddress,
             }),
           );
         }
@@ -155,10 +153,8 @@ export class ActivitySyncClient {
             return;
           }
 
-          if (msg.type === "subscribed") {
-            if (typeof msg.channel === "string") {
-              expectedSubscriptions.delete(msg.channel);
-            }
+          if (msg.type === "subscribed_fills" || msg.type === "subscribed_user") {
+            expectedSubscriptions.delete(msg.type);
             if (expectedSubscriptions.size === 0) {
               this.setStatus("synced");
               resolveOnce();
@@ -166,7 +162,7 @@ export class ActivitySyncClient {
             return;
           }
 
-          if (msg.type === "unsubscribed") {
+          if (msg.type === "unsubscribed_fills" || msg.type === "unsubscribed_user") {
             return;
           }
 
@@ -432,8 +428,7 @@ export class ActivitySyncClient {
         try {
           this.ws.send(
             JSON.stringify({
-              type: "unsubscribe",
-              channel: "orders_matched",
+              type: "unsubscribe_fills",
               marketId: this.config.marketId,
             }),
           );
@@ -445,9 +440,8 @@ export class ActivitySyncClient {
         try {
           this.ws.send(
             JSON.stringify({
-              type: "unsubscribe",
-              channel: "user_info",
-              userAddress: this.config.userAddress,
+              type: "unsubscribe_user",
+              address: this.config.userAddress,
             }),
           );
         } catch {

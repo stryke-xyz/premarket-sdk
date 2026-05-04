@@ -10,7 +10,7 @@ function jsonResponse(body: unknown, init?: ResponseInit): Response {
 }
 
 describe("OrderbookApi", () => {
-  it("normalizes the base URL and keeps zero-value query params", async () => {
+  it("normalizes the base URL and forwards optional maker filter", async () => {
     let requestedUrl = "";
 
     const api = new OrderbookApi({
@@ -20,20 +20,15 @@ describe("OrderbookApi", () => {
 
         return jsonResponse({
           success: true,
-          data: {
-            orders: [],
-            count: 0,
-            limit: 0,
-            offset: 0,
-          },
+          data: { orders: [], count: 0 },
         });
       }) as typeof fetch,
     });
 
-    await api.queryOrders({ limit: 0, offset: 0 });
+    await api.getOrders("1", "0xabcdef0000000000000000000000000000000001");
 
     expect(requestedUrl).toBe(
-      "https://sdk.stryke.xyz/orderbook/api/orders?limit=0&offset=0",
+      "https://sdk.stryke.xyz/orderbook/api/orders?marketId=1&maker=0xabcdef0000000000000000000000000000000001",
     );
   });
 

@@ -315,9 +315,8 @@ Public order methods:
 
 - `createOrder(params, bearerToken)`
 - `getOrder(orderHash)`
-- `queryOrders(params)`
-- `getUserOrders(maker, marketId)`
-- `getDepthSnapshot(marketId, tokenId)`
+- `getOrders(marketId, maker?)` — active orders for a market, optionally scoped to a maker
+- `getUserOrders(maker, marketId)` — convenience wrapper around `getOrders`
 
 Public market methods:
 
@@ -349,9 +348,9 @@ Auth-related methods also exposed by the SDK:
 
 Integration note:
 
-- `getUserOrders` enforces `marketId` at runtime
-- `queryOrders` may accept an optional `marketId` in TypeScript, but reliable
-  backend integration should still provide one
+- `getOrders` and `getUserOrders` both require a `marketId`. Returned orders
+  are restricted to active and partially-filled (cancelled / fully-filled
+  / expired are filtered server-side).
 
 ### Deserializers
 
@@ -361,8 +360,6 @@ The API returns string-heavy DTOs because JSON cannot safely transport
 - `orderToBigInt`
 - `storedOrderToBigInt`
 - `ordersSnapshotToBigInt`
-- `queryOrdersResponseToBigInt`
-- `depthSnapshotToBigInt`
 - `marketInstrumentToBigInt`
 - `marketToBigInt`
 - `marketsToBigInt`
@@ -573,9 +570,6 @@ Public exports:
 
 - `SyncStatus`
   - `"connecting" | "syncing" | "synced" | "recovering" | "disconnected" | "error"`
-- `OrderChange`
-- `SequencedMessage`
-- `SyncClientConfig`
 
 ### MarketDepthSyncClient
 
@@ -620,7 +614,6 @@ Public event types:
 - `DepthLevel`
 - `TokenDepthSnapshot`
 - `DepthLevelUpdate`
-- `DepthChangeEvent`
 - `DepthUpdate`
 
 Implementation details captured by the client:
@@ -661,27 +654,6 @@ Listener hooks:
 Public event type:
 
 - `OrderFillEvent`
-
-### BaseSyncClient
-
-This is the advanced extension point for custom sequenced Redis-backed clients.
-
-Public methods:
-
-- `connect()`
-- `disconnect()`
-- `getStatus()`
-- `isSynced()`
-- `getLastSequence()`
-- `getBufferedCount()`
-- `onStatus(callback)`
-- `onChange(callback)`
-- `onSnapshot(callback)`
-
-Subclass responsibilities:
-
-- provide `fetchSnapshot()`
-- provide `applyMessage(message)`
 
 ## Config Module
 
@@ -772,11 +744,8 @@ Main exports:
 - `MatchedOrder`
 - `MatchResult`
 - `CreateOrderResult`
-- `OrderQueryParams`
 - `OrderResponse`
 - `OrdersSnapshot`
-- `QueryOrdersResponse`
-- `DepthSnapshot`
 
 Main order write shape:
 

@@ -89,10 +89,10 @@ await api.createOrder(
 ## Query orders correctly (required params)
 
 ```ts
-// /orderbook/api/orders requires marketId.
-const snapshot = await api.queryOrders({ marketId: "1" });
+// /orderbook/api/orders requires marketId; returns active + partially-filled orders.
+const snapshot = await api.getOrders("1");
 
-// /orderbook/api/orders/user/:maker also requires marketId.
+// Pass maker to scope to a single user's open orders.
 const mine = await api.getUserOrders(
   "0x1111111111111111111111111111111111111111",
   "1",
