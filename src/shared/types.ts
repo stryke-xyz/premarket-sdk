@@ -152,6 +152,8 @@ export type SpreadType = "vanilla" | "standard" | "absolute";
 export interface BaseMarket {
   id: string;
   groupId: string | null;
+  /** Human-readable group label; only populated for grouped ERC20 markets. */
+  groupName: string | null;
   type: "erc6909" | "erc20";
   name: string;
   description: string;

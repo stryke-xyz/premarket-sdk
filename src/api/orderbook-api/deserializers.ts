@@ -60,6 +60,7 @@ export type BigIntMarketInstrument =
 export interface BigIntBaseMarket {
   id: string;
   groupId: string | null;
+  groupName: string | null;
   type: "erc6909" | "erc20";
   name: string;
   description: string;
@@ -189,6 +190,7 @@ export function marketToBigInt(market: Market): BigIntMarket {
   const baseMarket: BigIntBaseMarket = {
     id: market.id,
     groupId: market.groupId,
+    groupName: market.groupName ?? null,
     type: market.type,
     name: market.name,
     description: market.description,

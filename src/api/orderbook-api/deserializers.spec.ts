@@ -29,6 +29,7 @@ describe("market deserializers", () => {
     const market: Erc6909Market = {
       id: "12",
       groupId: null,
+      groupName: null,
       type: "erc6909",
       name: "BTC Range",
       description: "Range market",
@@ -86,6 +87,7 @@ describe("market deserializers", () => {
     const market: Erc20Market = {
       id: "spot-1",
       groupId: "group-1",
+      groupName: "Basket Group",
       type: "erc20",
       name: "Basket",
       description: "Spot market",
