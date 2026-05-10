@@ -74,6 +74,10 @@ export interface StoredOrder {
   status: OrderStatus;
   side: "bid" | "ask";
   price: number;
+  // Enriched by the order-queue when returning user orders
+  marketName?: string;
+  instrumentName?: string;
+  logoUri?: string | null;
 }
 
 export type MatchableOrder = StoredOrder;
@@ -161,6 +165,9 @@ export interface BaseMarket {
   collateralDecimals: number;
   maxDecimals: string | null;
   marketType: "ERC20xERC20" | "ERC20xERC6909";
+  logoUri: string | null;
+  /** True when the on-chain FinalTick event has been indexed for this market's current expiry. */
+  hasFinalTick: boolean;
 }
 
 export interface BaseMarketInstrument {
@@ -199,6 +206,8 @@ export type MarketInstrument =
 
 export interface Erc20Submarket {
   id: string;
+  /** Numeric market_id of this sub-market (same as id for standalone, member id for grouped). */
+  marketId: string;
   name: string;
   tokenAddress: string;
   tokenDecimals: number;
@@ -237,7 +246,10 @@ export interface Erc20Market extends BaseMarket {
   type: "erc20";
   underlying: string | null;
   underlyingDecimals: number | null;
-  submarkets: Erc20Submarket[];
+  /** Sub-markets / instruments in this ERC20 group. */
+  instruments: Erc20Submarket[];
+  /** @deprecated Use `instruments` instead. Kept for backward compatibility. */
+  submarkets?: Erc20Submarket[];
 }
 
 export type ApiMarket = Erc6909Market | Erc20Market;
@@ -267,12 +279,59 @@ export interface UserPosition {
   totalCost: string;
   totalProceeds: string;
   realizedPnL: string;
+  /** PnL contribution from limit-order trades */
+  tradePnl: string;
+  /** PnL contribution from redemption / exercise settlements */
+  redeemExercisePnl: string;
   updatedAt: string;
+}
+
+/**
+ * Market/instrument metadata the API attaches to positions and history events.
+ * All fields are optional so existing decoders stay backward-compatible.
+ */
+export interface EventEnrichment {
+  collateralSymbol?: string;
+  marketId?: string | null;
+  marketName?: string;
+  instrumentName?: string;
+  logoUri?: string | null;
+  collateralDecimals?: number;
+  collateralToken?: string;
+}
+
+/** Position enriched with market/instrument context returned by /positions. */
+export interface EnrichedPosition extends UserPosition, EventEnrichment {
+  /** true when holding > 0 */
+  isOpen: boolean;
+  /** true = oPRM (outcome position), false = PRM (write/minted) */
+  isOPrm: boolean;
+  marketId: string;
+  marketName: string;
+  instrumentName: string;
+  logoUri: string | null;
+  collateralDecimals: number;
+  collateralToken: string;
+}
+
+export interface EnrichedPositionsResponse {
+  /** Flat list sorted by updatedAt desc. */
+  positions: EnrichedPosition[];
+  /** Same positions grouped by market for convenient access. */
+  grouped: Array<{
+    marketId: string;
+    marketName: string;
+    logoUri: string | null;
+    collateralDecimals: number;
+    collateralToken: string;
+    positions: EnrichedPosition[];
+  }>;
 }
 
 export interface TradingPnL {
   id: string;
   asset: `0x${string}`;
+  marketId: string | null;
   tokenId: string | null;
   totalBought: string;
   totalSold: string;
@@ -282,10 +341,17 @@ export interface TradingPnL {
   updatedAt: string;
 }
 
+export interface SettlementPnL {
+  tokenId: string;
+  totalProceeds: string;
+  realizedPnL: string;
+  updatedAt: string;
+}
+
 export interface UserPnL {
-  positionPnL: string;
-  tradingPnL: string;
-  totalPnL: string;
+  tradePnl: string;
+  redeemExercisePnl: string;
+  totalPnl: string;
 }
 
 export interface TokenPnL {
@@ -296,35 +362,24 @@ export interface TokenPnL {
     totalProceeds: string;
     realizedPnL: string;
   } | null;
-  trading: {
-    totalBought: string;
-    totalSold: string;
-    totalSpent: string;
-    totalReceived: string;
-    realizedPnL: string;
-  } | null;
-  positionPnL: string;
-  tradingPnL: string;
-  totalPnL: string;
+  trading: TradingPnL | null;
+  redeemExercise: SettlementPnL | null;
+  tradePnl: string;
+  redeemExercisePnl: string;
+  totalPnl: string;
 }
 
 export interface Erc20PnL {
   tokenAddress: `0x${string}`;
-  trading: {
-    totalBought: string;
-    totalSold: string;
-    totalSpent: string;
-    totalReceived: string;
-    realizedPnL: string;
-  } | null;
-  totalPnL: string;
+  trading: TradingPnL | null;
+  totalPnl: string;
 }
 
 // ============================================================================
 // HISTORY TYPES
 // ============================================================================
 
-export interface MintHistoryItem {
+export interface MintHistoryItem extends EventEnrichment {
   id: string;
   marketId: string;
   prmTokenId: string;
@@ -339,9 +394,10 @@ export interface MintHistoryItem {
   transactionHash: `0x${string}`;
   blockNumber: string;
   timestamp: string;
+  type?: "mint";
 }
 
-export interface RedeemHistoryItem {
+export interface RedeemHistoryItem extends EventEnrichment {
   id: string;
   oPrmTokenId: string;
   prmTokenId: string;
@@ -349,13 +405,16 @@ export interface RedeemHistoryItem {
   balance: string;
   profit: string;
   fees: string;
+  /** Net proceeds after fees (profit - fees), as a string */
+  netProceeds: string;
   finalTick: string;
   transactionHash: `0x${string}`;
   blockNumber: string;
   timestamp: string;
+  type?: "redeem";
 }
 
-export interface UnwindHistoryItem {
+export interface UnwindHistoryItem extends EventEnrichment {
   id: string;
   marketId: string;
   prmTokenId: string;
@@ -370,9 +429,10 @@ export interface UnwindHistoryItem {
   transactionHash: `0x${string}`;
   blockNumber: string;
   timestamp: string;
+  type?: "unwind";
 }
 
-export interface TransferHistoryItem {
+export interface TransferHistoryItem extends EventEnrichment {
   id: string;
   vaultId: string;
   caller: `0x${string}`;
@@ -384,9 +444,10 @@ export interface TransferHistoryItem {
   transactionHash: `0x${string}`;
   blockNumber: string;
   timestamp: string;
+  type?: "transfer";
 }
 
-export interface OrderFillHistoryItem {
+export interface OrderFillHistoryItem extends EventEnrichment {
   id: string;
   orderHash: `0x${string}`;
   maker: `0x${string}`;
@@ -395,6 +456,7 @@ export interface OrderFillHistoryItem {
   takerAsset: `0x${string}`;
   makingAmount: string;
   takingAmount: string;
+  makerFee: string;
   tradeType: string;
   optionTokenId: string | null;
   role?: "maker" | "taker";
@@ -404,17 +466,95 @@ export interface OrderFillHistoryItem {
   timestamp: string;
   /** true = ask (maker sells), false = bid (maker buys); from API when available */
   isAsk?: boolean;
+  type?: "fill";
 }
 
 /** Recent trade item as returned by getMarketRecentTrades */
 export type MarketTradeItem = OrderFillHistoryItem;
 
+export interface WithdrawHistoryItem extends EventEnrichment {
+  id: string;
+  marketId: string;
+  prmTokenId: string;
+  account: `0x${string}`;
+  amount: string;
+  loss: string;
+  lossUsdc: string;
+  finalTick: string;
+  collateral: string;
+  netProceeds: string;
+  transactionHash: `0x${string}`;
+  blockNumber: string;
+  timestamp: string;
+  type?: "withdraw";
+}
+
+export interface RolloverHistoryItem extends EventEnrichment {
+  id: string;
+  marketId: string;
+  oldMarketId: string | null;
+  newMarketId: string | null;
+  oldPrmTokenId: string;
+  newPrmTokenId: string;
+  newOPrmTokenId: string | null;
+  account: `0x${string}`;
+  oldExpiry: string;
+  newExpiry: string;
+  oldAmount: string;
+  residualCollateral: string;
+  rolloverFee: string;
+  netRolloverCollateral: string;
+  newAmount: string;
+  transactionHash: `0x${string}`;
+  blockNumber: string;
+  timestamp: string;
+  type?: "rollover";
+}
+
+export interface OrderCancelHistoryItem extends EventEnrichment {
+  id: string;
+  marketId: string;
+  tokenId: string;
+  orderHash: `0x${string}`;
+  maker: `0x${string}`;
+  transactionHash: `0x${string}`;
+  blockNumber: string;
+  timestamp: string;
+  type?: "cancel";
+}
+
+export type AnyHistoryEvent =
+  | MintHistoryItem
+  | RedeemHistoryItem
+  | UnwindHistoryItem
+  | WithdrawHistoryItem
+  | RolloverHistoryItem
+  | TransferHistoryItem
+  | OrderFillHistoryItem
+  | OrderCancelHistoryItem;
+
 export interface UserHistories {
   mints: MintHistoryItem[];
   redeems: RedeemHistoryItem[];
   unwinds: UnwindHistoryItem[];
+  withdraws: WithdrawHistoryItem[];
+  rollovers: RolloverHistoryItem[];
   transfers: TransferHistoryItem[];
   fills: OrderFillHistoryItem[];
+  cancels: OrderCancelHistoryItem[];
+  /**
+   * All of the above merged and sorted chronologically (newest first).
+   * Each event has a `type` discriminator field.
+   * Populated by /history — may be absent on sub-routes like /history/mints.
+   */
+  timeline?: AnyHistoryEvent[];
+}
+
+export interface PaginatedOrdersResponse {
+  orders: StoredOrder[];
+  count: number;
+  hasMore: boolean;
+  nextOffset: number;
 }
 
 // ============================================================================

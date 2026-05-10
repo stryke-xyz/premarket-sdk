@@ -15,8 +15,11 @@ import type {
   TokenPnL,
   Erc20PnL,
   UserHistories,
+  EnrichedPosition,
+  EnrichedPositionsResponse,
   OrderbookApiConfig,
   OrdersSnapshot,
+  PaginatedOrdersResponse,
   MarketTradeItem,
   AuthChallenge,
 } from "../../shared/types.js";
@@ -276,6 +279,30 @@ export class OrderbookApi {
     return this.getOrders(marketId, maker);
   }
 
+  /**
+   * Returns a user's open orders across **all** markets, paginated.
+   *
+   * When `marketId` is omitted, the order-queue service switches to
+   * paginated mode and requires `maker`.  Pass `limit` (1–1000, default
+   * 1000) and `offset` (default 0) to page through results.
+   */
+  async getUserOrdersAllMarkets(
+    maker: string,
+    opts?: { limit?: number; offset?: number; status?: "all" },
+  ): Promise<PaginatedOrdersResponse> {
+    const data = await this.requestEnvelope<PaginatedOrdersResponse>(
+      this.buildUrl("/orderbook/api/orders", {
+        maker,
+        limit: opts?.limit,
+        offset: opts?.offset,
+        status: opts?.status,
+      }),
+      undefined,
+      "Failed to fetch orders",
+    );
+    return data ?? { orders: [], count: 0, hasMore: false, nextOffset: 0 };
+  }
+
   // ============================================================================
   // MARKET METHODS
   // ============================================================================
@@ -327,14 +354,16 @@ export class OrderbookApi {
   // ============================================================================
 
   /**
-   * Returns current user positions derived from vault activity.
+   * Returns enriched user positions including market name, instrument name,
+   * logo, collateral info, PnL, and role (isOPrm / isOpen).
+   * Also includes a `grouped` array keyed by market.
    */
-  async getUserPositions(userAddress: string): Promise<UserPosition[]> {
-    return (await this.requestEnvelope<UserPosition[]>(
+  async getUserPositions(userAddress: string): Promise<EnrichedPositionsResponse> {
+    return (await this.requestEnvelope<EnrichedPositionsResponse>(
       `/premarket/api/users/${encodeURIComponent(userAddress)}/positions`,
       undefined,
       "Failed to fetch positions",
-    )) as UserPosition[];
+    )) as EnrichedPositionsResponse;
   }
 
   /**
@@ -389,18 +418,21 @@ export class OrderbookApi {
   // ============================================================================
 
   /**
-   * Returns grouped user history across mint, redeem, unwind, transfer, and fill events.
+   * Returns grouped + enriched user history. Every event carries marketName,
+   * instrumentName, logoUri, collateralDecimals, collateralToken, and a `type`
+   * discriminator. The `timeline` field is a flat chronological list of all events.
    */
   async getUserHistories(
     userAddress: string,
-    limit?: number,
+    opts?: { limit?: number; marketId?: string; tokenId?: string },
   ): Promise<UserHistories> {
+    const limit = typeof opts === "number" ? opts : opts?.limit;
+    const marketId = typeof opts === "object" ? opts.marketId : undefined;
+    const tokenId = typeof opts === "object" ? opts.tokenId : undefined;
     return (await this.requestEnvelope<UserHistories>(
       this.buildUrl(
         `/premarket/api/users/${encodeURIComponent(userAddress)}/history`,
-        {
-          limit,
-        },
+        { limit, marketId, tokenId },
       ),
       undefined,
       "Failed to fetch history",

@@ -73,6 +73,8 @@ export interface BigIntBaseMarket {
   collateralDecimals: number;
   maxDecimals: bigint | null;
   marketType: "ERC20xERC20" | "ERC20xERC6909";
+  logoUri: string | null;
+  hasFinalTick: boolean;
 }
 
 export interface BigIntErc6909Market extends BigIntBaseMarket {
@@ -102,6 +104,7 @@ export interface BigIntErc6909Market extends BigIntBaseMarket {
 
 export interface BigIntErc20Submarket {
   id: string;
+  marketId: string;
   name: string;
   tokenAddress: string;
   tokenDecimals: number;
@@ -114,7 +117,9 @@ export interface BigIntErc20Market extends BigIntBaseMarket {
   type: "erc20";
   underlying: string | null;
   underlyingDecimals: number | null;
-  submarkets: BigIntErc20Submarket[];
+  instruments: BigIntErc20Submarket[];
+  /** @deprecated Use `instruments` instead. */
+  submarkets?: BigIntErc20Submarket[];
 }
 
 export type BigIntMarket = BigIntErc6909Market | BigIntErc20Market;
@@ -130,6 +135,7 @@ function parseIsCall(value: boolean | 0 | 1): boolean {
 function submarketToBigInt(submarket: Erc20Submarket): BigIntErc20Submarket {
   return {
     id: submarket.id,
+    marketId: submarket.marketId ?? submarket.id,
     name: submarket.name,
     tokenAddress: submarket.tokenAddress,
     tokenDecimals: submarket.tokenDecimals,
@@ -196,6 +202,8 @@ export function marketToBigInt(market: Market): BigIntMarket {
     collateralDecimals: market.collateralDecimals,
     maxDecimals: parseOptionalBigInt(market.maxDecimals),
     marketType: market.marketType,
+    logoUri: market.logoUri ?? null,
+    hasFinalTick: market.hasFinalTick ?? false,
   };
 
   if (market.type === "erc20") {
@@ -204,7 +212,7 @@ export function marketToBigInt(market: Market): BigIntMarket {
       type: "erc20",
       underlying: market.underlying,
       underlyingDecimals: market.underlyingDecimals,
-      submarkets: market.submarkets.map(submarketToBigInt),
+      instruments: (market.instruments ?? market.submarkets ?? []).map(submarketToBigInt),
     };
   }
 
