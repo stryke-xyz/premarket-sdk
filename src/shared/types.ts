@@ -507,6 +507,9 @@ export interface RolloverHistoryItem extends EventEnrichment {
   rolloverFee: string;
   netRolloverCollateral: string;
   newAmount: string;
+  /** FinalTick of the just-closed (oldExpiry) epoch, if indexed. Null if the
+   * settlement event hasn't been indexed yet or for legacy rows. */
+  finalTick: string | null;
   transactionHash: `0x${string}`;
   blockNumber: string;
   timestamp: string;
