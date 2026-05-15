@@ -56,6 +56,8 @@ export interface CreateOrderParams {
   order: Order;
   signature: OrderSignature;
   operator?: string;
+  /** Primary wallet address (depositor) — required for ERC1271 smart account maker validation */
+  depositor?: string;
   timeInForce?: TimeInForce;
   postOnly?: boolean;
 }
