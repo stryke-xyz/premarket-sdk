@@ -1,14 +1,14 @@
-export { BaseSyncClient } from "./clients/base-client.js";
-export { OrderbookSyncClient } from "./clients/order-client.js";
-export { BalanceSyncClient } from "./clients/balance-client.js";
+export { MarketDepthSyncClient } from "./clients/order-client.js";
+export { ActivitySyncClient } from "./clients/activity-client.js";
 export type {
-  OrderChange,
-  SequencedMessage,
-  SyncClientConfig,
-  SyncStatus,
-} from "./types.js";
+  DepthLevel,
+  TokenDepthSnapshot,
+  DepthLevelUpdate,
+  DepthUpdate,
+  MarketDepthClientConfig,
+} from "./clients/order-client.js";
 export type {
-  BalanceData,
-  BalanceUpdateMessage,
-  BalanceSyncClientConfig,
-} from "./clients/balance-client.js";
+  OrderFillEvent,
+  ActivityClientConfig,
+} from "./clients/activity-client.js";
+export type { SyncStatus } from "./types.js";

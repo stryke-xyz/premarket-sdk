@@ -1,198 +1,770 @@
-import { OrderStatus, type StoredOrder } from "../../shared/types.js";
-import type {
-  OrderChange,
-  SequencedMessage,
-  SyncClientConfig,
-} from "../types.js";
-import { BaseSyncClient } from "./base-client.js";
+import type { SyncStatus } from "../types.js";
 
-export interface OrderbookSyncClientConfig extends SyncClientConfig {
-  channel: string;
+function scheduleDeferred(callback: () => void): void {
+  if (typeof queueMicrotask === "function") {
+    queueMicrotask(callback);
+    return;
+  }
+
+  setTimeout(callback, 0);
 }
 
-export class OrderbookSyncClient extends BaseSyncClient<
-  SequencedMessage,
-  OrderChange,
-  StoredOrder,
-  OrderbookSyncClientConfig
-> {
-  private expireCheckInterval: ReturnType<typeof setInterval> | null = null;
+/**
+ * Normalize a price string to a canonical form for consistent map key lookups.
+ * Converts "1.000000" and "1" both to "1" (removes trailing zeros after decimal).
+ */
+function normalizePrice(price: string): string {
+  const num = parseFloat(price);
+  if (isNaN(num)) return price;
+  return num.toString();
+}
 
-  constructor(config: SyncClientConfig) {
-    // Build full config with channel
-    const fullConfig: OrderbookSyncClientConfig = {
+export interface DepthLevel {
+  price: string;
+  depth: string;
+}
+
+/** Current depth state for a token within a market subscription. */
+export interface TokenDepthSnapshot {
+  tokenId: string;
+  bids: DepthLevel[];
+  asks: DepthLevel[];
+  bestBid: string | null;
+  bestAsk: string | null;
+  lastPrice: string | null;
+  seq: number;
+}
+
+/** One bid or ask level change in the normalized SDK format. */
+export interface DepthLevelUpdate {
+  side: "bid" | "ask";
+  price: string;
+  depth: string;
+}
+
+/** Raw level shape inside the wire `depth_update.levels[]` array. */
+interface WireDepthLevel {
+  side: "bid" | "ask";
+  price: string;
+  depth: string;
+  seq: string;
+  localSeq?: number;
+}
+
+/** Raw `depth_update` frame as published by the depth projector. */
+interface WireDepthUpdate {
+  type: "depth_update";
+  marketId: string;
+  tokenId: string;
+  startSeq: string;
+  endSeq: string;
+  levels: WireDepthLevel[];
+}
+
+/** Consolidated depth update emitted to SDK listeners after normalization. */
+export interface DepthUpdate {
+  tokenId: string;
+  levels: DepthLevelUpdate[];
+  bestBid: string | null;
+  bestAsk: string | null;
+  lastPrice: string | null;
+  /** Last applied executor sequenceId for this token (== endSeq of the frame). */
+  seq: number;
+  /** Range covered by this frame; clients can detect gaps via startSeq != prevSeq + 1. */
+  startSeq: number;
+  endSeq: number;
+}
+
+/** Configuration for the market depth websocket client. */
+export interface MarketDepthClientConfig {
+  wsUrl: string;
+  marketId: string;
+  tokenIds: string[];
+  /** Heartbeat interval in ms (default: 30000) */
+  heartbeatIntervalMs?: number;
+  /** Heartbeat timeout - if no pong received within this time, reconnect (default: 10000) */
+  heartbeatTimeoutMs?: number;
+  /** Max reconnection attempts before giving up (default: Infinity) */
+  maxReconnectAttempts?: number;
+  /** Initial reconnect delay in ms (default: 1000) */
+  initialReconnectDelayMs?: number;
+  /** Max reconnect delay in ms (default: 30000) */
+  maxReconnectDelayMs?: number;
+}
+
+// Internal state per token
+interface TokenDepthState {
+  bids: Map<string, string>; // price -> depth
+  asks: Map<string, string>; // price -> depth
+  bestBid: string | null;
+  bestAsk: string | null;
+  lastPrice: string | null;
+  seq: number; // Current sequence ID for this token
+}
+
+/**
+ * Client for syncing orderbook depth data for multiple tokens in a market.
+ * Seq is per market+token (gapless, monotonic). Each token tracks its own seq for dedup and gap detection.
+ */
+export class MarketDepthSyncClient {
+  private ws: WebSocket | null = null;
+  private config: MarketDepthClientConfig;
+  private status: SyncStatus = "disconnected";
+
+  // Per-token depth state (each token has its own gapless executor-seq counter)
+  private tokenStates: Map<string, TokenDepthState> = new Map();
+
+  // Frame queue for ordering — frames received before initial snapshot are buffered.
+  private frameQueue: WireDepthUpdate[] = [];
+  private isProcessing: boolean = false;
+
+  // Listeners
+  private statusListeners: Set<(status: SyncStatus) => void> = new Set();
+  private snapshotListeners: Set<(snapshots: TokenDepthSnapshot[]) => void> =
+    new Set();
+  private deltaListeners: Set<(marketId: string, update: DepthUpdate) => void> =
+    new Set();
+
+  // Reconnection state
+  private shouldBeConnected: boolean = false;
+  private reconnectAttempts: number = 0;
+  private reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  // Heartbeat state
+  private heartbeatIntervalId: ReturnType<typeof setInterval> | null = null;
+  private heartbeatTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private lastPongTime: number = 0;
+
+  // Visibility change handler reference (for cleanup)
+  private visibilityChangeHandler: (() => void) | null = null;
+
+  constructor(config: MarketDepthClientConfig) {
+    this.config = {
+      heartbeatIntervalMs: 30000,
+      heartbeatTimeoutMs: 10000,
+      maxReconnectAttempts: Infinity,
+      initialReconnectDelayMs: 1000,
+      maxReconnectDelayMs: 30000,
       ...config,
-      channel: `orderbook:market:${config.marketId}`,
     };
-    super(fullConfig);
   }
 
+  /** Connects to the market depth websocket and hydrates token snapshots. */
   async connect(): Promise<void> {
-    await super.connect();
-    this.startExpireCheck();
+    // Clean up any existing connection first
+    this.stopHeartbeat();
+    this.clearReconnectTimeout();
+
+    if (this.ws) {
+      this.ws.onclose = null; // Prevent triggering reconnect
+      this.ws.close();
+      this.ws = null;
+    }
+
+    this.shouldBeConnected = true;
+    this.setStatus("connecting");
+
+    const wsUrl = this.config.wsUrl;
+    if (!wsUrl.startsWith("ws://") && !wsUrl.startsWith("wss://")) {
+      throw new Error(`Invalid WebSocket URL: ${wsUrl}`);
+    }
+
+    // Prevent queue processing until snapshots are received
+    this.isProcessing = true;
+
+    // Set up visibility change handler
+    this.setupVisibilityChangeHandler();
+
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const resolveOnce = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      const rejectOnce = (error: unknown) => {
+        if (settled) return;
+        settled = true;
+        reject(error);
+      };
+
+      this.ws = new WebSocket(wsUrl);
+
+      this.ws.onopen = () => {
+        // Reset reconnect attempts on successful connection
+        this.reconnectAttempts = 0;
+        this.lastPongTime = Date.now();
+
+        // Send subscribe_market message
+        this.ws!.send(
+          JSON.stringify({
+            type: "subscribe_market",
+            marketId: this.config.marketId,
+            tokenIds: this.config.tokenIds,
+          }),
+        );
+
+        // Start heartbeat
+        this.startHeartbeat();
+      };
+
+      this.ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data as string);
+
+          // Handle pong response
+          if (msg.type === "pong") {
+            this.lastPongTime = Date.now();
+            this.clearHeartbeatTimeout();
+            return;
+          }
+
+          if (msg.type === "subscribed_market") {
+            // Received initial snapshots
+            this.handleSubscribedMarket(msg);
+            this.isProcessing = false;
+            this.setStatus("synced");
+            void this.processFrameQueue();
+            resolveOnce();
+          } else if (msg.type === "depth_update") {
+            this.handleDepthUpdate(msg as WireDepthUpdate);
+          } else if (msg.type === "market_state") {
+            // Received market state (bestBid, bestAsk, lastPrice) - preferred over last_price
+            this.handleMarketStateUpdate(msg);
+          } else if (msg.type === "last_price") {
+            // Legacy: last price only (still supported)
+            this.handleLastPriceUpdate(msg);
+          } else if (msg.type === "error") {
+            console.error("WebSocket error:", msg.message);
+            rejectOnce(new Error(msg.message));
+          }
+        } catch (error) {
+          console.error("Error parsing message:", error);
+        }
+      };
+
+      this.ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        // Only reject if this is the initial connection
+        if (this.status === "connecting") {
+          rejectOnce(error);
+        }
+      };
+
+      this.ws.onclose = () => {
+        this.stopHeartbeat();
+        this.setStatus("disconnected");
+
+        if (!settled) {
+          rejectOnce(
+            new Error("WebSocket closed before initial depth snapshot"),
+          );
+        }
+
+        // Attempt to reconnect if we should still be connected
+        if (this.shouldBeConnected) {
+          this.scheduleReconnect();
+        }
+      };
+    });
   }
 
-  protected async fetchSnapshot(): Promise<void> {
+  private setupVisibilityChangeHandler(): void {
+    // Only set up in browser environment
+    if (typeof document === "undefined") return;
+
+    // Remove existing handler if any
+    this.removeVisibilityChangeHandler();
+
+    this.visibilityChangeHandler = () => {
+      if (document.visibilityState === "visible" && this.shouldBeConnected) {
+        // Tab became visible - check if connection is still healthy
+        this.checkConnectionHealth();
+      }
+    };
+
+    document.addEventListener("visibilitychange", this.visibilityChangeHandler);
+  }
+
+  private removeVisibilityChangeHandler(): void {
+    if (typeof document === "undefined") return;
+
+    if (this.visibilityChangeHandler) {
+      document.removeEventListener(
+        "visibilitychange",
+        this.visibilityChangeHandler,
+      );
+      this.visibilityChangeHandler = null;
+    }
+  }
+
+  private checkConnectionHealth(): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      // Connection is dead, trigger reconnect
+      console.log("Connection unhealthy on visibility change, reconnecting...");
+      this.handleConnectionLost();
+      return;
+    }
+
+    // Send a ping to verify the connection is actually working
     try {
-      if (!this.config.snapshotUrl) {
+      this.ws.send(JSON.stringify({ type: "ping" }));
+
+      // Set a timeout for the pong response
+      this.clearHeartbeatTimeout();
+      this.heartbeatTimeoutId = setTimeout(() => {
+        console.log("Ping timeout on visibility change, reconnecting...");
+        this.handleConnectionLost();
+      }, this.config.heartbeatTimeoutMs!);
+    } catch {
+      // Send failed, connection is dead
+      this.handleConnectionLost();
+    }
+  }
+
+  private handleConnectionLost(): void {
+    this.stopHeartbeat();
+
+    if (this.ws) {
+      this.ws.onclose = null; // Prevent double-triggering
+      this.ws.close();
+      this.ws = null;
+    }
+
+    this.setStatus("disconnected");
+
+    if (this.shouldBeConnected) {
+      this.scheduleReconnect();
+    }
+  }
+
+  private startHeartbeat(): void {
+    this.stopHeartbeat();
+
+    this.heartbeatIntervalId = setInterval(() => {
+      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
         return;
       }
 
-      const url = `${this.config.snapshotUrl}/orderbook/api/orders?marketId=${this.config.marketId}&status=ACTIVE`;
+      try {
+        this.ws.send(JSON.stringify({ type: "ping" }));
 
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(
-          `Snapshot fetch failed: ${response.status} ${response.statusText}`
-        );
+        // Set timeout for pong response
+        this.clearHeartbeatTimeout();
+        this.heartbeatTimeoutId = setTimeout(() => {
+          console.log("Heartbeat timeout, reconnecting...");
+          this.handleConnectionLost();
+        }, this.config.heartbeatTimeoutMs!);
+      } catch {
+        // Send failed, connection is dead
+        this.handleConnectionLost();
       }
-      const data = (await response.json()) as any;
+    }, this.config.heartbeatIntervalMs!);
+  }
 
-      if (data.success && data.data) {
-        const orders = data.data.orders || data.data;
-        const snapshotSeq = data.data.seq || data.seq || 0;
+  private stopHeartbeat(): void {
+    if (this.heartbeatIntervalId) {
+      clearInterval(this.heartbeatIntervalId);
+      this.heartbeatIntervalId = null;
+    }
+    this.clearHeartbeatTimeout();
+  }
 
-        this.dataMap.clear();
-        orders.forEach((order: StoredOrder) => {
-          this.dataMap.set(order.orderHash, order);
-        });
-
-        this.lastSeq = snapshotSeq;
-
-        this.notifySnapshotListeners(orders);
-      }
-    } catch (error) {
-      console.error("Error fetching snapshot:", error);
+  private clearHeartbeatTimeout(): void {
+    if (this.heartbeatTimeoutId) {
+      clearTimeout(this.heartbeatTimeoutId);
+      this.heartbeatTimeoutId = null;
     }
   }
 
-  protected applyMessage(message: SequencedMessage): void {
-    const change = message.change;
+  private scheduleReconnect(): void {
+    if (!this.shouldBeConnected) return;
 
-    switch (change.type) {
-      case "INSERT":
-        if (change.order) {
-          this.dataMap.set(change.orderHash, change.order);
-        }
-        break;
-
-      case "UPDATE":
-        if (change.order) {
-          // Only keep the order if it's still ACTIVE, otherwise remove it
-          // (CANCELLED and FILLED orders should not be in the orderbook)
-          if (change.order.status === OrderStatus.ACTIVE) {
-            this.dataMap.set(change.orderHash, change.order);
-          } else {
-            this.dataMap.delete(change.orderHash);
-          }
-        }
-        break;
-
-      case "DELETE":
-        this.dataMap.delete(change.orderHash);
-        break;
+    const maxAttempts = this.config.maxReconnectAttempts!;
+    if (this.reconnectAttempts >= maxAttempts) {
+      console.error(
+        `Max reconnection attempts (${maxAttempts}) reached, giving up`,
+      );
+      return;
     }
 
-    this.changeListeners.forEach((listener) => {
+    // Exponential backoff with jitter
+    const baseDelay = this.config.initialReconnectDelayMs!;
+    const maxDelay = this.config.maxReconnectDelayMs!;
+    const delay = Math.min(
+      baseDelay * Math.pow(2, this.reconnectAttempts) + Math.random() * 1000,
+      maxDelay,
+    );
+
+    this.reconnectAttempts++;
+    this.setStatus("recovering");
+
+    console.log(
+      `Scheduling reconnect attempt ${this.reconnectAttempts} in ${Math.round(delay)}ms`,
+    );
+
+    this.clearReconnectTimeout();
+    this.reconnectTimeoutId = setTimeout(() => {
+      this.performReconnect();
+    }, delay);
+  }
+
+  private clearReconnectTimeout(): void {
+    if (this.reconnectTimeoutId) {
+      clearTimeout(this.reconnectTimeoutId);
+      this.reconnectTimeoutId = null;
+    }
+  }
+
+  private async performReconnect(): Promise<void> {
+    if (!this.shouldBeConnected) return;
+
+    try {
+      // Clear state before reconnecting
+      this.tokenStates.clear();
+      this.frameQueue = [];
+
+      await this.connect();
+      console.log("Reconnected successfully");
+    } catch (error) {
+      console.error("Reconnection failed:", error);
+      // Will trigger another reconnect via onclose handler
+    }
+  }
+
+  private handleSubscribedMarket(msg: {
+    marketId: string;
+    tokenIds: string[];
+    snapshots: TokenDepthSnapshot[];
+  }): void {
+    // Initialize state for each token from snapshots (seq is the executor
+    // sequenceId, monotonic per token).
+    for (const snapshot of msg.snapshots) {
+      const state: TokenDepthState = {
+        bids: new Map(),
+        asks: new Map(),
+        bestBid: snapshot.bestBid,
+        bestAsk: snapshot.bestAsk,
+        lastPrice: snapshot.lastPrice,
+        seq: snapshot.seq,
+      };
+
+      for (const level of snapshot.bids) {
+        state.bids.set(normalizePrice(level.price), level.depth);
+      }
+      for (const level of snapshot.asks) {
+        state.asks.set(normalizePrice(level.price), level.depth);
+      }
+
+      this.tokenStates.set(String(snapshot.tokenId), state);
+    }
+
+    this.snapshotListeners.forEach((listener) => {
       try {
-        listener(change);
+        listener(msg.snapshots);
       } catch (error) {
-        console.error("Error in change listener:", error);
+        console.error("Error in snapshot listener:", error);
       }
     });
   }
 
-  protected async recoverGap(
-    fromSeq: number,
-    toSeq: number
-  ): Promise<SequencedMessage[]> {
-    if (!this.config.gapRecoveryUrl) {
-      return [];
+  private handleDepthUpdate(msg: WireDepthUpdate): void {
+    this.frameQueue.push(msg);
+    void this.processFrameQueue();
+  }
+
+  private handleMarketStateUpdate(msg: {
+    marketId: string;
+    tokenId: string;
+    bestBid: string | null;
+    bestAsk: string | null;
+    lastPrice: string | null;
+  }): void {
+    const state = this.tokenStates.get(String(msg.tokenId));
+    if (!state) {
+      return;
     }
 
-    const gapSize = toSeq - fromSeq + 1;
+    state.bestBid = msg.bestBid ?? state.bestBid;
+    state.bestAsk = msg.bestAsk ?? state.bestAsk;
+    state.lastPrice = msg.lastPrice ?? state.lastPrice;
 
-    if (gapSize > 1000) {
-      await this.fullResync();
-      return [];
+    this.emitOutOfBandUpdate(msg.tokenId, state);
+  }
+
+  private handleLastPriceUpdate(msg: {
+    tokenId: string;
+    lastPrice: string;
+  }): void {
+    const state = this.tokenStates.get(String(msg.tokenId));
+    if (!state) {
+      return;
     }
 
-    this.setStatus("recovering");
+    state.lastPrice = msg.lastPrice;
+    this.emitOutOfBandUpdate(msg.tokenId, state);
+  }
+
+  /** Emit a delta with empty levels for events that mutate side-state but no levels (market_state, last_price). */
+  private emitOutOfBandUpdate(tokenId: string, state: TokenDepthState): void {
+    this.deltaListeners.forEach((listener) => {
+      try {
+        const update: DepthUpdate = {
+          tokenId,
+          levels: [],
+          bestBid: state.bestBid,
+          bestAsk: state.bestAsk,
+          lastPrice: state.lastPrice,
+          seq: state.seq,
+          startSeq: state.seq,
+          endSeq: state.seq,
+        };
+        listener(this.config.marketId, update);
+      } catch (error) {
+        console.error("Error in delta listener:", error);
+      }
+    });
+  }
+
+  private async processFrameQueue(): Promise<void> {
+    if (this.isProcessing) return;
+    this.isProcessing = true;
 
     try {
-      const url = `${this.config.gapRecoveryUrl}/orderbook/api/sync/messages?marketId=${this.config.marketId}&fromSeq=${fromSeq}&toSeq=${toSeq}`;
+      while (this.frameQueue.length > 0) {
+        const frame = this.frameQueue.shift()!;
+        const state = this.tokenStates.get(String(frame.tokenId));
+        if (!state) continue;
 
-      const response = await fetch(url);
-      const data = (await response.json()) as any;
+        const startSeq = parseInt(frame.startSeq, 10);
+        const endSeq = parseInt(frame.endSeq, 10);
 
-      if (data.success && data.data) {
-        const messages: SequencedMessage[] = data.data;
-        messages.sort((a, b) => a.seq - b.seq);
-        this.setStatus("synced");
-        return messages;
-      }
+        // Whole frame already applied (e.g. reconnect after partial JetStream replay)
+        if (endSeq <= state.seq) continue;
 
-      this.setStatus("synced");
-      return [];
-    } catch (error) {
-      await this.fullResync();
-      return [];
-    }
-  }
-
-  getOrders(): StoredOrder[] {
-    return Array.from(this.dataMap.values());
-  }
-
-  getOrder(orderHash: string): StoredOrder | undefined {
-    return this.dataMap.get(orderHash);
-  }
-
-  private startExpireCheck(): void {
-    // Clear any existing interval
-    if (this.expireCheckInterval) {
-      clearInterval(this.expireCheckInterval);
-    }
-
-    // Check for expired orders every 1 second
-    this.expireCheckInterval = setInterval(() => {
-      const now = Math.floor(Date.now() / 1000);
-      const expiredOrders: string[] = [];
-
-      for (const [orderHash, order] of this.dataMap.entries()) {
-        // Check if order has expired
-        if (order.expiresAt && order.expiresAt < now) {
-          expiredOrders.push(orderHash);
+        // Gap detection: startSeq should be exactly state.seq + 1.
+        // Depth values are absolute, so a gap is a soft warning, not a hard fail.
+        if (state.seq > 0 && startSeq > state.seq + 1) {
+          console.warn(
+            `[MarketDepth] Gap tokenId=${frame.tokenId} expected=${state.seq + 1} got=${startSeq} (frame ${startSeq}..${endSeq}). Continuing — depth is absolute.`,
+          );
         }
-      }
 
-      // Remove expired orders and notify listeners
-      for (const orderHash of expiredOrders) {
-        this.dataMap.delete(orderHash);
+        const emittedLevels: DepthLevelUpdate[] = [];
+        for (const lv of frame.levels) {
+          // Per-level dedup against state.seq guards against re-applying
+          // levels from a partially-applied previous frame.
+          const lvSeq = parseInt(lv.seq, 10);
+          if (lvSeq <= state.seq) continue;
+          this.applyLevel(lv, state);
+          emittedLevels.push({ side: lv.side, price: lv.price, depth: lv.depth });
+        }
 
-        const change: OrderChange = {
-          type: "DELETE",
-          orderHash,
-        };
+        state.seq = endSeq;
 
-        this.changeListeners.forEach((listener) => {
+        if (emittedLevels.length === 0) continue;
+
+        this.deltaListeners.forEach((listener) => {
           try {
-            listener(change);
+            const update: DepthUpdate = {
+              tokenId: frame.tokenId,
+              levels: emittedLevels,
+              bestBid: state.bestBid,
+              bestAsk: state.bestAsk,
+              lastPrice: state.lastPrice,
+              seq: endSeq,
+              startSeq,
+              endSeq,
+            };
+            listener(this.config.marketId, update);
           } catch (error) {
-            console.error("Error in change listener:", error);
+            console.error("Error in delta listener:", error);
           }
         });
       }
-    }, 1000);
+    } finally {
+      this.isProcessing = false;
+
+      if (this.frameQueue.length > 0) {
+        scheduleDeferred(() => {
+          void this.processFrameQueue();
+        });
+      }
+    }
   }
 
-  async disconnect(): Promise<void> {
-    // Clear expire check interval
-    if (this.expireCheckInterval) {
-      clearInterval(this.expireCheckInterval);
-      this.expireCheckInterval = null;
+  private applyLevel(level: WireDepthLevel, state: TokenDepthState): void {
+    const map = level.side === "bid" ? state.bids : state.asks;
+    const depth = parseFloat(level.depth);
+    const key = normalizePrice(level.price);
+
+    if (depth <= 0) {
+      map.delete(key);
+    } else {
+      map.set(key, level.depth);
     }
 
-    await super.disconnect();
+    // Recalculate best prices from current state
+    if (level.side === "bid") {
+      const bidPrices = Array.from(state.bids.keys()).map((p) => parseFloat(p));
+      state.bestBid =
+        bidPrices.length > 0 ? Math.max(...bidPrices).toString() : null;
+    } else {
+      const askPrices = Array.from(state.asks.keys()).map((p) => parseFloat(p));
+      state.bestAsk =
+        askPrices.length > 0 ? Math.min(...askPrices).toString() : null;
+    }
+  }
+
+  private setStatus(status: SyncStatus): void {
+    if (this.status === status) return;
+    this.status = status;
+
+    this.statusListeners.forEach((listener) => {
+      try {
+        listener(status);
+      } catch (error) {
+        console.error("Error in status listener:", error);
+      }
+    });
+  }
+
+  // Public API
+  /** Returns the current connection lifecycle state. */
+  getStatus(): SyncStatus {
+    return this.status;
+  }
+
+  /** Returns true once initial depth snapshots have been received. */
+  isSynced(): boolean {
+    return this.status === "synced";
+  }
+
+  /** Returns all token ids currently tracked by the client. */
+  getTokenIds(): string[] {
+    return Array.from(this.tokenStates.keys());
+  }
+
+  /** Returns raw internal token state for advanced integrations. */
+  getTokenState(tokenId: string): TokenDepthState | undefined {
+    return this.tokenStates.get(tokenId);
+  }
+
+  /** Returns the current bid ladder for a token, sorted from highest to lowest price. */
+  getBids(tokenId: string): DepthLevel[] {
+    const state = this.tokenStates.get(tokenId);
+    if (!state) return [];
+
+    return Array.from(state.bids.entries())
+      .map(([price, depth]) => ({ price, depth }))
+      .sort((a, b) => parseFloat(b.price) - parseFloat(a.price)); // Highest first
+  }
+
+  /** Returns the current ask ladder for a token, sorted from lowest to highest price. */
+  getAsks(tokenId: string): DepthLevel[] {
+    const state = this.tokenStates.get(tokenId);
+    if (!state) return [];
+
+    return Array.from(state.asks.entries())
+      .map(([price, depth]) => ({ price, depth }))
+      .sort((a, b) => parseFloat(a.price) - parseFloat(b.price)); // Lowest first
+  }
+
+  /** Returns the best bid price for a token, if known. */
+  getBestBid(tokenId: string): string | null {
+    return this.tokenStates.get(tokenId)?.bestBid ?? null;
+  }
+
+  /** Returns the best ask price for a token, if known. */
+  getBestAsk(tokenId: string): string | null {
+    return this.tokenStates.get(tokenId)?.bestAsk ?? null;
+  }
+
+  /** Returns the latest trade price tracked for a token, if any. */
+  getLastPrice(tokenId: string): string | null {
+    return this.tokenStates.get(tokenId)?.lastPrice ?? null;
+  }
+
+  /** Returns the latest applied sequence id for a token. */
+  getSeq(tokenId: string): number {
+    return this.tokenStates.get(tokenId)?.seq ?? 0;
+  }
+
+  /** Returns the current bid-ask spread for a token when both sides are available. */
+  getSpread(tokenId: string): number | null {
+    const state = this.tokenStates.get(tokenId);
+    if (!state || !state.bestBid || !state.bestAsk) return null;
+    return parseFloat(state.bestAsk) - parseFloat(state.bestBid);
+  }
+
+  /** Returns the depth resting at one exact price level on a given side. */
+  getDepthAtPrice(
+    tokenId: string,
+    side: "bid" | "ask",
+    price: string,
+  ): string | null {
+    const state = this.tokenStates.get(tokenId);
+    if (!state) return null;
+    const map = side === "bid" ? state.bids : state.asks;
+    return map.get(normalizePrice(price)) || null;
+  }
+
+  // Event listeners
+  /** Registers a listener for connection lifecycle updates. */
+  onStatus(callback: (status: SyncStatus) => void): () => void {
+    this.statusListeners.add(callback);
+    return () => this.statusListeners.delete(callback);
+  }
+
+  /** Registers a listener that receives full snapshots for all subscribed tokens. */
+  onSnapshot(callback: (snapshots: TokenDepthSnapshot[]) => void): () => void {
+    this.snapshotListeners.add(callback);
+    return () => this.snapshotListeners.delete(callback);
+  }
+
+  /** Registers a listener for normalized incremental depth updates. */
+  onDelta(
+    callback: (marketId: string, update: DepthUpdate) => void,
+  ): () => void {
+    this.deltaListeners.add(callback);
+    return () => this.deltaListeners.delete(callback);
+  }
+
+  /** Closes the websocket and stops automatic reconnection attempts. */
+  async disconnect(): Promise<void> {
+    // Mark that we intentionally want to disconnect
+    this.shouldBeConnected = false;
+    this.isProcessing = true;
+
+    // Clean up all timers and handlers
+    this.stopHeartbeat();
+    this.clearReconnectTimeout();
+    this.removeVisibilityChangeHandler();
+    this.reconnectAttempts = 0;
+
+    if (this.ws) {
+      // Prevent onclose from triggering reconnect
+      this.ws.onclose = null;
+
+      // Send unsubscribe before closing
+      if (this.ws.readyState === WebSocket.OPEN) {
+        try {
+          this.ws.send(
+            JSON.stringify({
+              type: "unsubscribe_market",
+              marketId: this.config.marketId,
+            }),
+          );
+        } catch {
+          // Ignore send errors during disconnect
+        }
+      }
+      this.ws.close();
+      this.ws = null;
+    }
+
+    this.frameQueue = [];
+    this.tokenStates.clear();
+    this.setStatus("disconnected");
   }
 }

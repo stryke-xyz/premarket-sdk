@@ -1,5 +1,5 @@
-import { LIMIT_ORDER_PROTOCOL } from "./config";
-import { SUPPORTED_CHAINS } from "./config/markets";
+import { EXCHANGE, MARKETS_REGISTRY } from "./config/index.js";
+import { SUPPORTED_CHAINS } from "./config/chains.js";
 
 export const ZX = "0x";
 
@@ -10,8 +10,21 @@ const NATIVE_ORDER_FACTORY_ZK_SYNC =
 const NATIVE_ORDER_IMPL = "0xf3eaf3c54f1ef887914b9c19e1ab9d3e581557eb";
 const NATIVE_ORDER_IMPL_ZK_SYNC = "0xf850a926554fc7898d1bda051bc206942909b8f2";
 
-export const getLimitOrderContract = (chainId: number): string => {
-  return LIMIT_ORDER_PROTOCOL[chainId as SUPPORTED_CHAINS];
+export const getExchangeContract = (chainId: number): string => {
+  return EXCHANGE[chainId as SUPPORTED_CHAINS];
+};
+
+export const getLimitOrderContract = getExchangeContract;
+
+export const getMarketsRegistryContract = (chainId: number): string => {
+  const address = MARKETS_REGISTRY[chainId as SUPPORTED_CHAINS];
+  if (!address) {
+    throw new Error(
+      `MARKETS_REGISTRY is not configured for chainId=${chainId}`,
+    );
+  }
+
+  return address;
 };
 
 export const getNativeOrderFactoryContract = (chainId: number): string => {
