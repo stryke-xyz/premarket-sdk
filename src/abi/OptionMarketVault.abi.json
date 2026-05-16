@@ -217,11 +217,6 @@
 				"name": "owner",
 				"type": "address",
 				"internalType": "address"
-			},
-			{
-				"name": "rec",
-				"type": "address",
-				"internalType": "address"
 			}
 		],
 		"outputs": [],
@@ -573,6 +568,30 @@
 			}
 		],
 		"stateMutability": "nonpayable"
+	},
+	{
+		"type": "function",
+		"name": "nullOutcomes",
+		"inputs": [
+			{
+				"name": "marketId",
+				"type": "uint256",
+				"internalType": "uint256"
+			},
+			{
+				"name": "expiry",
+				"type": "uint256",
+				"internalType": "uint256"
+			}
+		],
+		"outputs": [
+			{
+				"name": "isNullOutcome",
+				"type": "bool",
+				"internalType": "bool"
+			}
+		],
+		"stateMutability": "view"
 	},
 	{
 		"type": "function",
@@ -1005,6 +1024,19 @@
 	},
 	{
 		"type": "function",
+		"name": "updateNullOutcome",
+		"inputs": [
+			{
+				"name": "marketId",
+				"type": "uint256",
+				"internalType": "uint256"
+			}
+		],
+		"outputs": [],
+		"stateMutability": "nonpayable"
+	},
+	{
+		"type": "function",
 		"name": "withdraw",
 		"inputs": [
 			{
@@ -1271,6 +1303,37 @@
 			},
 			{
 				"name": "delivery",
+				"type": "address",
+				"indexed": false,
+				"internalType": "address"
+			}
+		],
+		"anonymous": false
+	},
+	{
+		"type": "event",
+		"name": "NullOutcomeUpdated",
+		"inputs": [
+			{
+				"name": "marketId",
+				"type": "uint256",
+				"indexed": true,
+				"internalType": "uint256"
+			},
+			{
+				"name": "previousExpiry",
+				"type": "uint256",
+				"indexed": true,
+				"internalType": "uint256"
+			},
+			{
+				"name": "expiry",
+				"type": "uint256",
+				"indexed": true,
+				"internalType": "uint256"
+			},
+			{
+				"name": "updater",
 				"type": "address",
 				"indexed": false,
 				"internalType": "address"
@@ -1746,6 +1809,11 @@
 	},
 	{
 		"type": "error",
+		"name": "DeliveryAlreadyFilled",
+		"inputs": []
+	},
+	{
+		"type": "error",
 		"name": "DeliveryNotFilled",
 		"inputs": []
 	},
@@ -1805,6 +1873,11 @@
 				"internalType": "enum IOptionMarketVault.Role"
 			}
 		]
+	},
+	{
+		"type": "error",
+		"name": "InvalidFinalTick",
+		"inputs": []
 	},
 	{
 		"type": "error",

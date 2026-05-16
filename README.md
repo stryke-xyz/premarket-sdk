@@ -539,7 +539,7 @@ Restricted or role-gated builders:
   callable only by RedeemKeeper role.
 - `buildDelegateRolloverTransaction(vaultAddress, oldPrmTokenId, holder)` —
   callable only by RolloverKeeper role.
-- `buildDelegateWithdrawTransaction(vaultAddress, prmTokenId, amount, owner, receiver)` —
+- `buildDelegateWithdrawTransaction(vaultAddress, prmTokenId, amount, owner, receiver?)` —
   callable only by WithdrawKeeper role.
 - `buildFillMarketDeliveryTransaction(vaultAddress, marketId, amount)` —
   physical settlement market funding.
@@ -753,9 +753,9 @@ Public token maps:
 
 Important nuance:
 
-- `USDM`, `USDT0`, `MARKETS_REGISTRY`, `FEE_REGISTRY`, and
-  `ERC_TOKENS_RESTRICTION_MODULE` are partial maps because those deployments do
-  not exist on every supported chain
+- `USDM`, `USDT0`, `MARKETS_REGISTRY`, `COMMUNITY_MARKET_MANAGER`,
+  `FEE_REGISTRY`, and `ERC_TOKENS_RESTRICTION_MODULE` are partial maps because
+  those deployments do not exist on every supported chain
 
 ### Contract address maps
 
@@ -765,6 +765,7 @@ Public address maps:
 - `OPTION_MARKET_VAULT`
 - `EXCHANGE`
 - `MARKETS_REGISTRY`
+- `COMMUNITY_MARKET_MANAGER`
 - `ENTRY_POINT`
 - `SIMPLE_ACCOUNT_FACTORY`
 - `FEE_REGISTRY`

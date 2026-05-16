@@ -30,6 +30,8 @@ function normalizeMarket(market: MarketLike) {
     marketType: Number(market.marketType),
     isCollateralScaled: market.isCollateralScaled,
     nonRollable: market.nonRollable,
+    isSpread: market.isSpread ?? false,
+    useAbsoluteSpreadCollateral: market.useAbsoluteSpreadCollateral ?? false,
   };
 }
 

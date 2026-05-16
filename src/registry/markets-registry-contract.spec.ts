@@ -57,6 +57,8 @@ describe("MarketsRegistryContract", () => {
       marketType: market.marketType,
       isCollateralScaled: market.isCollateralScaled,
       nonRollable: market.nonRollable,
+      isSpread: false,
+      useAbsoluteSpreadCollateral: false,
     });
   });
 

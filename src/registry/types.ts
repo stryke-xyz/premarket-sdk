@@ -24,6 +24,8 @@ export interface RegistryMarket {
   marketType: MarketType;
   isCollateralScaled: boolean;
   nonRollable: boolean;
+  isSpread?: boolean;
+  useAbsoluteSpreadCollateral?: boolean;
 }
 
 /** JSON-safe registry market payload used in APIs or config files. */
@@ -44,6 +46,8 @@ export interface SerializedRegistryMarket {
   marketType: number;
   isCollateralScaled: boolean;
   nonRollable: boolean;
+  isSpread?: boolean;
+  useAbsoluteSpreadCollateral?: boolean;
 }
 
 /** Converts a registry market into its stringified transport-safe shape. */
@@ -67,6 +71,8 @@ export function serializeRegistryMarket(
     marketType: Number(market.marketType),
     isCollateralScaled: market.isCollateralScaled,
     nonRollable: market.nonRollable,
+    isSpread: market.isSpread,
+    useAbsoluteSpreadCollateral: market.useAbsoluteSpreadCollateral,
   };
 }
 
@@ -91,5 +97,7 @@ export function deserializeRegistryMarket(
     marketType: market.marketType as MarketType,
     isCollateralScaled: market.isCollateralScaled,
     nonRollable: market.nonRollable,
+    isSpread: market.isSpread,
+    useAbsoluteSpreadCollateral: market.useAbsoluteSpreadCollateral,
   };
 }
