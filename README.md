@@ -311,65 +311,102 @@ Constructor config:
 - `baseUrl`
 - `fetchFn?`
 
-Public order methods:
+#### Order methods
 
-- `createOrder(params, bearerToken)`
-- `getOrder(orderHash)`
-- `getOrders(marketId, maker?)` — active orders for a market, optionally scoped to a maker
-- `getUserOrders(maker, marketId)` — convenience wrapper around `getOrders`
+- `createOrder(params, bearerToken)` — submits a new order and synchronously
+  returns the engine's match outcome. The backend awaits the matching engine's
+  reply (up to ~2 s). If the engine does not reply in time,
+  `matchResult.message === "awaiting match"` and `matches` is empty — callers
+  should then poll `getOrder` or watch the user activity WebSocket.
+- `getOrder(orderHash)` — fetches a single stored order by hash; returns
+  `null` on 404.
+- `getOrders(marketId, maker?)` — active orders for a market, optionally
+  scoped to a maker.
+- `getUserOrders(maker, marketId)` — convenience wrapper around `getOrders`.
+- `getUserOrdersAllMarkets(maker, opts?)` — all open orders across **all**
+  markets for a maker, paginated. `opts` accepts `{ limit?, offset?, status? }`.
+  Returns `PaginatedOrdersResponse`.
 
-Public market methods:
+#### Market methods
 
-- `getMarkets()`
-- `getMarketRecentTrades(marketId, limit?)`
-- `getMarket(marketId)`
+- `getMarkets()` — full market catalog.
+- `getMarketRecentTrades(marketId, limit?)` — recent trade activity, newest
+  first.
+- `getMarket(marketId)` — single market by id; returns `null` on 404.
 
-Public user and analytics methods:
+#### Position and PnL methods
 
-- `getUserPositions(userAddress)`
-- `getUserTradingPnL(userAddress)`
-- `getUserPnL(userAddress)`
-- `getTokenPnL(userAddress, tokenId)`
-- `getErc20PnL(userAddress, tokenAddress)`
+- `getUserPositions(userAddress)` — enriched positions including market name,
+  instrument name, logo, collateral info, PnL breakdown, role flags
+  (`isOPrm`, `isOpen`), expiry, token ids, and `hasFinalTick`. Also returns a
+  `grouped` array keyed by market. Returns `EnrichedPositionsResponse`.
+- `getUserTradingPnL(userAddress)` — realized trading PnL for limit-order
+  activity.
+- `getUserPnL(userAddress)` — aggregated PnL across positions and orderbook
+  trading.
+- `getTokenPnL(userAddress, tokenId)` — PnL for a single ERC-6909 token id.
+- `getErc20PnL(userAddress, tokenAddress)` — trading PnL for a single ERC-20
+  token.
 
-Public history methods:
+#### History methods
 
-- `getUserHistories(userAddress, limit?)`
+`getUserHistories` accepts an optional `opts` object with `limit?`, `marketId?`,
+and `tokenId?` filters.
+
+- `getUserHistories(userAddress, opts?)` — grouped + enriched user history.
+  Every event carries `marketName`, `instrumentName`, `logoUri`,
+  `collateralDecimals`, `collateralToken`, and a `type` discriminator. The
+  `timeline` field is a flat chronological list of all event types.
 - `getMintHistory(userAddress, limit?)`
 - `getRedeemHistory(userAddress, limit?)`
 - `getUnwindHistory(userAddress, limit?)`
 - `getTransferHistory(userAddress, limit?)`
 - `getFillHistory(userAddress, limit?)`
 
-Auth-related methods also exposed by the SDK:
+#### Auth methods
 
-- `getChallenge({ address, chainId })`
-- `verifyAuth({ account, nonce, signature, chainId, expiresAt })`
+- `getChallenge({ address, chainId })` — requests an EIP-712 login challenge.
+  Returns `AuthChallenge`.
+- `verifyAuth({ account, nonce, signature, chainId, expiresAt })` — verifies
+  the signed challenge. Returns `{ access: string }` (bearer token).
 
-Integration note:
+Integration notes:
 
-- `getOrders` and `getUserOrders` both require a `marketId`. Returned orders
-  are restricted to active and partially-filled (cancelled / fully-filled
-  / expired are filtered server-side).
+- `getOrders` and `getUserOrders` both require a `marketId`. Active and
+  partially-filled orders are returned; cancelled / fully-filled / expired
+  orders are filtered server-side.
+- `getUserOrdersAllMarkets` operates in paginated mode and does not require a
+  `marketId`; it defaults to `limit: 1000, offset: 0`.
 
 ### Deserializers
 
 The API returns string-heavy DTOs because JSON cannot safely transport
-`bigint`. Public helpers convert those payloads into bigint-friendly objects:
+`bigint`. Public helpers convert those payloads into bigint-friendly objects.
 
-- `orderToBigInt`
-- `storedOrderToBigInt`
-- `ordersSnapshotToBigInt`
-- `marketInstrumentToBigInt`
-- `marketToBigInt`
-- `marketsToBigInt`
-- `positionToBigInt`
-- `tradingPnLToBigInt`
-- `mintHistoryToBigInt`
-- `redeemHistoryToBigInt`
-- `unwindHistoryToBigInt`
-- `transferHistoryToBigInt`
-- `fillHistoryToBigInt`
+Scalar deserializers:
+
+- `marketInstrumentToBigInt(instrument)` → `BigIntMarketInstrument`
+- `marketToBigInt(market)` → `BigIntMarket`
+- `marketsToBigInt(data)` → `{ markets: BigIntMarket[]; total: number }`
+- `positionToBigInt(position)` → bigint position fields
+- `tradingPnLToBigInt(trading)` → bigint PnL fields
+- `mintHistoryToBigInt(mint)` → bigint mint history fields
+- `redeemHistoryToBigInt(redeem)` → bigint redeem history fields
+- `unwindHistoryToBigInt(unwind)` → bigint unwind history fields
+- `transferHistoryToBigInt(transfer)` → bigint transfer history fields
+- `fillHistoryToBigInt(fill)` → bigint fill history fields
+
+BigInt market types exported for use with deserialized data:
+
+- `BigIntBaseMarketInstrument`
+- `BigIntVanillaMarketInstrument`
+- `BigIntSpreadMarketInstrument`
+- `BigIntMarketInstrument` (union)
+- `BigIntBaseMarket`
+- `BigIntErc6909Market`
+- `BigIntErc20Market`
+- `BigIntErc20Submarket`
+- `BigIntMarket` (union)
 
 ## Vault Module
 
@@ -477,26 +514,42 @@ export interface TransactionCall {
 
 User-facing lifecycle builders:
 
-- `buildMintTransaction(vaultAddress, instrument, amount)`
-- `buildWithdrawTransaction(vaultAddress, prmTokenId, amount, receiver)`
-- `buildRedeemTransaction(vaultAddress, oPrmTokenId, receiver)`
-- `buildUnwindTransaction(vaultAddress, prmTokenId, amount, receiver)`
-- `buildRolloverTransaction(vaultAddress, oldPrmTokenId)`
-- `buildApproveTransaction(tokenAddress, spender, amount?)`
-- `buildBatchedMintTransactions(collateralTokenAddress, vaultAddress, instrument, collateralAmount, prmAmount)`
-- `buildSetOperatorTransaction(vaultAddress, operator, approved)`
+- `buildMintTransaction(vaultAddress, instrument, amount)` — deposit collateral
+  to receive PRM + oPRM tokens.
+- `buildWithdrawTransaction(vaultAddress, prmTokenId, amount, receiver)` —
+  before expiry burns PRM + oPRM to return collateral; after expiry settles and
+  returns collateral minus loss.
+- `buildRedeemTransaction(vaultAddress, oPrmTokenId, receiver)` — option
+  holders redeem oPRM tokens to claim profit after expiry.
+- `buildUnwindTransaction(vaultAddress, prmTokenId, amount, receiver)` — alias
+  for `buildWithdrawTransaction`; burns both PRM and oPRM to reclaim collateral
+  before expiry.
+- `buildRolloverTransaction(vaultAddress, oldPrmTokenId)` — rolls an expired
+  PRM position into the next epoch.
+- `buildApproveTransaction(tokenAddress, spender, amount?)` — ERC-20 approval
+  (defaults to `maxUint256`).
+- `buildBatchedMintTransactions(collateralTokenAddress, vaultAddress, instrument, collateralAmount, prmAmount)` —
+  returns `[approve, mint]` as a `TransactionCall[]` for a single UserOp batch.
+- `buildSetOperatorTransaction(vaultAddress, operator, approved)` — ERC-6909
+  operator approval for delegated transfers.
 
 Restricted or role-gated builders:
 
-- `buildDelegateRedeemTransaction`
-- `buildDelegateRolloverTransaction`
-- `buildDelegateWithdrawTransaction`
-- `buildFillMarketDeliveryTransaction`
-- `buildSetRolloverEnabledTransaction`
-- `buildSetRoleTransaction`
-- `buildUpdateFinalTickTransaction`
-- `buildUpdateMarketExpiryTransaction`
-- `buildUpdateMarketExpiryFromMarketTransaction`
+- `buildDelegateRedeemTransaction(vaultAddress, oPrmTokenId, receiver)` —
+  callable only by RedeemKeeper role.
+- `buildDelegateRolloverTransaction(vaultAddress, oldPrmTokenId, holder)` —
+  callable only by RolloverKeeper role.
+- `buildDelegateWithdrawTransaction(vaultAddress, prmTokenId, amount, owner, receiver)` —
+  callable only by WithdrawKeeper role.
+- `buildFillMarketDeliveryTransaction(vaultAddress, marketId, amount)` —
+  physical settlement market funding.
+- `buildSetRolloverEnabledTransaction(vaultAddress, enabled)`
+- `buildSetRoleTransaction(vaultAddress, account, role, enabled)` — owner only.
+- `buildUpdateFinalTickTransaction(vaultAddress, marketId, tick)` —
+  FinalTickKeeper role.
+- `buildUpdateMarketExpiryTransaction(vaultAddress, marketId, expiry)` —
+  MarketFinalizer role.
+- `buildUpdateMarketExpiryFromMarketTransaction(vaultAddress, marketId, expiry)`
 
 ## Registry Module
 
@@ -670,8 +723,8 @@ applications do not hardcode environment-specific values.
 
 Exports from `src/config/chains.ts`:
 
-- `megaETH`
-- `SUPPORTED_CHAINS`
+- `megaETH` — viem chain definition for MegaETH mainnet (chain id `4326`)
+- `SUPPORTED_CHAINS` — union type of supported chain ids
 
 Runtime lookup from `src/config/index.ts`:
 
@@ -733,9 +786,11 @@ safely over JSON.
 Main exports:
 
 - `Order`
-- `OrderSignature`
+- `OrderSignature` — `0x${string}` (65-byte concatenated hex)
+- `SplitOrderSignature` — wire format `{ r: string; vs: string }` (EIP-2098
+  compact pair) expected by the orderbook backend
 - `OrderStatus`
-- `TimeInForce`
+- `TimeInForce` — `"FOK" | "FAK" | "GTC" | "GTD"`
 - `CreateOrderParams`
 - `CreateOrderRequest`
 - `StoredOrder`
@@ -746,6 +801,7 @@ Main exports:
 - `CreateOrderResult`
 - `OrderResponse`
 - `OrdersSnapshot`
+- `PaginatedOrdersResponse`
 
 Main order write shape:
 
@@ -755,6 +811,8 @@ export interface CreateOrderParams {
   order: Order;
   signature: OrderSignature;
   operator?: string;
+  /** Primary wallet address (depositor) — required for ERC1271 smart account maker validation */
+  depositor?: string;
   timeInForce?: TimeInForce;
   postOnly?: boolean;
 }
@@ -775,31 +833,119 @@ export interface StoredOrder {
   status: OrderStatus;
   side: "bid" | "ask";
   price: number;
+  // Enriched by the order-queue when returning user orders
+  marketName?: string;
+  instrumentName?: string;
+  logoUri?: string | null;
 }
 ```
 
 ### Market DTOs
 
+`Market` is a discriminated union (`ApiMarket = Erc6909Market | Erc20Market`).
+The `type` field (`"erc6909"` | `"erc20"`) is the discriminant.
+
+`MarketInstrument` is also a discriminated union:
+
+```ts
+export type MarketInstrument =
+  | VanillaMarketInstrument    // isSpread: false, spreadType: "vanilla"
+  | SpreadMarketInstrument;    // isSpread: true,  spreadType: "standard" | "absolute"
+```
+
 Public exports:
 
-- `MarketInstrument`
-- `Market`
+- `SpreadType` — `"vanilla" | "standard" | "absolute"`
+- `BaseMarket` — shared fields across all market types, including `hasFinalTick`
+- `BaseMarketInstrument` — shared instrument fields including `prmTokenId`,
+  `oPrmTokenId`, `expiry`
+- `VanillaMarketInstrument`
+- `SpreadMarketInstrument` — adds `lower` and `upper` bound fields
+- `MarketInstrument` (union)
+- `Erc20Submarket` — ERC-20 sub-market/instrument entry
+- `Erc6909Market` — full ERC-6909 market shape (vault-backed)
+- `Erc20Market` — ERC-20 market shape with `instruments` array
+- `ApiMarket` / `Market` (union)
 - `MarketResponse`
 - `MarketsResponse`
 
-`MarketInstrument` carries strike-level data such as paired token ids,
-top-of-book values, recent prices, collateral totals, and supply.
+Key `BaseMarket` fields:
 
-`Market` wraps market-level metadata such as pricing increments, token
-addresses, fee fields, expiry, and nested `instruments`.
+```ts
+export interface BaseMarket {
+  id: string;
+  groupId: string | null;
+  groupName: string | null;       // populated for grouped ERC-20 markets
+  type: "erc6909" | "erc20";
+  name: string;
+  collateralToken: string;
+  collateralDecimals: number;
+  marketType: "ERC20xERC20" | "ERC20xERC6909";
+  logoUri: string | null;
+  /** True when the on-chain FinalTick event has been indexed for this market's current expiry. */
+  hasFinalTick: boolean;
+  // ... pricing / ordering fields
+}
+```
 
 ### Position and PnL DTOs
 
 Public exports:
 
-- `UserPosition`
+- `UserPosition` — raw position fields (holding, cost, proceeds, PnL)
+- `EventEnrichment` — optional market/instrument metadata attached to positions
+  and history events (`collateralSymbol`, `marketId`, `marketName`,
+  `instrumentName`, `logoUri`, `collateralDecimals`, `collateralToken`)
+- `EnrichedPosition` — `UserPosition` + `EventEnrichment` + role flags and
+  additional instrument fields:
+
+```ts
+export interface EnrichedPosition extends UserPosition, EventEnrichment {
+  isOpen: boolean;       // true when holding > 0
+  isOPrm: boolean;       // true = oPRM (outcome), false = PRM (write/minted)
+  marketId: string;
+  marketName: string;
+  instrumentName: string;
+  logoUri: string | null;
+  collateralDecimals: number;
+  collateralToken: string;
+  /** Unix timestamp string for this instrument's epoch expiry (null for ERC20 markets). */
+  expiry?: string | null;
+  /** prmTokenId for this instrument (decimal string). */
+  prmTokenId?: string | null;
+  /** oPrmTokenId for this instrument (decimal string). */
+  oPrmTokenId?: string | null;
+  /** true when an on-chain FinalTick event has been indexed for this instrument epoch. */
+  hasFinalTick?: boolean;
+  /** PnL contribution from limit-order trades */
+  tradePnl: string;
+  /** PnL contribution from redemption / exercise settlements */
+  redeemExercisePnl: string;
+}
+```
+
+- `EnrichedPositionsResponse`:
+
+```ts
+export interface EnrichedPositionsResponse {
+  /** Flat list sorted by updatedAt desc. */
+  positions: EnrichedPosition[];
+  /** Same positions grouped by market. */
+  grouped: Array<{
+    marketId: string;
+    marketName: string;
+    logoUri: string | null;
+    collateralDecimals: number;
+    collateralToken: string;
+    positions: EnrichedPosition[];
+  }>;
+}
+```
+
 - `TradingPnL`
-- `UserPnL`
+- `SettlementPnL` — settlement-specific PnL (`tokenId`, `totalProceeds`,
+  `realizedPnL`, `updatedAt`)
+- `UserPnL` — aggregated `tradePnl`, `redeemExercisePnl`, `totalPnl`
 - `TokenPnL`
 - `Erc20PnL`
 
@@ -808,15 +954,41 @@ Public exports:
 Public exports:
 
 - `MintHistoryItem`
-- `RedeemHistoryItem`
+- `RedeemHistoryItem` — includes `netProceeds` (profit minus fees)
 - `UnwindHistoryItem`
+- `WithdrawHistoryItem` — post-expiry withdraw events (includes `loss`,
+  `lossUsdc`, `finalTick`, `netProceeds`)
+- `RolloverHistoryItem` — rollover events (includes `oldExpiry`, `newExpiry`,
+  `residualCollateral`, `rolloverFee`, `finalTick`)
 - `TransferHistoryItem`
-- `OrderFillHistoryItem`
-- `MarketTradeItem`
+- `OrderFillHistoryItem` — includes `isAsk` and `role` (`"maker" | "taker"`)
+- `OrderCancelHistoryItem`
+- `MarketTradeItem` (alias for `OrderFillHistoryItem`)
+- `AnyHistoryEvent` — discriminated union of all history event types
 - `UserHistories`
 
-`UserHistories` groups `mints`, `redeems`, `unwinds`, `transfers`, and
-`fills`.
+`UserHistories` groups all history types. The `timeline` field (when present)
+is a flat chronological list of all events with a `type` discriminator:
+
+```ts
+export interface UserHistories {
+  mints: MintHistoryItem[];
+  redeems: RedeemHistoryItem[];
+  unwinds: UnwindHistoryItem[];
+  withdraws: WithdrawHistoryItem[];
+  rollovers: RolloverHistoryItem[];
+  transfers: TransferHistoryItem[];
+  fills: OrderFillHistoryItem[];
+  cancels: OrderCancelHistoryItem[];
+  /** Flat chronological list (newest first). Each event has a `type` field. */
+  timeline?: AnyHistoryEvent[];
+}
+```
+
+### Auth types
+
+- `AuthChallenge` — EIP-712 typed-data challenge returned by `getChallenge`.
+  Contains `domain`, `types`, and `message` (with `nonce` and `expiresAt`).
 
 ## Root-Level Helpers
 

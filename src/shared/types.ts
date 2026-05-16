@@ -316,6 +316,14 @@ export interface EnrichedPosition extends UserPosition, EventEnrichment {
   logoUri: string | null;
   collateralDecimals: number;
   collateralToken: string;
+  /** Unix timestamp string for this instrument's epoch expiry (null for ERC20 markets). */
+  expiry?: string | null;
+  /** prmTokenId for this instrument (decimal string). */
+  prmTokenId?: string | null;
+  /** oPrmTokenId for this instrument (decimal string). */
+  oPrmTokenId?: string | null;
+  /** true when an on-chain FinalTick event has been indexed for this instrument epoch. */
+  hasFinalTick?: boolean;
 }
 
 export interface EnrichedPositionsResponse {
