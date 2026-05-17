@@ -18,7 +18,7 @@ const optionMarketVaultAbi = parseAbi([
   "function redeem(uint256 oPrmTokenId, address rec) external returns (uint256 profit)",
   "function delegateRedeem(uint256 oPrmTokenId, address rec) external returns (uint256 profit)",
   "function delegateRollover(uint256 oldPrmTokenId, address holder) external returns (uint256 newPrmTokenId, uint256 newOPrmTokenId, uint256 newAmount)",
-  "function delegateWithdraw(uint256 prmTokenId, uint256 amount, address owner, address rec) external",
+  "function delegateWithdraw(uint256 prmTokenId, uint256 amount, address owner) external",
   "function fillMarketDelivery(uint256 marketId, uint256 amount) external",
   "function rollover(uint256 oldPrmTokenId) external returns (uint256 newPrmTokenId, uint256 newOPrmTokenId, uint256 newAmount)",
   "function setOperator(address operator, bool approved) external returns (bool)",
@@ -172,14 +172,17 @@ export function buildDelegateWithdrawTransaction(
   prmTokenId: bigint,
   amount: bigint,
   owner: Address,
-  receiver: Address,
+  receiver?: Address,
 ): TransactionCall {
+  // `receiver` is retained for source compatibility; the live contract now pays the owner.
+  void receiver;
+
   return {
     to: vaultAddress,
     data: encodeFunctionData({
       abi: optionMarketVaultAbi,
       functionName: "delegateWithdraw",
-      args: [prmTokenId, amount, owner, receiver],
+      args: [prmTokenId, amount, owner],
     }),
   };
 }
