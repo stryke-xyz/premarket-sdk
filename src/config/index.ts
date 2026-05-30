@@ -100,14 +100,14 @@ export const USDT0: Partial<Record<SUPPORTED_CHAINS, Token>> = {
 export const OPTION_MARKET_VAULT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
   [arbitrum.id]: "0xd07280a68bd53b83b6b25861016bed637b3024ed",
-  [megaETH.id]: "0xAC69d2bb4483c357E24f1B7d2EeF421015C935A9",
+  [megaETH.id]: "0x6a02327A369B9b5983Fb2e90042193b9a7FcaFb6",
 };
 
 /** Exchange contract addresses by supported chain. */
 export const EXCHANGE: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
   [arbitrum.id]: "0x8e25cc9aed1131c54b176ef2f0a3a5593db1554b",
-  [megaETH.id]: "0x654256c4814047d4F8DBD87e9330d72C0105421C",
+  [megaETH.id]: "0xa3108eAE9C1A0E27b947D540E85cF1dF1484d659",
 };
 
 /** MarketsRegistry contract addresses on chains where the registry is deployed. */
@@ -115,14 +115,14 @@ export const MARKETS_REGISTRY: Partial<
   Record<SUPPORTED_CHAINS, `0x${string}`>
 > = {
   [anvil.id]: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-  [megaETH.id]: "0x7251d8Add68C0b83aB5d17802c1780C97d3537DD",
+  [megaETH.id]: "0x61fD7E09bc31407eD2093708C68CBcA31d2c46bC",
 };
 
 /** CommunityMarketManager contract addresses on chains where it is deployed. */
 export const COMMUNITY_MARKET_MANAGER: Partial<
   Record<SUPPORTED_CHAINS, `0x${string}`>
 > = {
-  [megaETH.id]: "0x2f557aA5DB7f86302E4975689027C250D529364F",
+  [megaETH.id]: "0xb350A87e86b637bf79229240bc2AdFB015AdBD67",
 };
 
 /** ERC-4337 EntryPoint addresses used by Stryke smart accounts. */
