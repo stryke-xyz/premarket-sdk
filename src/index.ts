@@ -6,6 +6,7 @@ export * from "./constants.js";
 export * from "./utils/rand-bigint.js";
 export * from "./utils/mul-div.js";
 export * from "./utils/orderUtils.js";
+export * from "./utils/token-id.js";
 export * from "./shared/index.js";
 export * from "./api/orderbook-api/index.js";
 export * from "./api/order-helper.js";
