@@ -32,7 +32,11 @@ export interface TokenDepthSnapshot {
   asks: DepthLevel[];
   bestBid: string | null;
   bestAsk: string | null;
+  bestBidAt: number | null;
+  bestAskAt: number | null;
   lastPrice: string | null;
+  /** ms epoch when lastPrice was set on the server, or null if unknown. */
+  lastPriceAt: number | null;
   seq: number;
 }
 
@@ -68,7 +72,11 @@ export interface DepthUpdate {
   levels: DepthLevelUpdate[];
   bestBid: string | null;
   bestAsk: string | null;
+  bestBidAt: number | null;
+  bestAskAt: number | null;
   lastPrice: string | null;
+  /** ms epoch when lastPrice was set on the server, or null if unknown. */
+  lastPriceAt: number | null;
   /** Last applied executor sequenceId for this token (== endSeq of the frame). */
   seq: number;
   /** Range covered by this frame; clients can detect gaps via startSeq != prevSeq + 1. */
@@ -111,7 +119,10 @@ interface TokenDepthState {
   asks: Map<string, string>; // price → depth
   bestBid: string | null;
   bestAsk: string | null;
+  bestBidAt: number | null;
+  bestAskAt: number | null;
   lastPrice: string | null;
+  lastPriceAt: number | null;
   seq: number;
 }
 
@@ -450,7 +461,10 @@ export class MarketDepthSyncClient {
         asks: new Map(),
         bestBid: snapshot.bestBid,
         bestAsk: snapshot.bestAsk,
+        bestBidAt: (snapshot as any).bestBidAt ?? null,
+        bestAskAt: (snapshot as any).bestAskAt ?? null,
         lastPrice: snapshot.lastPrice,
+        lastPriceAt: (snapshot as any).lastPriceAt ?? null,
         seq: snapshot.seq,
       };
       for (const level of snapshot.bids) {
@@ -501,24 +515,49 @@ export class MarketDepthSyncClient {
     tokenId: string;
     bestBid: string | null;
     bestAsk: string | null;
+    bestBidAt?: number | null;
+    bestAskAt?: number | null;
     lastPrice: string | null;
+    lastPriceAt?: number | null;
   }): void {
     const state = this.tokenStates.get(String(msg.tokenId));
     if (!state) return;
 
-    state.bestBid = msg.bestBid ?? state.bestBid;
-    state.bestAsk = msg.bestAsk ?? state.bestAsk;
-    state.lastPrice = msg.lastPrice ?? state.lastPrice;
+    if (msg.bestBid != null) { state.bestBid = msg.bestBid; state.bestBidAt = msg.bestBidAt ?? state.bestBidAt; }
+    if (msg.bestAsk != null) { state.bestAsk = msg.bestAsk; state.bestAskAt = msg.bestAskAt ?? state.bestAskAt; }
+    if (msg.lastPrice != null) {
+      state.lastPrice = msg.lastPrice;
+      state.lastPriceAt = msg.lastPriceAt ?? state.lastPriceAt;
+    }
     this.emitOutOfBandUpdate(msg.marketId, msg.tokenId, state);
   }
 
-  private handleLastPriceUpdate(msg: { marketId?: string; tokenId: string; lastPrice: string }): void {
+  private handleLastPriceUpdate(msg: {
+    marketId?: string;
+    tokenId: string;
+    /** New batched format: all fill prices in this flush window. */
+    prices?: Array<{ price: string; at: number }>;
+    /** Legacy single-price format. */
+    lastPrice?: string;
+    lastPriceAt?: number | null;
+  }): void {
     const state = this.tokenStates.get(String(msg.tokenId));
     if (!state) return;
-
-    state.lastPrice = msg.lastPrice;
     const marketId = msg.marketId ?? this.tokenToMarket.get(msg.tokenId) ?? "";
-    this.emitOutOfBandUpdate(marketId, msg.tokenId, state);
+
+    if (msg.prices && msg.prices.length > 0) {
+      // Emit one DepthUpdate per price so listeners see every fill price.
+      for (const entry of msg.prices) {
+        state.lastPrice = entry.price;
+        state.lastPriceAt = entry.at;
+        this.emitOutOfBandUpdate(marketId, msg.tokenId, state);
+      }
+    } else if (msg.lastPrice != null) {
+      // Legacy single-price fallback.
+      state.lastPrice = msg.lastPrice;
+      state.lastPriceAt = msg.lastPriceAt ?? state.lastPriceAt;
+      this.emitOutOfBandUpdate(marketId, msg.tokenId, state);
+    }
   }
 
   private emitOutOfBandUpdate(marketId: string, tokenId: string, state: TokenDepthState): void {
@@ -527,7 +566,10 @@ export class MarketDepthSyncClient {
       levels: [],
       bestBid: state.bestBid,
       bestAsk: state.bestAsk,
+      bestBidAt: state.bestBidAt,
+      bestAskAt: state.bestAskAt,
       lastPrice: state.lastPrice,
+      lastPriceAt: state.lastPriceAt,
       seq: state.seq,
       startSeq: state.seq,
       endSeq: state.seq,
@@ -590,7 +632,10 @@ export class MarketDepthSyncClient {
           levels: emittedLevels,
           bestBid: state.bestBid,
           bestAsk: state.bestAsk,
+          bestBidAt: state.bestBidAt,
+          bestAskAt: state.bestAskAt,
           lastPrice: state.lastPrice,
+          lastPriceAt: state.lastPriceAt,
           seq: state.seq,
           startSeq,
           endSeq,
