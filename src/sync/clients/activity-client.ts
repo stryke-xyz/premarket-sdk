@@ -226,9 +226,20 @@ export class ActivitySyncClient {
   }
 
   private handleMessage(ev: MessageEvent): void {
-    let msg: Record<string, unknown>;
-    try { msg = JSON.parse(ev.data as string); } catch { return; }
+    let parsed: unknown;
+    try { parsed = JSON.parse(ev.data as string); } catch { return; }
 
+    // Support both single object and batched array (from the 5ms WS batcher).
+    const messages: Record<string, unknown>[] = Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>[])
+      : [parsed as Record<string, unknown>];
+
+    for (const msg of messages) {
+      this.dispatchMessage(msg);
+    }
+  }
+
+  private dispatchMessage(msg: Record<string, unknown>): void {
     const type = msg.type as string | undefined;
 
     if (type === "pong") {
