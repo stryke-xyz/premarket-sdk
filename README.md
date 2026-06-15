@@ -894,6 +894,9 @@ export interface BaseMarket {
 Public exports:
 
 - `UserPosition` — raw position fields (holding, cost, proceeds, PnL)
+  - `totalCost` is lifetime accumulated cost.
+  - `openCostBasis` is the current open-position basis.
+  - `avgEntryPrice` is derived from `openCostBasis / holding`.
 - `EventEnrichment` — optional market/instrument metadata attached to positions
   and history events (`collateralSymbol`, `marketId`, `marketName`,
   `instrumentName`, `logoUri`, `collateralDecimals`, `collateralToken`)
@@ -901,6 +904,23 @@ Public exports:
   additional instrument fields:
 
 ```ts
+export type CostBasisMethod = "weighted_average";
+
+export interface UserPosition {
+  id: string;
+  tokenId: string;
+  holding: string;
+  totalCost: string;
+  openCostBasis: string;
+  avgEntryPrice: string; // collateral per 1 PRM/oPRM, scaled by 1e18
+  costBasisMethod: CostBasisMethod;
+  totalProceeds: string;
+  realizedPnL: string;
+  tradePnl: string;
+  redeemExercisePnl: string;
+  updatedAt: string;
+}
+
 export interface EnrichedPosition extends UserPosition, EventEnrichment {
   isOpen: boolean;       // true when holding > 0
   isOPrm: boolean;       // true = oPRM (outcome), false = PRM (write/minted)
@@ -949,6 +969,26 @@ export interface EnrichedPositionsResponse {
 - `UserPnL` — aggregated `tradePnl`, `redeemExercisePnl`, `totalPnl`
 - `TokenPnL`
 - `Erc20PnL`
+
+```ts
+export interface TokenPnL {
+  tokenId: string;
+  position: {
+    holding: string;
+    totalCost: string;
+    openCostBasis: string;
+    avgEntryPrice: string; // collateral per 1 PRM/oPRM, scaled by 1e18
+    costBasisMethod: "weighted_average";
+    totalProceeds: string;
+    realizedPnL: string;
+  } | null;
+  trading: TradingPnL | null;
+  redeemExercise: SettlementPnL | null;
+  tradePnl: string;
+  redeemExercisePnl: string;
+  totalPnl: string;
+}
+```
 
 ### History DTOs
 

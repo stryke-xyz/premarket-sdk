@@ -1,8 +1,14 @@
 import {
   marketInstrumentToBigInt,
   marketToBigInt,
+  positionToBigInt,
 } from "./deserializers.js";
-import type { Erc20Market, Erc6909Market, SpreadMarketInstrument } from "../../shared/types.js";
+import type {
+  Erc20Market,
+  Erc6909Market,
+  SpreadMarketInstrument,
+  UserPosition,
+} from "../../shared/types.js";
 
 describe("market deserializers", () => {
   it("converts erc6909 spread instruments to bigint values", () => {
@@ -43,6 +49,8 @@ describe("market deserializers", () => {
       collateralDecimals: 6,
       maxDecimals: "18",
       marketType: "ERC20xERC6909",
+      logoUri: null,
+      hasFinalTick: false,
       creator: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
       instruments: [instrument],
       collateral: "0x1111111111111111111111111111111111111111",
@@ -101,11 +109,14 @@ describe("market deserializers", () => {
       collateralDecimals: 6,
       maxDecimals: null,
       marketType: "ERC20xERC20",
+      logoUri: null,
+      hasFinalTick: false,
       underlying: null,
       underlyingDecimals: null,
-      submarkets: [
+      instruments: [
         {
           id: "sub-1",
+          marketId: "sub-1",
           name: "USDC",
           tokenAddress: "0x5555555555555555555555555555555555555555",
           tokenDecimals: 6,
@@ -122,8 +133,33 @@ describe("market deserializers", () => {
       throw new Error("expected an erc20 market");
     }
 
-    expect(bigintMarket.submarkets[0]?.lastPrice).toBe(100n);
+    expect(bigintMarket.instruments[0]?.lastPrice).toBe(100n);
     expect(bigintMarket.maxDecimals).toBeNull();
     expect(bigintMarket.collateralDecimals).toBe(6);
+  });
+});
+
+describe("position deserializers", () => {
+  it("converts position cost basis fields to bigint values", () => {
+    const position: UserPosition = {
+      id: "position-1",
+      tokenId: "100",
+      holding: "2000000000000000000",
+      totalCost: "3000000000000000000",
+      openCostBasis: "2500000000000000000",
+      avgEntryPrice: "1250000000000000000",
+      costBasisMethod: "weighted_average",
+      totalProceeds: "500000000000000000",
+      realizedPnL: "100000000000000000",
+      tradePnl: "70000000000000000",
+      redeemExercisePnl: "30000000000000000",
+      updatedAt: "1900000000",
+    };
+
+    const bigintPosition = positionToBigInt(position);
+
+    expect(bigintPosition.openCostBasis).toBe(2500000000000000000n);
+    expect(bigintPosition.avgEntryPrice).toBe(1250000000000000000n);
+    expect(bigintPosition.costBasisMethod).toBe("weighted_average");
   });
 });

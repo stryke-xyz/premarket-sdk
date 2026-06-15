@@ -276,11 +276,16 @@ export interface MarketsResponse {
 // POSITION & PNL TYPES
 // ============================================================================
 
+export type CostBasisMethod = "weighted_average";
+
 export interface UserPosition {
   id: string;
   tokenId: string;
   holding: string;
   totalCost: string;
+  openCostBasis: string;
+  avgEntryPrice: string;
+  costBasisMethod: CostBasisMethod;
   totalProceeds: string;
   realizedPnL: string;
   /** PnL contribution from limit-order trades */
@@ -371,6 +376,9 @@ export interface TokenPnL {
   position: {
     holding: string;
     totalCost: string;
+    openCostBasis: string;
+    avgEntryPrice: string;
+    costBasisMethod: CostBasisMethod;
     totalProceeds: string;
     realizedPnL: string;
   } | null;

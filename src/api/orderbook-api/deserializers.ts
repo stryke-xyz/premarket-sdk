@@ -269,6 +269,9 @@ export function positionToBigInt(pos: UserPosition): {
   tokenId: bigint;
   holding: bigint;
   totalCost: bigint;
+  openCostBasis: bigint;
+  avgEntryPrice: bigint;
+  costBasisMethod: "weighted_average";
   totalProceeds: bigint;
   realizedPnL: bigint;
   updatedAt: bigint;
@@ -278,6 +281,9 @@ export function positionToBigInt(pos: UserPosition): {
     tokenId: BigInt(pos.tokenId),
     holding: BigInt(pos.holding),
     totalCost: BigInt(pos.totalCost),
+    openCostBasis: BigInt(pos.openCostBasis),
+    avgEntryPrice: BigInt(pos.avgEntryPrice),
+    costBasisMethod: pos.costBasisMethod,
     totalProceeds: BigInt(pos.totalProceeds),
     realizedPnL: BigInt(pos.realizedPnL),
     updatedAt: BigInt(pos.updatedAt),
