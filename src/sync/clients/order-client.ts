@@ -174,6 +174,7 @@ export class MarketDepthSyncClient {
   private statusListeners: Set<(status: SyncStatus) => void> = new Set();
   private snapshotListeners: Set<(marketId: string, snapshots: TokenDepthSnapshot[]) => void> = new Set();
   private deltaListeners: Set<(marketId: string, update: DepthUpdate) => void> = new Set();
+  private lastPriceListeners: Set<(marketId: string, tokenId: string, price: string, at: number) => void> = new Set();
 
   // Reconnection state
   private shouldBeConnected: boolean = false;
@@ -423,6 +424,19 @@ export class MarketDepthSyncClient {
     return () => this.deltaListeners.delete(listener);
   }
 
+  /**
+   * Subscribe to actual executor fill prices emitted by the depth projector's
+   * dedicated `last_price` WS message. Fires once per fill price in each flush
+   * window — does NOT fire for bid/ask-only market_state updates.
+   *
+   * @param listener Called with (marketId, tokenId, price, at) for each fill.
+   * @returns Unsubscribe function.
+   */
+  onLastPrice(listener: (marketId: string, tokenId: string, price: string, at: number) => void): () => void {
+    this.lastPriceListeners.add(listener);
+    return () => this.lastPriceListeners.delete(listener);
+  }
+
   onStatus(listener: (status: SyncStatus) => void): () => void {
     this.statusListeners.add(listener);
     return () => this.statusListeners.delete(listener);
@@ -551,12 +565,19 @@ export class MarketDepthSyncClient {
         state.lastPrice = entry.price;
         state.lastPriceAt = entry.at;
         this.emitOutOfBandUpdate(marketId, msg.tokenId, state);
+        this.lastPriceListeners.forEach((listener) => {
+          try { listener(marketId, msg.tokenId, entry.price, entry.at); } catch (e) { console.error(e); }
+        });
       }
     } else if (msg.lastPrice != null) {
       // Legacy single-price fallback.
       state.lastPrice = msg.lastPrice;
       state.lastPriceAt = msg.lastPriceAt ?? state.lastPriceAt;
       this.emitOutOfBandUpdate(marketId, msg.tokenId, state);
+      const at = msg.lastPriceAt ?? state.lastPriceAt ?? Date.now();
+      this.lastPriceListeners.forEach((listener) => {
+        try { listener(marketId, msg.tokenId, msg.lastPrice!, at); } catch (e) { console.error(e); }
+      });
     }
   }
 
