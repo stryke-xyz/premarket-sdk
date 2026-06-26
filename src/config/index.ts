@@ -100,7 +100,7 @@ export const USDT0: Partial<Record<SUPPORTED_CHAINS, Token>> = {
 export const OPTION_MARKET_VAULT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
   [arbitrum.id]: "0xd07280a68bd53b83b6b25861016bed637b3024ed",
-  [megaETH.id]: "0x6a02327A369B9b5983Fb2e90042193b9a7FcaFb6",
+  [megaETH.id]: "0xd5d4d9d6881F51B3a745Eead7877fEDdE9fde285",
 };
 
 /** Exchange contract addresses by supported chain. */
