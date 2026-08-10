@@ -1,7 +1,6 @@
-import { hardhat, Chain, arbitrum, anvil } from "viem/chains";
+import { hardhat, type Chain, arbitrum, anvil } from "viem/chains";
 import { SUPPORTED_CHAINS } from "./chains.js";
-import { megaETH } from "./chains.js";
-import { zeroAddress } from "viem";
+import { megaETH, robinhood } from "./chains.js";
 
 /** Canonical token metadata used by SDK chain configuration maps. */
 export interface Token {
@@ -17,6 +16,7 @@ export const CHAIN_ID_TO_CHAIN: Record<number, Chain> = {
   31337: anvil,
   42161: arbitrum,
   4326: megaETH,
+  4663: robinhood,
 };
 
 /** Permit2 deployment addresses used by Stryke integrations per chain. */
@@ -24,6 +24,7 @@ export const PERMIT2_ADDRESS: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [hardhat.id]: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
   [megaETH.id]: "0xd1739f41B25869c7457E502Db4E0eaad663535B7",
   [arbitrum.id]: "0xd1739f41B25869c7457E502Db4E0eaad663535B7",
+  [robinhood.id]: "0x000000000022D473030F116dDEE9F6B43aC78BA3",
 };
 
 /** Wrapped native asset metadata per supported chain. */
@@ -46,10 +47,16 @@ export const WETH: Record<SUPPORTED_CHAINS, Token> = {
     address: "0x4200000000000000000000000000000000000006",
     decimals: 18,
   },
+  [robinhood.id]: {
+    name: "WETH",
+    symbol: "WETH",
+    address: "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73",
+    decimals: 18,
+  },
 };
 
-/** Canonical USDC metadata per supported chain. */
-export const USDC: Record<SUPPORTED_CHAINS, Token> = {
+/** Canonical USDC metadata on chains where USDC is deployed. */
+export const USDC: Partial<Record<SUPPORTED_CHAINS, Token>> = {
   [anvil.id]: {
     name: "USD Coin",
     symbol: "USDC",
@@ -66,6 +73,16 @@ export const USDC: Record<SUPPORTED_CHAINS, Token> = {
     name: "Mock USD Coin",
     symbol: "USDC",
     address: "0xb3FD5bF1590d653b14159bD848E5536f8Fe2d941",
+    decimals: 6,
+  },
+};
+
+/** Global Dollar metadata on Robinhood Chain. */
+export const USDG: Partial<Record<SUPPORTED_CHAINS, Token>> = {
+  [robinhood.id]: {
+    name: "Global Dollar",
+    symbol: "USDG",
+    address: "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
     decimals: 6,
   },
 };
@@ -101,6 +118,7 @@ export const OPTION_MARKET_VAULT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
   [arbitrum.id]: "0xd07280a68bd53b83b6b25861016bed637b3024ed",
   [megaETH.id]: "0xd5d4d9d6881F51B3a745Eead7877fEDdE9fde285",
+  [robinhood.id]: "0x57DfE841B48De14C0D11cBEeeA63356FA780b977",
 };
 
 /** Exchange contract addresses by supported chain. */
@@ -108,6 +126,7 @@ export const EXCHANGE: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
   [arbitrum.id]: "0x8e25cc9aed1131c54b176ef2f0a3a5593db1554b",
   [megaETH.id]: "0xa3108eAE9C1A0E27b947D540E85cF1dF1484d659",
+  [robinhood.id]: "0xcEDC3e3672C0fEa688B3AB3FfD416C31552a432f",
 };
 
 /** MarketsRegistry contract addresses on chains where the registry is deployed. */
@@ -116,6 +135,14 @@ export const MARKETS_REGISTRY: Partial<
 > = {
   [anvil.id]: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
   [megaETH.id]: "0x61fD7E09bc31407eD2093708C68CBcA31d2c46bC",
+  [robinhood.id]: "0x13d10E7bEf522b57c60A0F6D74601ec832DB79fF",
+};
+
+/** Configured protocol owner for deployments where the owner is published. */
+export const CONFIGURED_OWNER: Partial<
+  Record<SUPPORTED_CHAINS, `0x${string}`>
+> = {
+  [robinhood.id]: "0xE0D8dF790b2c2522b05b4bF2b6fFF38423DF1B3e",
 };
 
 /** CommunityMarketManager contract addresses on chains where it is deployed. */
@@ -130,6 +157,7 @@ export const ENTRY_POINT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0x09635F643e140090A9A8Dcd712eD6285858ceBef",
   [arbitrum.id]: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
   [megaETH.id]: "0x09635F643e140090A9A8Dcd712eD6285858ceBef",
+  [robinhood.id]: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
 };
 
 /** Simple account factory addresses by supported chain. */
@@ -137,6 +165,7 @@ export const SIMPLE_ACCOUNT_FACTORY: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0xc5a5C42992dECbae36851359345FE25997F5C42d",
   [arbitrum.id]: "0x70c5b7D839f85a1D84c8E77BF0E6104617Da4f34",
   [megaETH.id]: "0xC6DcC1AaD015530C4Eb967B2eB45d852427A8E00",
+  [robinhood.id]: "0x2C93cF8A7c753EE1D544DA0F2499b986091D6053",
 };
 
 /** Fee registry addresses on chains where fee routing is deployed. */
@@ -150,4 +179,5 @@ export const ERC_TOKENS_RESTRICTION_MODULE: Partial<
 > = {
   [anvil.id]: "0x67d269191c92Caf3cD7723F116c85e6E9bf55933",
   [megaETH.id]: "0x820583d6dAccA0d48F50B9C2B6Ea4d6440250CC2",
+  [robinhood.id]: "0xA8E5571B4b6e96b195757399f3c2343611dEeDBd",
 };

@@ -724,7 +724,12 @@ applications do not hardcode environment-specific values.
 Exports from `src/config/chains.ts`:
 
 - `megaETH` — viem chain definition for MegaETH mainnet (chain id `4326`)
+- `robinhood` — viem chain definition for Robinhood Chain mainnet (chain id
+  `4663`)
 - `SUPPORTED_CHAINS` — union type of supported chain ids
+
+`robinhood` is re-exported from `viem/chains`; this package requires Viem
+`2.55.13` or newer so consumers use Viem's maintained network metadata.
 
 Runtime lookup from `src/config/index.ts`:
 
@@ -748,20 +753,23 @@ Public token maps:
 
 - `WETH`
 - `USDC`
+- `USDG`
 - `USDM`
 - `USDT0`
 
 Important nuance:
 
-- `USDM`, `USDT0`, `MARKETS_REGISTRY`, `COMMUNITY_MARKET_MANAGER`,
-  `FEE_REGISTRY`, and `ERC_TOKENS_RESTRICTION_MODULE` are partial maps because
-  those deployments do not exist on every supported chain
+- `USDC`, `USDG`, `USDM`, `USDT0`, `MARKETS_REGISTRY`,
+  `COMMUNITY_MARKET_MANAGER`, `CONFIGURED_OWNER`, `FEE_REGISTRY`, and
+  `ERC_TOKENS_RESTRICTION_MODULE` are partial maps because those deployments
+  do not exist on every supported chain
 
 ### Contract address maps
 
 Public address maps:
 
 - `PERMIT2_ADDRESS`
+- `CONFIGURED_OWNER`
 - `OPTION_MARKET_VAULT`
 - `EXCHANGE`
 - `MARKETS_REGISTRY`

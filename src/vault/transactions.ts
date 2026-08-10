@@ -259,9 +259,7 @@ export function buildSetRoleTransaction(
   };
 }
 
-/**
- * Build final tick update transaction (FinalTickKeeper role).
- */
+/** Build final tick update transaction routed through the configured registry. */
 export function buildUpdateFinalTickTransaction(
   vaultAddress: `0x${string}`,
   marketId: bigint,
@@ -277,9 +275,7 @@ export function buildUpdateFinalTickTransaction(
   };
 }
 
-/**
- * Build market expiry update transaction (MarketFinalizer role).
- */
+/** Build a market expiry update transaction for a registry-authorized caller. */
 export function buildUpdateMarketExpiryTransaction(
   vaultAddress: `0x${string}`,
   marketId: bigint,

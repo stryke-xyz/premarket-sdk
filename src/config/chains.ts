@@ -1,5 +1,7 @@
 import { defineChain as defineChainViem } from "viem";
-import { hardhat, arbitrum } from "viem/chains";
+import { hardhat, arbitrum, robinhood } from "viem/chains";
+
+export { robinhood };
 
 /** Viem chain definition for MegaETH mainnet. */
 export const megaETH = defineChainViem({
@@ -30,4 +32,5 @@ export const megaETH = defineChainViem({
 export type SUPPORTED_CHAINS =
   | typeof hardhat.id
   | typeof arbitrum.id
-  | typeof megaETH.id;
+  | typeof megaETH.id
+  | typeof robinhood.id;
