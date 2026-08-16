@@ -113,6 +113,24 @@ export const USDT0: Partial<Record<SUPPORTED_CHAINS, Token>> = {
   },
 };
 
+/**
+ * The stablecoin each chain settles collateral in.
+ *
+ * This is NOT the same asset everywhere — MegaETH and anvil use USDm, arbitrum
+ * uses USDC, and Robinhood Chain uses USDG. Call sites used to reach for
+ * `USDM[chainId]` directly, which silently yields `undefined` on any chain that
+ * does not have USDm and made the collateral asset a per-file assumption. Read
+ * collateral from here instead. Total (not `Partial`) on purpose: a chain with
+ * no collateral token cannot host a market, so a missing entry must fail the
+ * build rather than surface as `undefined` at runtime.
+ */
+export const COLLATERAL_TOKEN: Record<SUPPORTED_CHAINS, Token> = {
+  [anvil.id]: USDM[anvil.id]!,
+  [arbitrum.id]: USDC[arbitrum.id]!,
+  [megaETH.id]: USDM[megaETH.id]!,
+  [robinhood.id]: USDG[robinhood.id]!,
+};
+
 /** OptionMarketVault contract addresses by supported chain. */
 export const OPTION_MARKET_VAULT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",

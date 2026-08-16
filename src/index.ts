@@ -13,5 +13,6 @@ export * from "./api/order-helper.js";
 export * from "./sync/index.js";
 export * from "./config/index.js";
 export * from "./config/chains.js";
+export * from "./config/resolve.js";
 export * from "./vault/index.js";
 export * from "./smart-account.js";
