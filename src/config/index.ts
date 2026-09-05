@@ -44,7 +44,7 @@ export const WETH: Record<SUPPORTED_CHAINS, Token> = {
   [megaETH.id]: {
     name: "Wrapped Ether",
     symbol: "WETH",
-    address: "0x4200000000000000000000000000000000000006",
+    address: "0xfea7870d12cde9d742f0200b087aa2f3266c320b",
     decimals: 18,
   },
   [robinhood.id]: {
@@ -72,7 +72,7 @@ export const USDC: Partial<Record<SUPPORTED_CHAINS, Token>> = {
   [megaETH.id]: {
     name: "Mock USD Coin",
     symbol: "USDC",
-    address: "0xb3FD5bF1590d653b14159bD848E5536f8Fe2d941",
+    address: "0x4a425525a8823301c5d8b660517e9402e32ba44f",
     decimals: 6,
   },
 };
@@ -98,7 +98,7 @@ export const USDM: Partial<Record<SUPPORTED_CHAINS, Token>> = {
   [megaETH.id]: {
     name: "USDm",
     symbol: "USDm",
-    address: "0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7",
+    address: "0xda0e24716328ee0fc99ff834d07ec22c874f936e",
     decimals: 18,
   },
 };
@@ -135,7 +135,7 @@ export const COLLATERAL_TOKEN: Record<SUPPORTED_CHAINS, Token> = {
 export const OPTION_MARKET_VAULT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
   [arbitrum.id]: "0xd07280a68bd53b83b6b25861016bed637b3024ed",
-  [megaETH.id]: "0xd5d4d9d6881F51B3a745Eead7877fEDdE9fde285",
+  [megaETH.id]: "0x9341e3e0e4056cc9c299220931c0214bafea907a",
   [robinhood.id]: "0x57DfE841B48De14C0D11cBEeeA63356FA780b977",
 };
 
@@ -143,8 +143,27 @@ export const OPTION_MARKET_VAULT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
 export const EXCHANGE: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
   [arbitrum.id]: "0x8e25cc9aed1131c54b176ef2f0a3a5593db1554b",
-  [megaETH.id]: "0xa3108eAE9C1A0E27b947D540E85cF1dF1484d659",
+  [megaETH.id]: "0xde4de2de1c9f7a5d527bd09cd50ef6e4d072ce91",
   [robinhood.id]: "0xcEDC3e3672C0fEa688B3AB3FfD416C31552a432f",
+};
+
+/**
+ * OptionsExchange contract addresses by supported chain.
+ *
+ * A separate deployment from {@link EXCHANGE}, not a replacement: covered
+ * (options) markets settle here, ordinary pair-mint markets keep settling
+ * through the Exchange. The two sign under different EIP-712 domains, so an
+ * order routed to the wrong one cannot be recovered, let alone filled.
+ *
+ * The zero address marks a chain where the contract is not deployed yet.
+ * {@link getChainConfig} treats those as absent rather than resolving them, so
+ * a placeholder cannot masquerade as a live deployment.
+ */
+export const OPTIONS_EXCHANGE: Record<SUPPORTED_CHAINS, `0x${string}`> = {
+  [anvil.id]: "0x0000000000000000000000000000000000000000",
+  [arbitrum.id]: "0x0000000000000000000000000000000000000000",
+  [megaETH.id]: "0x0000000000000000000000000000000000000000",
+  [robinhood.id]: "0x0000000000000000000000000000000000000000",
 };
 
 /** MarketsRegistry contract addresses on chains where the registry is deployed. */
@@ -152,7 +171,7 @@ export const MARKETS_REGISTRY: Partial<
   Record<SUPPORTED_CHAINS, `0x${string}`>
 > = {
   [anvil.id]: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-  [megaETH.id]: "0x61fD7E09bc31407eD2093708C68CBcA31d2c46bC",
+  [megaETH.id]: "0x054fd1041ce021218b743abb956be47903533fc9",
   [robinhood.id]: "0x13d10E7bEf522b57c60A0F6D74601ec832DB79fF",
 };
 
@@ -174,7 +193,7 @@ export const COMMUNITY_MARKET_MANAGER: Partial<
 export const ENTRY_POINT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0x09635F643e140090A9A8Dcd712eD6285858ceBef",
   [arbitrum.id]: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
-  [megaETH.id]: "0x09635F643e140090A9A8Dcd712eD6285858ceBef",
+  [megaETH.id]: "0xB1c05b498Cb58568B2470369FEB98B00702063dA",
   [robinhood.id]: "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
 };
 
@@ -182,7 +201,7 @@ export const ENTRY_POINT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
 export const SIMPLE_ACCOUNT_FACTORY: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0xc5a5C42992dECbae36851359345FE25997F5C42d",
   [arbitrum.id]: "0x70c5b7D839f85a1D84c8E77BF0E6104617Da4f34",
-  [megaETH.id]: "0xC6DcC1AaD015530C4Eb967B2eB45d852427A8E00",
+  [megaETH.id]: "0x92A00fc48Ad3dD4A8b5266a8F467a52Ac784fC83",
   [robinhood.id]: "0x2C93cF8A7c753EE1D544DA0F2499b986091D6053",
 };
 

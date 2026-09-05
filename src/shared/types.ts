@@ -16,6 +16,16 @@ export interface Order {
   tradeType: number;
   signatureType: number;
   tokenId: string;
+  /**
+   * Quote this order pays or receives across a full fill.
+   *
+   * Covered markets only — a market quoted in a token other than its
+   * collateral. There a fill moves three assets: `makingAmount`/`takingAmount`
+   * name the two the vault settles, which makes their ratio the vault's
+   * collateral-per-unit rather than a price, so the premium is the only price
+   * the maker picks and is signed here. `"0"` on every ordinary market.
+   */
+  premium: string;
 }
 
 export type OrderSignature = `0x${string}`;

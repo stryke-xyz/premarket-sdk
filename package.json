@@ -1,6 +1,6 @@
 {
   "name": "@stryke-xyz/premarket-sdk",
-  "version": "1.3.0",
+  "version": "1.3.18",
   "type": "module",
   "module": "dist/esm/index.js",
   "main": "dist/cjs/index.js",

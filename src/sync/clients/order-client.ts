@@ -38,6 +38,9 @@ export interface TokenDepthSnapshot {
   /** ms epoch when lastPrice was set on the server, or null if unknown. */
   lastPriceAt: number | null;
   seq: number;
+  /** True for a covered market's single ladder (quoted in its own quote
+   *  token, never the collateral) — see MarketDepthSyncClient.isCoveredMarket. */
+  isCovered: boolean;
 }
 
 /** One bid or ask level change in the normalized SDK format. */
@@ -61,6 +64,7 @@ interface WireDepthUpdate {
   type: "depth_update";
   marketId: string;
   tokenId: string;
+  isCovered?: boolean;
   startSeq: string;
   endSeq: string;
   levels: WireDepthLevel[];
@@ -82,6 +86,8 @@ export interface DepthUpdate {
   /** Range covered by this frame; clients can detect gaps via startSeq != prevSeq + 1. */
   startSeq: number;
   endSeq: number;
+  /** True for a covered market's single ladder — see TokenDepthSnapshot.isCovered. */
+  isCovered: boolean;
 }
 
 /**
@@ -124,6 +130,11 @@ interface TokenDepthState {
   lastPrice: string | null;
   lastPriceAt: number | null;
   seq: number;
+  /** True when this token's market is quoted in a separate token from its
+   *  collateral (a covered call/put) and trades on its own single ladder —
+   *  never a complementary-pair projected book. Prices here are in the
+   *  market's quote token, not the collateral. */
+  isCovered: boolean;
 }
 
 /**
@@ -414,6 +425,14 @@ export class MarketDepthSyncClient {
     return this.tokenStates.get(tokenId)?.lastPrice ?? null;
   }
 
+  /** True when this token's market trades on a covered single ladder (quoted
+   *  in its own quote token) rather than the ordinary complementary-pair
+   *  projected book. Undefined/unknown tokens report false, not unknown —
+   *  callers should treat "not yet synced" the same as "ordinary market". */
+  isCoveredMarket(tokenId: string): boolean {
+    return this.tokenStates.get(tokenId)?.isCovered ?? false;
+  }
+
   onSnapshot(listener: (marketId: string, snapshots: TokenDepthSnapshot[]) => void): () => void {
     this.snapshotListeners.add(listener);
     return () => this.snapshotListeners.delete(listener);
@@ -480,6 +499,7 @@ export class MarketDepthSyncClient {
         lastPrice: snapshot.lastPrice,
         lastPriceAt: (snapshot as any).lastPriceAt ?? null,
         seq: snapshot.seq,
+        isCovered: (snapshot as any).isCovered ?? false,
       };
       for (const level of snapshot.bids) {
         state.bids.set(normalizePrice(level.price), level.depth);
@@ -527,6 +547,7 @@ export class MarketDepthSyncClient {
   private handleMarketStateUpdate(msg: {
     marketId: string;
     tokenId: string;
+    isCovered?: boolean;
     bestBid: string | null;
     bestAsk: string | null;
     bestBidAt?: number | null;
@@ -537,6 +558,7 @@ export class MarketDepthSyncClient {
     const state = this.tokenStates.get(String(msg.tokenId));
     if (!state) return;
 
+    if (msg.isCovered != null) state.isCovered = msg.isCovered;
     if (msg.bestBid != null) { state.bestBid = msg.bestBid; state.bestBidAt = msg.bestBidAt ?? state.bestBidAt; }
     if (msg.bestAsk != null) { state.bestAsk = msg.bestAsk; state.bestAskAt = msg.bestAskAt ?? state.bestAskAt; }
     if (msg.lastPrice != null) {
@@ -594,6 +616,7 @@ export class MarketDepthSyncClient {
       seq: state.seq,
       startSeq: state.seq,
       endSeq: state.seq,
+      isCovered: state.isCovered,
     };
     this.deltaListeners.forEach((listener) => {
       try { listener(marketId, update); } catch (e) { console.error(e); }
@@ -645,6 +668,7 @@ export class MarketDepthSyncClient {
 
         // Advance seq only when endSeq is meaningful
         if (endSeq > state.seq) state.seq = endSeq;
+        if (frame.isCovered != null) state.isCovered = frame.isCovered;
 
         if (emittedLevels.length === 0) continue;
 
@@ -660,6 +684,7 @@ export class MarketDepthSyncClient {
           seq: state.seq,
           startSeq,
           endSeq,
+          isCovered: state.isCovered,
         };
 
         this.deltaListeners.forEach((listener) => {

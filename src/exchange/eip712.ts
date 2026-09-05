@@ -25,6 +25,10 @@ export const EXCHANGE_ORDER_TYPES = {
     { name: "tradeType", type: "uint8" },
     { name: "signatureType", type: "uint8" },
     { name: "tokenId", type: "uint256" },
+    // Covered markets: the quote a full fill moves. 0 elsewhere, which is every
+    // market whose quote token IS its collateral -- there the price is the
+    // making/taking ratio and nothing else needs signing.
+    { name: "premium", type: "uint256" },
   ],
 } as const;
 

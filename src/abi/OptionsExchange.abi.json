@@ -1,0 +1,1016 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "owner_",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "registry_",
+        "type": "address",
+        "internalType": "contract IMarketsRegistry"
+      },
+      {
+        "name": "vault_",
+        "type": "address",
+        "internalType": "contract IOptionMarketVault"
+      },
+      {
+        "name": "feeReceiver_",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "REGISTRY",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract IMarketsRegistry"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "VAULT",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract IOptionMarketVault"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "cancelOrder",
+    "inputs": [
+      {
+        "name": "order",
+        "type": "tuple",
+        "internalType": "struct IOptionsExchange.Order",
+        "components": [
+          {
+            "name": "salt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "nonce",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "marketId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "tokenId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "qty",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "limitPremium",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxUnderlying",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "minUnderlying",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "deadline",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maker",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "receiver",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "side",
+            "type": "uint8",
+            "internalType": "enum IOptionsExchange.Side"
+          },
+          {
+            "name": "intent",
+            "type": "uint8",
+            "internalType": "enum IOptionsExchange.Intent"
+          },
+          {
+            "name": "signatureType",
+            "type": "uint8",
+            "internalType": "enum IOptionsExchange.SignatureType"
+          }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "eip712Domain",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "fields",
+        "type": "bytes1",
+        "internalType": "bytes1"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "version",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "chainId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "verifyingContract",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "salt",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "extensions",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "feeReceiver",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "hashOrder",
+    "inputs": [
+      {
+        "name": "order",
+        "type": "tuple",
+        "internalType": "struct IOptionsExchange.Order",
+        "components": [
+          {
+            "name": "salt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "nonce",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "marketId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "tokenId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "qty",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "limitPremium",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxUnderlying",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "minUnderlying",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "deadline",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maker",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "receiver",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "side",
+            "type": "uint8",
+            "internalType": "enum IOptionsExchange.Side"
+          },
+          {
+            "name": "intent",
+            "type": "uint8",
+            "internalType": "enum IOptionsExchange.Intent"
+          },
+          {
+            "name": "signatureType",
+            "type": "uint8",
+            "internalType": "enum IOptionsExchange.SignatureType"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "incrementNonce",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "next",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "isResolver",
+    "inputs": [
+      {
+        "name": "resolver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "allowed",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "matchOrder",
+    "inputs": [
+      {
+        "name": "bidOrder",
+        "type": "tuple",
+        "internalType": "struct IOptionsExchange.Order",
+        "components": [
+          {
+            "name": "salt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "nonce",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "marketId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "tokenId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "qty",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "limitPremium",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxUnderlying",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "minUnderlying",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "deadline",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maker",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "receiver",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "side",
+            "type": "uint8",
+            "internalType": "enum IOptionsExchange.Side"
+          },
+          {
+            "name": "intent",
+            "type": "uint8",
+            "internalType": "enum IOptionsExchange.Intent"
+          },
+          {
+            "name": "signatureType",
+            "type": "uint8",
+            "internalType": "enum IOptionsExchange.SignatureType"
+          }
+        ]
+      },
+      {
+        "name": "bidSignature",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "askOrder",
+        "type": "tuple",
+        "internalType": "struct IOptionsExchange.Order",
+        "components": [
+          {
+            "name": "salt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "nonce",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "marketId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "tokenId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "qty",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "limitPremium",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxUnderlying",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "minUnderlying",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "deadline",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maker",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "receiver",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "side",
+            "type": "uint8",
+            "internalType": "enum IOptionsExchange.Side"
+          },
+          {
+            "name": "intent",
+            "type": "uint8",
+            "internalType": "enum IOptionsExchange.Intent"
+          },
+          {
+            "name": "signatureType",
+            "type": "uint8",
+            "internalType": "enum IOptionsExchange.SignatureType"
+          }
+        ]
+      },
+      {
+        "name": "askSignature",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "qty",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "takerIsBid",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "nonces",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "nonce",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "orderStatus",
+    "inputs": [
+      {
+        "name": "orderHash",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct IOptionsExchange.OrderStatus",
+        "components": [
+          {
+            "name": "isFilledOrCancelled",
+            "type": "bool",
+            "internalType": "bool"
+          },
+          {
+            "name": "remainingQty",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "pause",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "paused",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "renounceOwnership",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setFeeReceiver",
+    "inputs": [
+      {
+        "name": "newFeeReceiver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setResolver",
+    "inputs": [
+      {
+        "name": "resolver",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "allowed",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "transferOwnership",
+    "inputs": [
+      {
+        "name": "newOwner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "unpause",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "EIP712DomainChanged",
+    "inputs": [],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FeeCharged",
+    "inputs": [
+      {
+        "name": "payer",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FeeReceiverUpdated",
+    "inputs": [
+      {
+        "name": "previous",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "current",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "NonceIncremented",
+    "inputs": [
+      {
+        "name": "maker",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "nonce",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OptionMatchExecuted",
+    "inputs": [
+      {
+        "name": "marketId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "bidOrderHash",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "askOrderHash",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "matchType",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum IOptionsExchange.MatchType"
+      },
+      {
+        "name": "qty",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "execPremium",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "underlying",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OrderCancelled",
+    "inputs": [
+      {
+        "name": "orderHash",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "maker",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OwnershipTransferred",
+    "inputs": [
+      {
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Paused",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ResolverUpdated",
+    "inputs": [
+      {
+        "name": "resolver",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "allowed",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Unpaused",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "EnforcedPause",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ExpectedPause",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "FillExceedsRemaining",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidFeeReceiver",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidMarket",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidNonce",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidOrder",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidQty",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidShortString",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidSignature",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidSignatureType",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MarketExpired",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MismatchedMarkets",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MismatchedTokenIds",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotCovered",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotCrossing",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotOptionToken",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotOrderMaker",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OrderExpired",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OrderFilledOrCancelled",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OwnableInvalidOwner",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "OwnableUnauthorizedAccount",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ReentrancyGuardReentrantCall",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ResolverNotWhitelisted",
+    "inputs": [
+      {
+        "name": "resolver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "SafeERC20FailedOperation",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "SameSide",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "StringTooLong",
+    "inputs": [
+      {
+        "name": "str",
+        "type": "string",
+        "internalType": "string"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "UnderlyingAboveMax",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "UnderlyingBelowMin",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "UnexpectedUnderlyingReceived",
+    "inputs": []
+  }
+]

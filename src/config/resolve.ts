@@ -22,6 +22,7 @@ import {
   FEE_REGISTRY,
   MARKETS_REGISTRY,
   OPTION_MARKET_VAULT,
+  OPTIONS_EXCHANGE,
   PERMIT2_ADDRESS,
   SIMPLE_ACCOUNT_FACTORY,
   WETH,
@@ -44,6 +45,13 @@ export interface RequiredContracts {
 
 /** Addresses that legitimately vary by deployment maturity. */
 export interface OptionalContracts {
+  /**
+   * Covered (options) book. Optional on purpose: every existing consumer
+   * resolves chains that predate this deployment, and making it required would
+   * turn "no options markets here yet" into a boot-time crash for all of them.
+   * Consumers that need it must check for it.
+   */
+  optionsExchange?: `0x${string}`;
   marketsRegistry?: `0x${string}`;
   feeRegistry?: `0x${string}`;
   communityMarketManager?: `0x${string}`;
@@ -90,8 +98,17 @@ export class MissingChainAddressError extends Error {
 export function getChainConfig(chainId: number): ChainConfig {
   if (!isSupportedChain(chainId)) throw new UnsupportedChainError(chainId);
 
+  // The OptionsExchange map is total so a new chain cannot forget the key, and
+  // carries the zero address where the contract is not deployed. Drop that here:
+  // an optional address that is present-but-zero is worse than absent, since a
+  // consumer's `if (optionsExchange)` would then transact into nothing.
+  const optionsExchange = OPTIONS_EXCHANGE[chainId];
+
   const contracts: RequiredContracts & OptionalContracts = {
     exchange: EXCHANGE[chainId],
+    optionsExchange: /^0x0{40}$/i.test(optionsExchange)
+      ? undefined
+      : optionsExchange,
     optionMarketVault: OPTION_MARKET_VAULT[chainId],
     entryPoint: ENTRY_POINT[chainId],
     simpleAccountFactory: SIMPLE_ACCOUNT_FACTORY[chainId],

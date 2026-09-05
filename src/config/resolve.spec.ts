@@ -36,6 +36,21 @@ describe("getChainConfig", () => {
     });
   }
 
+  for (const chainId of SUPPORTED_CHAIN_IDS) {
+    it(`never resolves a placeholder options exchange for chain ${chainId}`, () => {
+      // Optional, so absent is a valid answer — but a present address must be a
+      // real one, and must not be the ordinary Exchange: the two books sign
+      // under different EIP-712 domains and settle different order structs.
+      const { contracts } = getChainConfig(chainId);
+      if (contracts.optionsExchange === undefined) return;
+      expect(contracts.optionsExchange).toMatch(ADDRESS);
+      expect(contracts.optionsExchange).not.toMatch(/^0x0{40}$/i);
+      expect(contracts.optionsExchange.toLowerCase()).not.toBe(
+        contracts.exchange.toLowerCase(),
+      );
+    });
+  }
+
   it("does not share contracts between distinct chains", () => {
     // A resolver bug that fell back to one chain would still satisfy every
     // per-chain assertion above; only cross-chain comparison catches it.
