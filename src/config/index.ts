@@ -136,7 +136,7 @@ export const OPTION_MARKET_VAULT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
   [arbitrum.id]: "0xd07280a68bd53b83b6b25861016bed637b3024ed",
   [megaETH.id]: "0x9341e3e0e4056cc9c299220931c0214bafea907a",
-  [robinhood.id]: "0x57DfE841B48De14C0D11cBEeeA63356FA780b977",
+  [robinhood.id]: "0x6525c13bB3F888a213eAd2ec293526fb513304b4",
 };
 
 /** Exchange contract addresses by supported chain. */
@@ -144,26 +144,7 @@ export const EXCHANGE: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
   [arbitrum.id]: "0x8e25cc9aed1131c54b176ef2f0a3a5593db1554b",
   [megaETH.id]: "0xde4de2de1c9f7a5d527bd09cd50ef6e4d072ce91",
-  [robinhood.id]: "0xcEDC3e3672C0fEa688B3AB3FfD416C31552a432f",
-};
-
-/**
- * OptionsExchange contract addresses by supported chain.
- *
- * A separate deployment from {@link EXCHANGE}, not a replacement: covered
- * (options) markets settle here, ordinary pair-mint markets keep settling
- * through the Exchange. The two sign under different EIP-712 domains, so an
- * order routed to the wrong one cannot be recovered, let alone filled.
- *
- * The zero address marks a chain where the contract is not deployed yet.
- * {@link getChainConfig} treats those as absent rather than resolving them, so
- * a placeholder cannot masquerade as a live deployment.
- */
-export const OPTIONS_EXCHANGE: Record<SUPPORTED_CHAINS, `0x${string}`> = {
-  [anvil.id]: "0x0000000000000000000000000000000000000000",
-  [arbitrum.id]: "0x0000000000000000000000000000000000000000",
-  [megaETH.id]: "0x0000000000000000000000000000000000000000",
-  [robinhood.id]: "0x0000000000000000000000000000000000000000",
+  [robinhood.id]: "0xA87a57Bcb70993DCDd5Ebf081b10a96cDfCeB0d0",
 };
 
 /** MarketsRegistry contract addresses on chains where the registry is deployed. */
@@ -172,7 +153,7 @@ export const MARKETS_REGISTRY: Partial<
 > = {
   [anvil.id]: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
   [megaETH.id]: "0x054fd1041ce021218b743abb956be47903533fc9",
-  [robinhood.id]: "0x13d10E7bEf522b57c60A0F6D74601ec832DB79fF",
+  [robinhood.id]: "0x772F0b474a01FA1A09839B9Cd20A5F982faf7d7d",
 };
 
 /** Configured protocol owner for deployments where the owner is published. */

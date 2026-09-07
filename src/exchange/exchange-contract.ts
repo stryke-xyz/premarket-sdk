@@ -25,6 +25,7 @@ function normalizeOrder(order: OrderLike) {
     tradeType: Number(order.tradeType),
     signatureType: Number(order.signatureType),
     tokenId: BigInt(order.tokenId),
+    premium: BigInt(order.premium ?? 0n),
   };
 }
 

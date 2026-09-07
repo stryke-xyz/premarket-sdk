@@ -117,8 +117,8 @@
           },
           {
             "name": "premium",
-            "internalType": "uint256",
-            "type": "uint256"
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       }
@@ -248,8 +248,8 @@
           },
           {
             "name": "premium",
-            "internalType": "uint256",
-            "type": "uint256"
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       },
@@ -369,8 +369,8 @@
           },
           {
             "name": "premium",
-            "internalType": "uint256",
-            "type": "uint256"
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       }
@@ -481,8 +481,8 @@
           },
           {
             "name": "premium",
-            "internalType": "uint256",
-            "type": "uint256"
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       },
@@ -553,8 +553,8 @@
           },
           {
             "name": "premium",
-            "internalType": "uint256",
-            "type": "uint256"
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       },
@@ -731,8 +731,8 @@
           },
           {
             "name": "premium",
-            "internalType": "uint256",
-            "type": "uint256"
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       },
@@ -798,8 +798,8 @@
           },
           {
             "name": "premium",
-            "internalType": "uint256",
-            "type": "uint256"
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       },
@@ -862,6 +862,11 @@
           },
           {
             "name": "collateralProduced",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "premiumAmount",
             "type": "uint256",
             "internalType": "uint256"
           },
@@ -1002,85 +1007,6 @@
       }
     ],
     "stateMutability": "view"
-  },
-  {
-    "type": "event",
-    "name": "CoveredMatchExecuted",
-    "inputs": [
-      {
-        "name": "marketId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "askOrderHash",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "bidOrderHash",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "writer",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      },
-      {
-        "name": "buyer",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      },
-      {
-        "name": "tokenId",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "matchType",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "enum ExchangeStorage.CoveredMatchType"
-      },
-      {
-        "name": "qty",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "execPrice",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "premium",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "vaultCollateralDelta",
-        "type": "int256",
-        "indexed": false,
-        "internalType": "int256"
-      },
-      {
-        "name": "resolver",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
   },
   {
     "type": "event",
@@ -1412,8 +1338,8 @@
           },
           {
             "name": "premium",
-            "internalType": "uint256",
-            "type": "uint256"
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       },
@@ -1622,7 +1548,7 @@
   },
   {
     "type": "error",
-    "name": "CoveredMarketRequiresCoveredMatch",
+    "name": "CoveredRequiresMatch",
     "inputs": []
   },
   {
@@ -1677,6 +1603,11 @@
   },
   {
     "type": "error",
+    "name": "InvalidPremium",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidRegistry",
     "inputs": []
   },
@@ -1707,11 +1638,6 @@
   },
   {
     "type": "error",
-    "name": "MarketExpired",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "MismatchedTokenIds",
     "inputs": []
   },
@@ -1725,11 +1651,6 @@
         "internalType": "uint256"
       }
     ]
-  },
-  {
-    "type": "error",
-    "name": "NotCoveredMarket",
-    "inputs": []
   },
   {
     "type": "error",
@@ -1799,11 +1720,6 @@
         "internalType": "address"
       }
     ]
-  },
-  {
-    "type": "error",
-    "name": "SameSideNoCross",
-    "inputs": []
   },
   {
     "type": "error",

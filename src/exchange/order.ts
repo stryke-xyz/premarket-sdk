@@ -12,11 +12,13 @@ const DEFAULT_SALT_MAX = (1n << 96n) - 1n;
  */
 export type BuildExchangeOrderParams = Omit<
   ExchangeOrder,
-  "salt" | "receiver" | "signatureType"
+  "salt" | "receiver" | "signatureType" | "premium"
 > & {
   salt?: bigint;
   receiver?: Address;
   signatureType?: SignatureType;
+  /** Defaults to 0 -- an ordinary market, priced by making/taking alone. */
+  premium?: bigint;
 };
 
 /** Builds and validates a normalized exchange order ready for hashing or signing. */
@@ -33,6 +35,7 @@ export function buildExchangeOrder(params: BuildExchangeOrderParams): ExchangeOr
     tradeType: params.tradeType,
     signatureType: params.signatureType ?? SignatureType.EIP712,
     tokenId: params.tokenId,
+    premium: params.premium ?? 0n,
   };
 
   validateExchangeOrder(order);

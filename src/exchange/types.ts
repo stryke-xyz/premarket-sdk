@@ -25,6 +25,13 @@ export interface ExchangeOrder {
   tradeType: TradeType;
   signatureType: SignatureType;
   tokenId: bigint;
+  /**
+   * Quote the order pays or receives, and a signed field like any other -- the
+   * contract hashes it, so every hasher has to include it. Zero on an ordinary
+   * market, where the price IS the making/taking ratio; non-zero is what makes
+   * an order a covered one.
+   */
+  premium: bigint;
 }
 
 /** JSON-safe exchange order shape used by APIs and persistence layers. */
@@ -40,6 +47,8 @@ export interface SerializedExchangeOrder {
   tradeType: number;
   signatureType: number;
   tokenId: string;
+  /** Optional so a payload written before covered markets still deserializes. */
+  premium?: string;
 }
 
 /** Onchain fill state returned by exchange status lookups. */
@@ -76,6 +85,7 @@ export function serializeExchangeOrder(
     tradeType: Number(order.tradeType),
     signatureType: Number(order.signatureType),
     tokenId: order.tokenId.toString(),
+    premium: order.premium.toString(),
   };
 }
 
@@ -95,6 +105,7 @@ export function deserializeExchangeOrder(
     tradeType: order.tradeType as TradeType,
     signatureType: order.signatureType as SignatureType,
     tokenId: BigInt(order.tokenId),
+    premium: BigInt(order.premium ?? "0"),
   };
 }
 

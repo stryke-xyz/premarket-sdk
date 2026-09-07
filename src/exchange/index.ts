@@ -4,7 +4,3 @@ export * from "./order.js";
 export * from "./math.js";
 export * from "./exchange-contract.js";
 export * from "./errors.js";
-export * from "./options-types.js";
-export * from "./options-eip712.js";
-export * from "./options-order.js";
-export * from "./options-exchange-contract.js";
