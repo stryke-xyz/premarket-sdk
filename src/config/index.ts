@@ -144,7 +144,10 @@ export const EXCHANGE: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
   [arbitrum.id]: "0x8e25cc9aed1131c54b176ef2f0a3a5593db1554b",
   [megaETH.id]: "0xde4de2de1c9f7a5d527bd09cd50ef6e4d072ce91",
-  [robinhood.id]: "0xA87a57Bcb70993DCDd5Ebf081b10a96cDfCeB0d0",
+  // Redeployed for `coveredMarkets`: a market declares whether it prices in a
+  // premium leg rather than it being inferred from quoteToken !== collateral.
+  // Registry and vault are unchanged, so token ids and positions carried over.
+  [robinhood.id]: "0x61911E1A4eBfEC28462e0c3550831CD36B2b8b75",
 };
 
 /** MarketsRegistry contract addresses on chains where the registry is deployed. */
