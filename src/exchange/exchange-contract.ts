@@ -142,6 +142,15 @@ export class ExchangeContract {
       args: [resolver, isWhitelisted],
     });
   }
+  /** Encodes `setPremiumFeeCap` calldata. Owner only; one cap, in FEE_RATE_BASE, for every market. */
+  getSetPremiumFeeCapCalldata(capBps: bigint): Hex {
+    return encodeFunctionData({
+      abi: exchangeAbi,
+      functionName: "setPremiumFeeCap",
+      args: [capBps],
+    });
+  }
+
   /** Encodes `setFeeReceiver` calldata for protocol fee destination updates. */
   getSetFeeReceiverCalldata(newFeeReceiver: Address): Hex {
     return encodeFunctionData({

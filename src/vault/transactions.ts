@@ -13,6 +13,7 @@ import {
 import type { VaultInstrument } from "./types.js";
 
 const optionMarketVaultAbi = parseAbi([
+  "function setSettlementFeeCap(uint256 capBps)",
   "function mint((uint256 marketId, uint256 tick, bool isCall) ins, uint256 amt) external returns (uint256 prmTokenId, uint256 oPrmTokenId)",
   "function withdraw(uint256 prmTokenId, uint256 amount, address rec) external",
   "function redeem(uint256 oPrmTokenId, address rec) external returns (uint256 profit)",
@@ -271,6 +272,21 @@ export function buildUpdateFinalTickTransaction(
       abi: optionMarketVaultAbi,
       functionName: "updateFinalTick",
       args: [marketId, tick],
+    }),
+  };
+}
+
+/** Build a settlement fee cap update: owner only, one cap in 1e6 for every market. */
+export function buildSetSettlementFeeCapTransaction(
+  vaultAddress: `0x${string}`,
+  capBps: bigint,
+): TransactionCall {
+  return {
+    to: vaultAddress,
+    data: encodeFunctionData({
+      abi: optionMarketVaultAbi,
+      functionName: "setSettlementFeeCap",
+      args: [capBps],
     }),
   };
 }

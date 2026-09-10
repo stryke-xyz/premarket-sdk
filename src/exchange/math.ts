@@ -6,8 +6,6 @@ export const FEE_RATE_BASE = 1_000_000n;
 
 /** Headroom a covered order's `maxFee` keeps over the fee at today's index, bps. 12_000 = 1.2x. */
 export const COVERED_MAX_FEE_INDEX_HEADROOM_BPS = 12_000n;
-/** Ceiling on a covered order's `maxFee`, as a share of its premium in FEE_RATE_BASE. 70_000 = 7%. */
-export const COVERED_MAX_FEE_PREMIUM_CAP = 70_000n;
 
 /**
  * The `maxFee` a covered order signs.
@@ -16,28 +14,28 @@ export const COVERED_MAX_FEE_PREMIUM_CAP = 70_000n;
  * fill's NOTIONAL, capped at the order's pro-rata share of `maxFee`, so this is
  * the most the order can ever pay:
  *
- *   min(1.2 x rate x notional,  7% x premium)
+ *   min(1.2 x rate x notional,  premiumFeeCapBps x premium)
  *
  * The 1.2x leaves room for the index to rise before the order fills; the 7%
- * keeps a far-OTM option's fee under what it trades for. The rate is the higher
- * of the market's two premium rates, since a resting order does not know which
+ * is the Exchange's `premiumFeeCapBps`, one value for every market. The rate is
+ * the higher of the market's maker and taker rates, since a resting order does not know which
  * side it will fill as. The backend rejects a cap far from this value.
  */
 export function coveredMaxFee(params: {
   /** Full-order notional in quote units -- see {@link coveredNotional}. */
   notional: bigint;
-  premiumMakerFeeRate: bigint;
-  premiumTakerFeeRate: bigint;
+  makerFeeRate: bigint;
+  takerFeeRate: bigint;
+  /** The Exchange's `premiumFeeCapBps`, in FEE_RATE_BASE. */
+  premiumFeeCapBps: bigint;
   /** The order's signed premium. */
   premium: bigint;
 }): bigint {
-  const rate = params.premiumMakerFeeRate > params.premiumTakerFeeRate
-    ? params.premiumMakerFeeRate
-    : params.premiumTakerFeeRate;
+  const rate = params.makerFeeRate > params.takerFeeRate ? params.makerFeeRate : params.takerFeeRate;
   const denom = FEE_RATE_BASE * 10_000n;
   const byNotional =
     (params.notional * rate * COVERED_MAX_FEE_INDEX_HEADROOM_BPS + denom - 1n) / denom;
-  const byPremium = (params.premium * COVERED_MAX_FEE_PREMIUM_CAP) / FEE_RATE_BASE;
+  const byPremium = (params.premium * params.premiumFeeCapBps) / FEE_RATE_BASE;
   return byNotional < byPremium ? byNotional : byPremium;
 }
 
