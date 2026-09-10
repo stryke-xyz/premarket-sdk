@@ -29,6 +29,10 @@ export const EXCHANGE_ORDER_TYPES = {
     // market whose quote token IS its collateral -- there the price is the
     // making/taking ratio and nothing else needs signing.
     { name: "premium", type: "uint256" },
+    // Covered markets: the most this order pays in premium fees over a full
+    // fill. The Exchange charges each fill min(rate x notional, its pro-rata
+    // share of this). 0 elsewhere.
+    { name: "maxFee", type: "uint256" },
   ],
 } as const;
 

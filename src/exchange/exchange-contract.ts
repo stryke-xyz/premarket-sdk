@@ -26,6 +26,7 @@ function normalizeOrder(order: OrderLike) {
     signatureType: Number(order.signatureType),
     tokenId: BigInt(order.tokenId),
     premium: BigInt(order.premium ?? 0n),
+    maxFee: BigInt(order.maxFee ?? 0n),
   };
 }
 
@@ -66,7 +67,12 @@ export class ExchangeContract {
     makerOrder: OrderLike,
     makerSignature: Hex,
     takerFillAmount: bigint,
-    makerFillAmount: bigint
+    makerFillAmount: bigint,
+    /**
+     * The fill's notional in quote units. Each side of a covered fill pays its
+     * premium rate on this, capped by its signed `maxFee`. Pass 0 elsewhere.
+     */
+    notional: bigint
   ): Hex {
     return encodeFunctionData({
       abi: exchangeAbi,
@@ -78,6 +84,7 @@ export class ExchangeContract {
         makerSignature,
         takerFillAmount,
         makerFillAmount,
+        notional,
       ],
     });
   }
@@ -89,7 +96,8 @@ export class ExchangeContract {
     makerOrder: OrderLike,
     makerSignature: Hex,
     takerFillAmount: bigint,
-    makerFillAmount: bigint
+    makerFillAmount: bigint,
+    notional: bigint
   ): ExchangeTransactionCall {
     return {
       to: this.address,
@@ -99,7 +107,8 @@ export class ExchangeContract {
         makerOrder,
         makerSignature,
         takerFillAmount,
-        makerFillAmount
+        makerFillAmount,
+        notional
       ),
       value: 0n,
     };

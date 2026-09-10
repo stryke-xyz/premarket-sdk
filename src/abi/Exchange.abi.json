@@ -119,6 +119,11 @@
             "name": "premium",
             "type": "uint256",
             "internalType": "uint256"
+          },
+          {
+            "name": "maxFee",
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       }
@@ -269,6 +274,11 @@
             "name": "premium",
             "type": "uint256",
             "internalType": "uint256"
+          },
+          {
+            "name": "maxFee",
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       },
@@ -390,6 +400,11 @@
             "name": "premium",
             "type": "uint256",
             "internalType": "uint256"
+          },
+          {
+            "name": "maxFee",
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       }
@@ -502,6 +517,11 @@
             "name": "premium",
             "type": "uint256",
             "internalType": "uint256"
+          },
+          {
+            "name": "maxFee",
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       },
@@ -574,6 +594,11 @@
             "name": "premium",
             "type": "uint256",
             "internalType": "uint256"
+          },
+          {
+            "name": "maxFee",
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       },
@@ -589,6 +614,11 @@
       },
       {
         "name": "makerFillAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "notional",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -752,6 +782,11 @@
             "name": "premium",
             "type": "uint256",
             "internalType": "uint256"
+          },
+          {
+            "name": "maxFee",
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       },
@@ -819,6 +854,11 @@
             "name": "premium",
             "type": "uint256",
             "internalType": "uint256"
+          },
+          {
+            "name": "maxFee",
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       },
@@ -829,6 +869,11 @@
       },
       {
         "name": "makerFillAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "notional",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -916,6 +961,16 @@
           },
           {
             "name": "shortfall",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "takerPremiumFee",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "makerPremiumFee",
             "type": "uint256",
             "internalType": "uint256"
           }
@@ -1394,6 +1449,11 @@
           },
           {
             "name": "premium",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "maxFee",
             "type": "uint256",
             "internalType": "uint256"
           }
