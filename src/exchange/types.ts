@@ -32,13 +32,6 @@ export interface ExchangeOrder {
    * an order a covered one.
    */
   premium: bigint;
-  /**
-   * The most this order pays in premium fees across a full fill, and signed
-   * like `premium`. The Exchange charges each fill min(rate x notional, this
-   * order's pro-rata share of `maxFee`). Zero on an ordinary market, where no
-   * premium fee exists. See {@link coveredMaxFee}.
-   */
-  maxFee: bigint;
 }
 
 /** JSON-safe exchange order shape used by APIs and persistence layers. */
@@ -56,8 +49,6 @@ export interface SerializedExchangeOrder {
   tokenId: string;
   /** Optional so a payload written before covered markets still deserializes. */
   premium?: string;
-  /** Optional for the same reason as `premium`. */
-  maxFee?: string;
 }
 
 /** Onchain fill state returned by exchange status lookups. */
@@ -95,7 +86,6 @@ export function serializeExchangeOrder(
     signatureType: Number(order.signatureType),
     tokenId: order.tokenId.toString(),
     premium: order.premium.toString(),
-    maxFee: order.maxFee.toString(),
   };
 }
 
@@ -116,7 +106,6 @@ export function deserializeExchangeOrder(
     signatureType: order.signatureType as SignatureType,
     tokenId: BigInt(order.tokenId),
     premium: BigInt(order.premium ?? "0"),
-    maxFee: BigInt(order.maxFee ?? "0"),
   };
 }
 

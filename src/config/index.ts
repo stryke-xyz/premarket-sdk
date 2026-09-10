@@ -136,7 +136,7 @@ export const OPTION_MARKET_VAULT: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
   [arbitrum.id]: "0xd07280a68bd53b83b6b25861016bed637b3024ed",
   [megaETH.id]: "0x9341e3e0e4056cc9c299220931c0214bafea907a",
-  [robinhood.id]: "0x6525c13bB3F888a213eAd2ec293526fb513304b4",
+  [robinhood.id]: "0x0F559Cd5A4056f0223fE39b75D66593D24454c27",
 };
 
 /** Exchange contract addresses by supported chain. */
@@ -144,10 +144,9 @@ export const EXCHANGE: Record<SUPPORTED_CHAINS, `0x${string}`> = {
   [anvil.id]: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
   [arbitrum.id]: "0x8e25cc9aed1131c54b176ef2f0a3a5593db1554b",
   [megaETH.id]: "0xde4de2de1c9f7a5d527bd09cd50ef6e4d072ce91",
-  // Redeployed for `coveredMarkets`: a market declares whether it prices in a
-  // premium leg rather than it being inferred from quoteToken !== collateral.
-  // Registry and vault are unchanged, so token ids and positions carried over.
-  [robinhood.id]: "0x61911E1A4eBfEC28462e0c3550831CD36B2b8b75",
+  // Covered-notional-premium deployment: a new registry, vault and exchange
+  // together, so token ids and positions from the previous set do not carry over.
+  [robinhood.id]: "0x51C0fC0197045227628eF0A2adBb6B2444d32026",
 };
 
 /** MarketsRegistry contract addresses on chains where the registry is deployed. */
@@ -156,7 +155,7 @@ export const MARKETS_REGISTRY: Partial<
 > = {
   [anvil.id]: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
   [megaETH.id]: "0x054fd1041ce021218b743abb956be47903533fc9",
-  [robinhood.id]: "0x772F0b474a01FA1A09839B9Cd20A5F982faf7d7d",
+  [robinhood.id]: "0x69BCe4B561Fe00E273536E37BdDccb7606CcA991",
 };
 
 /** Configured protocol owner for deployments where the owner is published. */

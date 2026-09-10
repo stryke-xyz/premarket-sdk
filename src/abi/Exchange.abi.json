@@ -119,11 +119,6 @@
             "name": "premium",
             "type": "uint256",
             "internalType": "uint256"
-          },
-          {
-            "name": "maxFee",
-            "type": "uint256",
-            "internalType": "uint256"
           }
         ]
       }
@@ -255,11 +250,6 @@
             "name": "premium",
             "type": "uint256",
             "internalType": "uint256"
-          },
-          {
-            "name": "maxFee",
-            "type": "uint256",
-            "internalType": "uint256"
           }
         ]
       },
@@ -381,11 +371,6 @@
             "name": "premium",
             "type": "uint256",
             "internalType": "uint256"
-          },
-          {
-            "name": "maxFee",
-            "type": "uint256",
-            "internalType": "uint256"
           }
         ]
       }
@@ -498,11 +483,6 @@
             "name": "premium",
             "type": "uint256",
             "internalType": "uint256"
-          },
-          {
-            "name": "maxFee",
-            "type": "uint256",
-            "internalType": "uint256"
           }
         ]
       },
@@ -573,11 +553,6 @@
           },
           {
             "name": "premium",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "maxFee",
             "type": "uint256",
             "internalType": "uint256"
           }
@@ -776,11 +751,6 @@
             "name": "premium",
             "type": "uint256",
             "internalType": "uint256"
-          },
-          {
-            "name": "maxFee",
-            "type": "uint256",
-            "internalType": "uint256"
           }
         ]
       },
@@ -846,11 +816,6 @@
           },
           {
             "name": "premium",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "maxFee",
             "type": "uint256",
             "internalType": "uint256"
           }
@@ -1419,11 +1384,6 @@
           },
           {
             "name": "premium",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "maxFee",
             "type": "uint256",
             "internalType": "uint256"
           }

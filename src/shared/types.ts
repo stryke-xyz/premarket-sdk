@@ -26,11 +26,6 @@ export interface Order {
    * the maker picks and is signed here. `"0"` on every ordinary market.
    */
   premium: string;
-  /**
-   * The most this order pays in premium fees across a full fill, signed.
-   * Covered markets only; `"0"` on every ordinary market.
-   */
-  maxFee: string;
 }
 
 export type OrderSignature = `0x${string}`;
