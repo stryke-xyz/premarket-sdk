@@ -26,6 +26,9 @@ export interface RegistryMarket {
   nonRollable: boolean;
   isSpread?: boolean;
   useAbsoluteSpreadCollateral?: boolean;
+  quoteToken?: Address;
+  /** Covered markets: matches settle on the premium leg. Requires a `quoteToken`. */
+  isCoveredOnExchange?: boolean;
 }
 
 /** JSON-safe registry market payload used in APIs or config files. */
@@ -48,6 +51,9 @@ export interface SerializedRegistryMarket {
   nonRollable: boolean;
   isSpread?: boolean;
   useAbsoluteSpreadCollateral?: boolean;
+  quoteToken?: Address;
+  /** Covered markets: matches settle on the premium leg. Requires a `quoteToken`. */
+  isCoveredOnExchange?: boolean;
 }
 
 /** Converts a registry market into its stringified transport-safe shape. */
@@ -73,6 +79,8 @@ export function serializeRegistryMarket(
     nonRollable: market.nonRollable,
     isSpread: market.isSpread,
     useAbsoluteSpreadCollateral: market.useAbsoluteSpreadCollateral,
+    quoteToken: market.quoteToken,
+    isCoveredOnExchange: market.isCoveredOnExchange,
   };
 }
 
@@ -99,5 +107,7 @@ export function deserializeRegistryMarket(
     nonRollable: market.nonRollable,
     isSpread: market.isSpread,
     useAbsoluteSpreadCollateral: market.useAbsoluteSpreadCollateral,
+    quoteToken: market.quoteToken,
+    isCoveredOnExchange: market.isCoveredOnExchange,
   };
 }

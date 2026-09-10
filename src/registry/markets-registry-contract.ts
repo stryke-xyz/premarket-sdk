@@ -17,6 +17,7 @@ function normalizeMarket(market: MarketLike) {
     underlying: market.underlying,
     collateral: market.collateral,
     delivery: market.delivery,
+    quoteToken: market.quoteToken ?? "0x0000000000000000000000000000000000000000",
     owner: market.owner,
     tickSize: BigInt(market.tickSize),
     tickSpacing: BigInt(market.tickSpacing),
@@ -32,6 +33,7 @@ function normalizeMarket(market: MarketLike) {
     nonRollable: market.nonRollable,
     isSpread: market.isSpread ?? false,
     useAbsoluteSpreadCollateral: market.useAbsoluteSpreadCollateral ?? false,
+    isCoveredOnExchange: market.isCoveredOnExchange ?? false,
   };
 }
 
@@ -55,6 +57,18 @@ export class MarketsRegistryContract {
       data: this.getAddMarketCalldata(market),
       value: 0n,
     };
+  }
+
+  /**
+   * Encodes `setCoveredOnExchange` calldata. Owner only. A covered market
+   * settles its matches on the premium leg and needs a `quoteToken`.
+   */
+  getSetCoveredOnExchangeCalldata(marketId: bigint, isCoveredOnExchange: boolean): Hex {
+    return encodeFunctionData({
+      abi: marketsRegistryAbi,
+      functionName: "setCoveredOnExchange",
+      args: [marketId, isCoveredOnExchange],
+    });
   }
 
   /** Encodes `updateToken` calldata for stable-token metadata changes. */

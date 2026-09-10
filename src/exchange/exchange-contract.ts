@@ -142,24 +142,6 @@ export class ExchangeContract {
       args: [resolver, isWhitelisted],
     });
   }
-  /**
-   * Encodes `setCoveredMarket` calldata.
-   *
-   * A market prices in a separate premium leg because it was DECLARED to, not
-   * because its quote and collateral tokens happen to differ — that inference
-   * could not express a cash-secured put, which must be collateralised in a
-   * stable asset and wants its premium quoted in that same asset. Owner only,
-   * and a market is CTF until this says otherwise.
-   */
-  getSetCoveredMarketCalldata(marketId: bigint, isCovered: boolean): Hex {
-    return encodeFunctionData({
-      abi: exchangeAbi,
-      functionName: "setCoveredMarket",
-      args: [marketId, isCovered],
-    });
-  }
-
-
   /** Encodes `setFeeReceiver` calldata for protocol fee destination updates. */
   getSetFeeReceiverCalldata(newFeeReceiver: Address): Hex {
     return encodeFunctionData({
